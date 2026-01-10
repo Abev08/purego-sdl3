@@ -16,6 +16,7 @@ var (
 	sdlAcquireGPUCommandBuffer    func(*GPUDevice) *GPUCommandBuffer
 	sdlAcquireGPUSwapchainTexture func(*GPUCommandBuffer, *Window, **GPUTexture, *uint32, *uint32) bool
 	// sdlAddAtomicInt                          func(*AtomicInt, int32) int32
+	// sdlAddAtomicU32  												func(*AtomicU32, int32) uint32
 	sdlAddEventWatch func(EventFilter, unsafe.Pointer) bool
 	// sdlAddGamepadMapping                     func(string) int32
 	// sdlAddGamepadMappingsFromFile            func(string) int32
@@ -114,6 +115,7 @@ var (
 	// sdlcosf                                  func(float32) float32
 	// sdlcrc16                                 func(uint16, unsafe.Pointer, uint64) uint16
 	// sdlcrc32                                 func(uint32, unsafe.Pointer, uint64) uint32
+	sdlCreateAnimatedCursor func(*CursorFrameInfo, int32, int32, int32) *Cursor
 	// sdlCreateAsyncIOQueue                    func() *AsyncIOQueue
 	// sdlCreateAudioStream                     func(*AudioSpec, *AudioSpec) *AudioStream
 	sdlCreateColorCursor func(*Surface, int32, int32) *Cursor
@@ -126,10 +128,12 @@ var (
 	sdlCreateGPUDevice func(GPUShaderFormat, bool, *byte) *GPUDevice
 	// sdlCreateGPUDeviceWithProperties         func(PropertiesID) *GPUDevice
 	sdlCreateGPUGraphicsPipeline func(*GPUDevice, *GPUGraphicsPipelineCreateInfo) *GPUGraphicsPipeline
-	sdlCreateGPUSampler          func(*GPUDevice, *GPUSamplerCreateInfo) *GPUSampler
-	sdlCreateGPUShader           func(*GPUDevice, *GPUShaderCreateInfo) *GPUShader
-	sdlCreateGPUTexture          func(*GPUDevice, *GPUTextureCreateInfo) *GPUTexture
-	sdlCreateGPUTransferBuffer   func(*GPUDevice, *GPUTransferBufferCreateInfo) *GPUTransferBuffer
+	sdlCreateGPURenderer         func(*GPUDevice, *Window) *Renderer
+	// sdlCreateGPURenderState      func(*Renderer, *GPURenderStateCreateInfo) *GPURenderState
+	sdlCreateGPUSampler        func(*GPUDevice, *GPUSamplerCreateInfo) *GPUSampler
+	sdlCreateGPUShader         func(*GPUDevice, *GPUShaderCreateInfo) *GPUShader
+	sdlCreateGPUTexture        func(*GPUDevice, *GPUTextureCreateInfo) *GPUTexture
+	sdlCreateGPUTransferBuffer func(*GPUDevice, *GPUTransferBufferCreateInfo) *GPUTransferBuffer
 	// sdlCreateHapticEffect                    func(*Haptic, *HapticEffect) int32
 	// sdlCreateMutex                           func() *Mutex
 	sdlCreatePalette func(int32) *Palette
@@ -169,6 +173,7 @@ var (
 	sdlDestroyCursor func(*Cursor)
 	// sdlDestroyEnvironment                    func(*Environment)
 	sdlDestroyGPUDevice func(*GPUDevice)
+	// sdlDestroyGPURenderState func(*GPURenderState)
 	// sdlDestroyHapticEffect                   func(*Haptic, int32)
 	// sdlDestroyMutex                          func(*Mutex)
 	sdlDestroyPalette func(*Palette)
@@ -276,11 +281,11 @@ var (
 	// sdlGetClipboardMimeTypes                 func(*uint64) **byte
 	sdlGetClipboardText                func() *byte
 	sdlGetClosestFullscreenDisplayMode func(DisplayID, int32, int32, float32, bool, *DisplayMode) bool
-	// sdlGetCPUCacheLineSize                   func() int32
-	sdlGetCurrentAudioDriver  func() string
-	sdlGetCurrentCameraDriver func() string
-	sdlGetCurrentDirectory    func() *byte
-	sdlGetCurrentDisplayMode  func(DisplayID) *DisplayMode
+	sdlGetCPUCacheLineSize             func() int32
+	sdlGetCurrentAudioDriver           func() string
+	sdlGetCurrentCameraDriver          func() string
+	sdlGetCurrentDirectory             func() *byte
+	sdlGetCurrentDisplayMode           func(DisplayID) *DisplayMode
 	// sdlGetCurrentDisplayOrientation          func(DisplayID) DisplayOrientation
 	sdlGetCurrentRenderOutputSize func(*Renderer, *int32, *int32) bool
 	// sdlGetCurrentThreadID                    func() ThreadID
@@ -294,6 +299,7 @@ var (
 	// sdlGetDefaultAssertionHandler            func() AssertionHandler
 	sdlGetDefaultCursor func() *Cursor
 	// sdlGetDefaultLogOutputFunction           func() LogOutputFunction
+	sdlGetDefaultTextureScaleMode func(*Renderer, *ScaleMode) bool
 	// sdlGetDesktopDisplayMode                 func(DisplayID) *DisplayMode
 	// sdlGetDisplayBounds                      func(DisplayID, *Rect) bool
 	sdlGetDisplayContentScale func(DisplayID) float32
@@ -309,7 +315,8 @@ var (
 	// sdlGetEnvironment                        func() *Environment
 	// sdlGetEnvironmentVariable                func(*Environment, string) string
 	// sdlGetEnvironmentVariables               func(*Environment) **byte
-	sdlGetError                  func() string
+	sdlGetError func() string
+	// sdlGetEventDescription       func(*Event, *byte, int32) int32
 	sdlGetEventFilter            func(*EventFilter, *unsafe.Pointer) bool
 	sdlGetFloatProperty          func(PropertiesID, string, float32) float32
 	sdlGetFullscreenDisplayModes func(DisplayID, *int32) **DisplayMode
@@ -359,12 +366,15 @@ var (
 	// sdlGetGamepadTypeFromString              func(string) GamepadType
 	// sdlGetGamepadVendor                      func(*Gamepad) uint16
 	// sdlGetGamepadVendorForID                 func(JoystickID) uint16
-	sdlGetGlobalMouseState          func(*float32, *float32) MouseButtonFlags
-	sdlGetGlobalProperties          func() PropertiesID
-	sdlGetGPUDeviceDriver           func(*GPUDevice) string
-	sdlGetGPUDriver                 func(int32) string
-	sdlGetGPUShaderFormats          func(*GPUDevice) GPUShaderFormat
-	sdlGetGPUSwapchainTextureFormat func(*GPUDevice, *Window) GPUTextureFormat
+	sdlGetGlobalMouseState                func(*float32, *float32) MouseButtonFlags
+	sdlGetGlobalProperties                func() PropertiesID
+	sdlGetGPUDeviceDriver                 func(*GPUDevice) string
+	sdlGetGPUDeviceProperties             func(*GPUDevice) PropertiesID
+	sdlGetGPUDriver                       func(int32) string
+	sdlGetGPURendererDevice               func(*Renderer) *GPUDevice
+	sdlGetGPUShaderFormats                func(*GPUDevice) GPUShaderFormat
+	sdlGetGPUSwapchainTextureFormat       func(*GPUDevice, *Window) GPUTextureFormat
+	sdlGetGPUTextureFormatFromPixelFormat func(PixelFormat) GPUTextureFormat
 	// sdlGetGrabbedWindow                      func() *Window
 	// sdlGetHapticEffectStatus                 func(*Haptic, int32) bool
 	// sdlGetHapticFeatures                     func(*Haptic) uint32
@@ -440,15 +450,17 @@ var (
 	sdlGetNumJoystickBalls   func(*Joystick) int32
 	sdlGetNumJoystickButtons func(*Joystick) int32
 	sdlGetNumJoystickHats    func(*Joystick) int32
-	// sdlGetNumLogicalCPUCores                 func() int32
-	sdlGetNumRenderDrivers func() int32
-	sdlGetNumVideoDrivers  func() int32
+	sdlGetNumLogicalCPUCores func() int32
+	sdlGetNumRenderDrivers   func() int32
+	sdlGetNumVideoDrivers    func() int32
 	// sdlGetOriginalMemoryFunctions            func(*malloc_func, *calloc_func, *realloc_func, *free_func)
 	// sdlGetPathInfo                           func(string, *PathInfo) bool
+	// sdlGetPenDeviceType        func(PenID) PenDeviceType
 	sdlGetPerformanceCounter   uintptr
 	sdlGetPerformanceFrequency uintptr
 	sdlGetPixelFormatDetails   func(PixelFormat) *PixelFormatDetails
 	// sdlGetPixelFormatForMasks                func(int32, uint32, uint32, uint32, uint32) PixelFormat
+	sdlGetPixelFormatFromGPUTextureFormat func(GPUTextureFormat) PixelFormat
 	// sdlGetPixelFormatName                    func(PixelFormat) string
 	// sdlGetPlatform                           func() string
 	sdlGetPointerProperty  func(PropertiesID, string, unsafe.Pointer) unsafe.Pointer
@@ -490,6 +502,7 @@ var (
 	sdlGetRenderSafeArea                func(*Renderer, *Rect) bool
 	sdlGetRenderScale                   func(*Renderer, *float32, *float32) bool
 	sdlGetRenderTarget                  func(*Renderer) *Texture
+	sdlGetRenderTextureAddressMode      func(*Renderer, *TextureAddressMode, *TextureAddressMode) bool
 	sdlGetRenderViewport                func(*Renderer, *Rect) bool
 	sdlGetRenderVSync                   func(*Renderer, *int32) bool
 	sdlGetRenderWindow                  func(*Renderer) *Window
@@ -513,7 +526,7 @@ var (
 	// sdlGetSensorType                         func(*Sensor) SensorType
 	// sdlGetSensorTypeForID                    func(SensorID) SensorType
 	// sdlGetSilenceValueForFormat              func(AudioFormat) int32
-	// sdlGetSIMDAlignment                      func() uint64
+	sdlGetSIMDAlignment func() uint64
 	// sdlGetStorageFileSize                    func(*Storage, string, *uint64) bool
 	// sdlGetStoragePathInfo                    func(*Storage, string, *PathInfo) bool
 	// sdlGetStorageSpaceRemaining              func(*Storage) uint64
@@ -527,7 +540,8 @@ var (
 	sdlGetSurfaceImages     func(*Surface, *int32) **Surface
 	sdlGetSurfacePalette    func(*Surface) *Palette
 	sdlGetSurfaceProperties func(*Surface) PropertiesID
-	// sdlGetSystemRAM                          func() int32
+	sdlGetSystemPageSize    func() int32
+	sdlGetSystemRAM         func() int32
 	// sdlGetSystemTheme                        func() SystemTheme
 	sdlGetTextInputArea        func(*Window, *Rect, *int32) bool
 	sdlGetTextureAlphaMod      func(*Texture, *uint8) bool
@@ -535,6 +549,7 @@ var (
 	sdlGetTextureBlendMode     func(*Texture, *BlendMode) bool
 	sdlGetTextureColorMod      func(*Texture, *uint8, *uint8, *uint8) bool
 	sdlGetTextureColorModFloat func(*Texture, *float32, *float32, *float32) bool
+	sdlGetTexturePalette       func(*Texture) *Palette
 	sdlGetTextureProperties    func(*Texture) PropertiesID
 	sdlGetTextureScaleMode     func(*Texture, *ScaleMode) bool
 	sdlGetTextureSize          func(*Texture, *float32, *float32) bool
@@ -578,7 +593,9 @@ var (
 	// sdlGetWindowParent                       func(*Window) *Window
 	sdlGetWindowPixelDensity func(*Window) float32
 	// sdlGetWindowPixelFormat                  func(*Window) PixelFormat
-	sdlGetWindowPosition func(*Window, *int32, *int32) bool
+	sdlGetWindowPosition      func(*Window, *int32, *int32) bool
+	sdlGetWindowProgressState func(*Window) ProgressState
+	sdlGetWindowProgressValue func(*Window) float32
 	// sdlGetWindowProperties                   func(*Window) PropertiesID
 	sdlGetWindowRelativeMouseMode func(*Window) bool
 	// sdlGetWindows                            func(*int32) **Window
@@ -613,11 +630,11 @@ var (
 	// sdlGUIDToString                          func(GUID, string, int32)
 	// sdlHapticEffectSupported                 func(*Haptic, *HapticEffect) bool
 	// sdlHapticRumbleSupported                 func(*Haptic) bool
-	// sdlHasAltiVec                            func() bool
-	// sdlHasARMSIMD                            func() bool
-	// sdlHasAVX                                func() bool
-	// sdlHasAVX2                               func() bool
-	// sdlHasAVX512F                            func() bool
+	sdlHasAltiVec func() bool
+	sdlHasARMSIMD func() bool
+	sdlHasAVX     func() bool
+	sdlHasAVX2    func() bool
+	sdlHasAVX512F func() bool
 	// sdlHasClipboardData                      func(string) bool
 	// sdlHasClipboardText                      func() bool
 	sdlHasEvent  func(EventType) bool
@@ -626,21 +643,21 @@ var (
 	// sdlHasGamepad                            func() bool
 	sdlHasJoystick func() bool
 	sdlHasKeyboard func() bool
-	// sdlHasLASX                               func() bool
-	// sdlHasLSX                                func() bool
-	// sdlHasMMX                                func() bool
-	sdlHasMouse func() bool
-	// sdlHasNEON                               func() bool
+	sdlHasLASX     func() bool
+	sdlHasLSX      func() bool
+	sdlHasMMX      func() bool
+	sdlHasMouse    func() bool
+	sdlHasNEON     func() bool
 	// sdlHasPrimarySelectionText               func() bool
 	sdlHasProperty              func(PropertiesID, string) bool
 	sdlHasRectIntersection      func(*Rect, *Rect) bool
 	sdlHasRectIntersectionFloat func(*FRect, *FRect) bool
 	sdlHasScreenKeyboardSupport func() bool
-	// sdlHasSSE                                func() bool
-	// sdlHasSSE2                               func() bool
-	// sdlHasSSE3                               func() bool
-	// sdlHasSSE41                              func() bool
-	// sdlHasSSE42                              func() bool
+	sdlHasSSE                   func() bool
+	sdlHasSSE2                  func() bool
+	sdlHasSSE3                  func() bool
+	sdlHasSSE41                 func() bool
+	sdlHasSSE42                 func() bool
 	// sdlhid_ble_scan                          func(bool)
 	// sdlhid_close                             func(*hid_device) int32
 	// sdlhid_device_change_count               func() uint32
@@ -653,6 +670,7 @@ var (
 	// sdlhid_get_input_report                  func(*hid_device, *uint8, uint64) int32
 	// sdlhid_get_manufacturer_string           func(*hid_device, *wchar_t, uint64) int32
 	// sdlhid_get_product_string                func(*hid_device, *wchar_t, uint64) int32
+	// sdlhid_get_properties                		func(*hid_device) PropertiesID
 	// sdlhid_get_report_descriptor             func(*hid_device, *uint8, uint64) int32
 	// sdlhid_get_serial_number_string          func(*hid_device, *wchar_t, uint64) int32
 	// sdlhid_init                              func() int32
@@ -717,6 +735,10 @@ var (
 	// sdlLoadFileAsync                         func(string, *AsyncIOQueue, unsafe.Pointer) bool
 	// sdlLoadFunction                          func(*SharedObject, string) FunctionPointer
 	// sdlLoadObject                            func(string) *SharedObject
+	sdlLoadPNG func(string) *Surface
+	// sdlLoadPNGIO   func(*IOStream, bool) *Surface
+	sdlLoadSurface func(string) *Surface
+	// sdlLoadSurfaceIO func(*IOStream, bool) *Surface
 	// sdlLoadWAV                               func(string, *AudioSpec, **uint8, *uint32) bool
 	sdlLoadWAVIO func(*IOStream, bool, *AudioSpec, **uint8, *uint32) bool
 	// sdlLockAudioStream                       func(*AudioStream) bool
@@ -810,6 +832,8 @@ var (
 	sdlPushGPUFragmentUniformData func(*GPUCommandBuffer, uint32, unsafe.Pointer, uint32)
 	sdlPushGPUVertexUniformData   func(*GPUCommandBuffer, uint32, unsafe.Pointer, uint32)
 	sdlPutAudioStreamData         uintptr
+	// sdlPutAudioStreamDataNoCopy   						uintptr
+	// sdlPutAudioStreamPlanarData   						uintptr
 	// sdlqsort                                 func(unsafe.Pointer, uint64, uint64, CompareCallback)
 	// sdlqsort_r                               func(unsafe.Pointer, uint64, uint64, CompareCallback_r, unsafe.Pointer)
 	// sdlQueryGPUFence                         func(*GPUDevice, *GPUFence) bool
@@ -884,6 +908,7 @@ var (
 	sdlRenderRects                 uintptr
 	sdlRenderTexture               uintptr
 	sdlRenderTexture9Grid          func(*Renderer, *Texture, *FRect, float32, float32, float32, float32, float32, *FRect) bool
+	sdlRenderTexture9GridTiled     func(*Renderer, *Texture, *FRect, float32, float32, float32, float32, float32, *FRect, float32) bool
 	sdlRenderTextureAffine         uintptr
 	sdlRenderTextureRotated        func(*Renderer, *Texture, *FRect, *FRect, float64, *FPoint, FlipMode) bool
 	sdlRenderTextureTiled          func(*Renderer, *Texture, *FRect, float32, *FRect) bool
@@ -898,6 +923,7 @@ var (
 	// sdlResumeAudioDevice                     func(AudioDeviceID) bool
 	sdlResumeAudioStreamDevice uintptr
 	// sdlResumeHaptic                          func(*Haptic) bool
+	sdlRotateSurface func(*Surface, float32) *Surface
 	// sdlround                                 func(float64) float64
 	// sdlroundf                                func(float32) float32
 	// sdlRumbleGamepad                         func(*Gamepad, uint16, uint16, uint32) bool
@@ -911,6 +937,8 @@ var (
 	sdlSaveBMPIO func(*Surface, *IOStream, bool) bool
 	// sdlSaveFile                              func(string, unsafe.Pointer, uint64) bool
 	// sdlSaveFile_IO                           func(*IOStream, unsafe.Pointer, uint64, bool) bool
+	sdlSavePNG func(*Surface, string) bool
+	// sdlSavePNGIO func(*Surface, *IOStream, bool) bool
 	// sdlscalbn                                func(float64, int32) float64
 	// sdlscalbnf                               func(float32, int32) float32
 	sdlScaleSurface        func(*Surface, int32, int32, ScaleMode) *Surface
@@ -939,7 +967,8 @@ var (
 	// sdlSetClipboardData                      func(ClipboardDataCallback, ClipboardCleanupCallback, unsafe.Pointer, **byte, uint64) bool
 	// sdlSetClipboardText                      func(string) bool
 	// sdlSetCurrentThreadPriority              func(ThreadPriority) bool
-	sdlSetCursor func(*Cursor) bool
+	sdlSetCursor                  func(*Cursor) bool
+	sdlSetDefaultTextureScaleMode func(*Renderer, ScaleMode) bool
 	// sdlsetenv_unsafe                         func(string, string, int32) int32
 	// sdlSetEnvironmentVariable                func(*Environment, string, string, bool) bool
 	sdlSetError func(string) bool
@@ -955,7 +984,9 @@ var (
 	// sdlSetGPUAllowedFramesInFlight           func(*GPUDevice, uint32) bool
 	// sdlSetGPUBlendConstants                  func(*GPURenderPass, FColor)
 	sdlSetGPUBufferName func(*GPUDevice, *GPUBuffer, string)
-	sdlSetGPUScissor    func(*GPURenderPass, *Rect)
+	// sdlSetGPURenderState func(*Renderer, *GPURenderState) bool
+	// sdlSetGPURenderStateFragmentUniforms func(*GPURenderState, uint32, uintptr, uint32) bool
+	sdlSetGPUScissor func(*GPURenderPass, *Rect)
 	// sdlSetGPUStencilReference                func(*GPURenderPass, uint8)
 	sdlSetGPUSwapchainParameters func(*GPUDevice, *Window, GPUSwapchainComposition, GPUPresentMode) bool
 	// sdlSetGPUTextureName                     func(*GPUDevice, *GPUTexture, string)
@@ -987,6 +1018,7 @@ var (
 	sdlSetPointerProperty            func(PropertiesID, string, unsafe.Pointer) bool
 	sdlSetPointerPropertyWithCleanup func(PropertiesID, string, unsafe.Pointer, CleanupPropertyCallback, unsafe.Pointer) bool
 	// sdlSetPrimarySelectionText               func(string) bool
+	// sdlSetRelativeMouseTransform    func(MouseMotionTransformCallback, uintptr) bool
 	sdlSetRenderClipRect            func(*Renderer, *Rect) bool
 	sdlSetRenderColorScale          func(*Renderer, float32) bool
 	sdlSetRenderDrawBlendMode       func(*Renderer, BlendMode) bool
@@ -995,6 +1027,7 @@ var (
 	sdlSetRenderLogicalPresentation func(*Renderer, int32, int32, RendererLogicalPresentation) bool
 	sdlSetRenderScale               func(*Renderer, float32, float32) bool
 	sdlSetRenderTarget              func(*Renderer, *Texture) bool
+	sdlSetRenderTextureAddressMode  func(*Renderer, TextureAddressMode, TextureAddressMode) bool
 	sdlSetRenderViewport            func(*Renderer, *Rect) bool
 	sdlSetRenderVSync               func(*Renderer, int32) bool
 	sdlSetScancodeName              func(Scancode, string) bool
@@ -1013,6 +1046,7 @@ var (
 	sdlSetTextureBlendMode          func(*Texture, BlendMode) bool
 	sdlSetTextureColorMod           uintptr
 	sdlSetTextureColorModFloat      func(*Texture, float32, float32, float32) bool
+	sdlSetTexturePalette            func(*Texture, *Palette) bool
 	sdlSetTextureScaleMode          func(*Texture, ScaleMode) bool
 	// sdlSetTLS                                func(*TLSID, unsafe.Pointer, TLSDestructorCallback) bool
 	// sdlSetTrayEntryCallback                  func(*TrayEntry, TrayCallback, unsafe.Pointer)
@@ -1023,7 +1057,8 @@ var (
 	// sdlSetTrayTooltip                        func(*Tray, string)
 	sdlSetWindowAlwaysOnTop func(*Window, bool) bool
 	// sdlSetWindowAspectRatio                  func(*Window, float32, float32) bool
-	sdlSetWindowBordered       func(*Window, bool) bool
+	sdlSetWindowBordered func(*Window, bool) bool
+	// sdlSetWindowFillDocument   func(*Window, bool) bool
 	sdlSetWindowFocusable      func(*Window, bool) bool
 	sdlSetWindowFullscreen     func(*Window, bool) bool
 	sdlSetWindowFullscreenMode func(*Window, *DisplayMode) bool
@@ -1038,6 +1073,8 @@ var (
 	sdlSetWindowOpacity func(*Window, float32) bool
 	// sdlSetWindowParent                       func(*Window, *Window) bool
 	sdlSetWindowPosition          func(*Window, int32, int32) bool
+	sdlSetWindowProgressState     func(*Window, ProgressState) bool
+	sdlSetWindowProgressValue     func(*Window, float32) bool
 	sdlSetWindowRelativeMouseMode func(*Window, bool) bool
 	sdlSetWindowResizable         func(*Window, bool) bool
 	// sdlSetWindowShape                        func(*Window, *Surface) bool
@@ -1084,6 +1121,7 @@ var (
 	// sdlstrchr                                func(string, int32) string
 	// sdlstrcmp                                func(string, string) int32
 	// sdlstrdup                                func(string) string
+	sdlStretchSurface func(*Surface, *Rect, *Surface, *Rect, ScaleMode) bool
 	// sdlStringToGUID                          func(string) GUID
 	// sdlstrlcat                               func(string, string, uint64) uint64
 	// sdlstrlcpy                               func(string, string, uint64) uint64
@@ -1502,7 +1540,7 @@ func init() {
 	// purego.RegisterLibFunc(&sdlGetClipboardMimeTypes, lib, "SDL_GetClipboardMimeTypes")
 	purego.RegisterLibFunc(&sdlGetClipboardText, lib, "SDL_GetClipboardText")
 	purego.RegisterLibFunc(&sdlGetClosestFullscreenDisplayMode, lib, "SDL_GetClosestFullscreenDisplayMode")
-	// purego.RegisterLibFunc(&sdlGetCPUCacheLineSize, lib, "SDL_GetCPUCacheLineSize")
+	purego.RegisterLibFunc(&sdlGetCPUCacheLineSize, lib, "SDL_GetCPUCacheLineSize")
 	purego.RegisterLibFunc(&sdlGetCurrentAudioDriver, lib, "SDL_GetCurrentAudioDriver")
 	purego.RegisterLibFunc(&sdlGetCurrentCameraDriver, lib, "SDL_GetCurrentCameraDriver")
 	purego.RegisterLibFunc(&sdlGetCurrentDirectory, lib, "SDL_GetCurrentDirectory")
@@ -1666,7 +1704,7 @@ func init() {
 	purego.RegisterLibFunc(&sdlGetNumJoystickBalls, lib, "SDL_GetNumJoystickBalls")
 	purego.RegisterLibFunc(&sdlGetNumJoystickButtons, lib, "SDL_GetNumJoystickButtons")
 	purego.RegisterLibFunc(&sdlGetNumJoystickHats, lib, "SDL_GetNumJoystickHats")
-	// purego.RegisterLibFunc(&sdlGetNumLogicalCPUCores, lib, "SDL_GetNumLogicalCPUCores")
+	purego.RegisterLibFunc(&sdlGetNumLogicalCPUCores, lib, "SDL_GetNumLogicalCPUCores")
 	purego.RegisterLibFunc(&sdlGetNumRenderDrivers, lib, "SDL_GetNumRenderDrivers")
 	purego.RegisterLibFunc(&sdlGetNumVideoDrivers, lib, "SDL_GetNumVideoDrivers")
 	// purego.RegisterLibFunc(&sdlGetOriginalMemoryFunctions, lib, "SDL_GetOriginalMemoryFunctions")
@@ -1739,7 +1777,7 @@ func init() {
 	// purego.RegisterLibFunc(&sdlGetSensorType, lib, "SDL_GetSensorType")
 	// purego.RegisterLibFunc(&sdlGetSensorTypeForID, lib, "SDL_GetSensorTypeForID")
 	// purego.RegisterLibFunc(&sdlGetSilenceValueForFormat, lib, "SDL_GetSilenceValueForFormat")
-	// purego.RegisterLibFunc(&sdlGetSIMDAlignment, lib, "SDL_GetSIMDAlignment")
+	purego.RegisterLibFunc(&sdlGetSIMDAlignment, lib, "SDL_GetSIMDAlignment")
 	// purego.RegisterLibFunc(&sdlGetStorageFileSize, lib, "SDL_GetStorageFileSize")
 	// purego.RegisterLibFunc(&sdlGetStoragePathInfo, lib, "SDL_GetStoragePathInfo")
 	// purego.RegisterLibFunc(&sdlGetStorageSpaceRemaining, lib, "SDL_GetStorageSpaceRemaining")
@@ -1753,7 +1791,7 @@ func init() {
 	purego.RegisterLibFunc(&sdlGetSurfaceImages, lib, "SDL_GetSurfaceImages")
 	purego.RegisterLibFunc(&sdlGetSurfacePalette, lib, "SDL_GetSurfacePalette")
 	purego.RegisterLibFunc(&sdlGetSurfaceProperties, lib, "SDL_GetSurfaceProperties")
-	// purego.RegisterLibFunc(&sdlGetSystemRAM, lib, "SDL_GetSystemRAM")
+	purego.RegisterLibFunc(&sdlGetSystemRAM, lib, "SDL_GetSystemRAM")
 	// purego.RegisterLibFunc(&sdlGetSystemTheme, lib, "SDL_GetSystemTheme")
 	purego.RegisterLibFunc(&sdlGetTextInputArea, lib, "SDL_GetTextInputArea")
 	purego.RegisterLibFunc(&sdlGetTextureAlphaMod, lib, "SDL_GetTextureAlphaMod")
@@ -1839,11 +1877,11 @@ func init() {
 	// purego.RegisterLibFunc(&sdlGUIDToString, lib, "SDL_GUIDToString")
 	// purego.RegisterLibFunc(&sdlHapticEffectSupported, lib, "SDL_HapticEffectSupported")
 	// purego.RegisterLibFunc(&sdlHapticRumbleSupported, lib, "SDL_HapticRumbleSupported")
-	// purego.RegisterLibFunc(&sdlHasAltiVec, lib, "SDL_HasAltiVec")
-	// purego.RegisterLibFunc(&sdlHasARMSIMD, lib, "SDL_HasARMSIMD")
-	// purego.RegisterLibFunc(&sdlHasAVX, lib, "SDL_HasAVX")
-	// purego.RegisterLibFunc(&sdlHasAVX2, lib, "SDL_HasAVX2")
-	// purego.RegisterLibFunc(&sdlHasAVX512F, lib, "SDL_HasAVX512F")
+	purego.RegisterLibFunc(&sdlHasAltiVec, lib, "SDL_HasAltiVec")
+	purego.RegisterLibFunc(&sdlHasARMSIMD, lib, "SDL_HasARMSIMD")
+	purego.RegisterLibFunc(&sdlHasAVX, lib, "SDL_HasAVX")
+	purego.RegisterLibFunc(&sdlHasAVX2, lib, "SDL_HasAVX2")
+	purego.RegisterLibFunc(&sdlHasAVX512F, lib, "SDL_HasAVX512F")
 	// purego.RegisterLibFunc(&sdlHasClipboardData, lib, "SDL_HasClipboardData")
 	// purego.RegisterLibFunc(&sdlHasClipboardText, lib, "SDL_HasClipboardText")
 	purego.RegisterLibFunc(&sdlHasEvent, lib, "SDL_HasEvent")
@@ -1852,21 +1890,21 @@ func init() {
 	// purego.RegisterLibFunc(&sdlHasGamepad, lib, "SDL_HasGamepad")
 	purego.RegisterLibFunc(&sdlHasJoystick, lib, "SDL_HasJoystick")
 	purego.RegisterLibFunc(&sdlHasKeyboard, lib, "SDL_HasKeyboard")
-	// purego.RegisterLibFunc(&sdlHasLASX, lib, "SDL_HasLASX")
-	// purego.RegisterLibFunc(&sdlHasLSX, lib, "SDL_HasLSX")
-	// purego.RegisterLibFunc(&sdlHasMMX, lib, "SDL_HasMMX")
+	purego.RegisterLibFunc(&sdlHasLASX, lib, "SDL_HasLASX")
+	purego.RegisterLibFunc(&sdlHasLSX, lib, "SDL_HasLSX")
+	purego.RegisterLibFunc(&sdlHasMMX, lib, "SDL_HasMMX")
 	purego.RegisterLibFunc(&sdlHasMouse, lib, "SDL_HasMouse")
-	// purego.RegisterLibFunc(&sdlHasNEON, lib, "SDL_HasNEON")
+	purego.RegisterLibFunc(&sdlHasNEON, lib, "SDL_HasNEON")
 	// purego.RegisterLibFunc(&sdlHasPrimarySelectionText, lib, "SDL_HasPrimarySelectionText")
 	purego.RegisterLibFunc(&sdlHasProperty, lib, "SDL_HasProperty")
 	purego.RegisterLibFunc(&sdlHasRectIntersection, lib, "SDL_HasRectIntersection")
 	purego.RegisterLibFunc(&sdlHasRectIntersectionFloat, lib, "SDL_HasRectIntersectionFloat")
 	purego.RegisterLibFunc(&sdlHasScreenKeyboardSupport, lib, "SDL_HasScreenKeyboardSupport")
-	// purego.RegisterLibFunc(&sdlHasSSE, lib, "SDL_HasSSE")
-	// purego.RegisterLibFunc(&sdlHasSSE2, lib, "SDL_HasSSE2")
-	// purego.RegisterLibFunc(&sdlHasSSE3, lib, "SDL_HasSSE3")
-	// purego.RegisterLibFunc(&sdlHasSSE41, lib, "SDL_HasSSE41")
-	// purego.RegisterLibFunc(&sdlHasSSE42, lib, "SDL_HasSSE42")
+	purego.RegisterLibFunc(&sdlHasSSE, lib, "SDL_HasSSE")
+	purego.RegisterLibFunc(&sdlHasSSE2, lib, "SDL_HasSSE2")
+	purego.RegisterLibFunc(&sdlHasSSE3, lib, "SDL_HasSSE3")
+	purego.RegisterLibFunc(&sdlHasSSE41, lib, "SDL_HasSSE41")
+	purego.RegisterLibFunc(&sdlHasSSE42, lib, "SDL_HasSSE42")
 	// purego.RegisterLibFunc(&sdlhid_ble_scan, lib, "SDL_hid_ble_scan")
 	// purego.RegisterLibFunc(&sdlhid_close, lib, "SDL_hid_close")
 	// purego.RegisterLibFunc(&sdlhid_device_change_count, lib, "SDL_hid_device_change_count")
@@ -2441,4 +2479,47 @@ func init() {
 	// purego.RegisterLibFunc(&sdlWriteU64BE, lib, "SDL_WriteU64BE")
 	// purego.RegisterLibFunc(&sdlWriteU64LE, lib, "SDL_WriteU64LE")
 	// purego.RegisterLibFunc(&sdlWriteU8, lib, "SDL_WriteU8")
+
+	// Load functions available since 3.4.0
+	versionMajor, versionMinor, _ := GetVersion()
+	if versionMajor >= 3 && versionMinor >= 4 {
+		// purego.RegisterLibFunc(&sdlAddAtomicU32, lib, "SDL_AddAtomicU32")
+		purego.RegisterLibFunc(&sdlCreateAnimatedCursor, lib, "SDL_CreateAnimatedCursor")
+		purego.RegisterLibFunc(&sdlCreateGPURenderer, lib, "SDL_CreateGPURenderer")
+		// purego.RegisterLibFunc(&sdlCreateGPURenderState, lib, "SDL_CreateGPURenderState")
+		// purego.RegisterLibFunc(&sdlDestroyGPURenderState, lib, "SDL_DestroyGPURenderState")
+		purego.RegisterLibFunc(&sdlGetDefaultTextureScaleMode, lib, "SDL_GetDefaultTextureScaleMode")
+		// purego.RegisterLibFunc(&sdlGetEventDescription, lib, "SDL_GetEventDescription")
+		purego.RegisterLibFunc(&sdlGetGPUDeviceProperties, lib, "SDL_GetGPUDeviceProperties")
+		purego.RegisterLibFunc(&sdlGetGPURendererDevice, lib, "SDL_GetGPURendererDevice")
+		purego.RegisterLibFunc(&sdlGetGPUTextureFormatFromPixelFormat, lib, "SDL_GetGPUTextureFormatFromPixelFormat")
+		// purego.RegisterLibFunc(&sdlGetPenDeviceType, lib, "SDL_GetPenDeviceType")
+		purego.RegisterLibFunc(&sdlGetPixelFormatFromGPUTextureFormat, lib, "SDL_GetPixelFormatFromGPUTextureFormat")
+		purego.RegisterLibFunc(&sdlGetRenderTextureAddressMode, lib, "SDL_GetRenderTextureAddressMode")
+		purego.RegisterLibFunc(&sdlGetSystemPageSize, lib, "SDL_GetSystemPageSize")
+		purego.RegisterLibFunc(&sdlGetTexturePalette, lib, "SDL_GetTexturePalette")
+		purego.RegisterLibFunc(&sdlGetWindowProgressState, lib, "SDL_GetWindowProgressState")
+		purego.RegisterLibFunc(&sdlGetWindowProgressValue, lib, "SDL_GetWindowProgressValue")
+		// purego.RegisterLibFunc(&sdlhid_get_properties, lib, "SDL_hid_get_properties")
+		purego.RegisterLibFunc(&sdlLoadPNG, lib, "SDL_LoadPNG")
+		// purego.RegisterLibFunc(&sdlLoadPNGIO, lib, "SDL_LoadPNG_IO")
+		purego.RegisterLibFunc(&sdlLoadSurface, lib, "SDL_LoadSurface")
+		// purego.RegisterLibFunc(&sdlLoadSurfaceIO, lib, "SDL_LoadSurface_IO")
+		// sdlPutAudioStreamDataNoCopy = shared.Get(lib, "SDL_PutAudioStreamDataNoCopy")
+		// sdlPutAudioStreamPlanarData = shared.Get(lib, "SDL_PutAudioStreamPlanarData")
+		purego.RegisterLibFunc(&sdlRenderTexture9GridTiled, lib, "SDL_RenderTexture9GridTiled")
+		purego.RegisterLibFunc(&sdlRotateSurface, lib, "SDL_RotateSurface")
+		purego.RegisterLibFunc(&sdlStretchSurface, lib, "SDL_StretchSurface")
+		purego.RegisterLibFunc(&sdlSavePNG, lib, "SDL_SavePNG")
+		// purego.RegisterLibFunc(&sdlSavePNGIO, lib, "SDL_SavePNG_IO")
+		purego.RegisterLibFunc(&sdlSetDefaultTextureScaleMode, lib, "SDL_SetDefaultTextureScaleMode")
+		// purego.RegisterLibFunc(&sdlSetGPURenderState, lib, "SDL_SetGPURenderState")
+		// purego.RegisterLibFunc(&sdlSetGPURenderStateFragmentUniforms, lib, "SDL_SetGPURenderStateFragmentUniforms")
+		// purego.RegisterLibFunc(&sdlSetRelativeMouseTransform, lib, "SDL_SetRelativeMouseTransform")
+		purego.RegisterLibFunc(&sdlSetRenderTextureAddressMode, lib, "SDL_SetRenderTextureAddressMode")
+		purego.RegisterLibFunc(&sdlSetTexturePalette, lib, "SDL_SetTexturePalette")
+		// purego.RegisterLibFunc(&sdlSetWindowFillDocument, lib, "SDL_SetWindowFillDocument")
+		purego.RegisterLibFunc(&sdlSetWindowProgressState, lib, "SDL_SetWindowProgressState")
+		purego.RegisterLibFunc(&sdlSetWindowProgressValue, lib, "SDL_SetWindowProgressValue")
+	}
 }

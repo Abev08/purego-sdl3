@@ -7,6 +7,97 @@ import (
 	"github.com/jupiterrider/purego-sdl3/internal/mem"
 )
 
+const (
+	PropGlobalVideoWaylandWlDisplayPointer = "SDL.video.wayland.wl_display"
+
+	PropDisplayHdrEnabledBoolean            = "SDL.display.HDR_enabled"
+	PropDisplayKmsdrmPanelOrientationNumber = "SDL.display.KMSDRM.panel_orientation"
+	PropDisplayWaylandWlOutputPointer       = "SDL.display.wayland.wl_output"
+	PropDisplayWindowsHmonitorPointer       = "SDL.display.windows.hmonitor"
+
+	PropWindowCreateAlwaysOnTopBoolean              = "SDL.window.create.always_on_top"
+	PropWindowCreateBorderlessBoolean               = "SDL.window.create.borderless"
+	PropWindowCreateConstrainPopupBoolean           = "SDL.window.create.constrain_popup"
+	PropWindowCreateFocusableBoolean                = "SDL.window.create.focusable"
+	PropWindowCreateExternalGraphicsContextBoolean  = "SDL.window.create.external_graphics_context"
+	PropWindowCreateFlagsNumber                     = "SDL.window.create.flags"
+	PropWindowCreateFullscreenBoolean               = "SDL.window.create.fullscreen"
+	PropWindowCreateHeightNumber                    = "SDL.window.create.height"
+	PropWindowCreateHiddenBoolean                   = "SDL.window.create.hidden"
+	PropWindowCreateHighPixelDensityBoolean         = "SDL.window.create.high_pixel_density"
+	PropWindowCreateMaximizedBoolean                = "SDL.window.create.maximized"
+	PropWindowCreateMenuBoolean                     = "SDL.window.create.menu"
+	PropWindowCreateMetalBoolean                    = "SDL.window.create.metal"
+	PropWindowCreateMinimizedBoolean                = "SDL.window.create.minimized"
+	PropWindowCreateModalBoolean                    = "SDL.window.create.modal"
+	PropWindowCreateMouseGrabbedBoolean             = "SDL.window.create.mouse_grabbed"
+	PropWindowCreateOpenglBoolean                   = "SDL.window.create.opengl"
+	PropWindowCreateParentPointer                   = "SDL.window.create.parent"
+	PropWindowCreateResizableBoolean                = "SDL.window.create.resizable"
+	PropWindowCreateTitleString                     = "SDL.window.create.title"
+	PropWindowCreateTransparentBoolean              = "SDL.window.create.transparent"
+	PropWindowCreateTooltipBoolean                  = "SDL.window.create.tooltip"
+	PropWindowCreateUtilityBoolean                  = "SDL.window.create.utility"
+	PropWindowCreateVulkanBoolean                   = "SDL.window.create.vulkan"
+	PropWindowCreateWidthNumber                     = "SDL.window.create.width"
+	PropWindowCreateXNumber                         = "SDL.window.create.x"
+	PropWindowCreateYNumber                         = "SDL.window.create.y"
+	PropWindowCreateCocoaWindowPointer              = "SDL.window.create.cocoa.window"
+	PropWindowCreateCocoaViewPointer                = "SDL.window.create.cocoa.view"
+	PropWindowCreateWindowscenePointer              = "SDL.window.create.uikit.windowscene"
+	PropWindowCreateWaylandSurfaceRoleCustomBoolean = "SDL.window.create.wayland.surface_role_custom"
+	PropWindowCreateWaylandCreateEglWindowBoolean   = "SDL.window.create.wayland.create_egl_window"
+	PropWindowCreateWaylandWlSurfacePointer         = "SDL.window.create.wayland.wl_surface"
+	PropWindowCreateWin32HwndPointer                = "SDL.window.create.win32.hwnd"
+	PropWindowCreateWin32PixelFormatHwndPointer     = "SDL.window.create.win32.pixel_format_hwnd"
+	PropWindowCreateX11WindowNumber                 = "SDL.window.create.x11.window"
+	PropWindowCreateEmscriptenCanvasIdString        = "SDL.window.create.emscripten.canvas_id"
+	PropWindowCreateEmscriptenKeyboardElementString = "SDL.window.create.emscripten.keyboard_element"
+
+	PropWindowShapePointer                         = "SDL.window.shape"
+	PropWindowHdrEnabledBoolean                    = "SDL.window.HDR_enabled"
+	PropWindowSdrWhiteLevelFloat                   = "SDL.window.SDR_white_level"
+	PropWindowHdrHeadroomFloat                     = "SDL.window.HDR_headroom"
+	PropWindowAndroidWindowPointer                 = "SDL.window.android.window"
+	PropWindowAndroidSurfacePointer                = "SDL.window.android.surface"
+	PropWindowUikitWindowPointer                   = "SDL.window.uikit.window"
+	PropWindowUikitMetalViewTagNumber              = "SDL.window.uikit.metal_view_tag"
+	PropWindowUikitOpenglFramebufferNumber         = "SDL.window.uikit.opengl.framebuffer"
+	PropWindowUikitOpenglRenderbufferNumber        = "SDL.window.uikit.opengl.renderbuffer"
+	PropWindowUikitOpenglResolveFramebufferNumber  = "SDL.window.uikit.opengl.resolve_framebuffer"
+	PropWindowKmsdrmDeviceIndexNumber              = "SDL.window.kmsdrm.dev_index"
+	PropWindowKmsdrmDrmFdNumber                    = "SDL.window.kmsdrm.drm_fd"
+	PropWindowKmsdrmGbmDevicePointer               = "SDL.window.kmsdrm.gbm_dev"
+	PropWindowCocoaWindowPointer                   = "SDL.window.cocoa.window"
+	PropWindowCocoaMetalViewTagNumber              = "SDL.window.cocoa.metal_view_tag"
+	PropWindowOpenvrOverlayIdNumber                = "SDL.window.openvr.overlay_id"
+	PropWindowVivanteDisplayPointer                = "SDL.window.vivante.display"
+	PropWindowVivanteWindowPointer                 = "SDL.window.vivante.window"
+	PropWindowVivanteSurfacePointer                = "SDL.window.vivante.surface"
+	PropWindowWin32HwndPointer                     = "SDL.window.win32.hwnd"
+	PropWindowWin32HdcPointer                      = "SDL.window.win32.hdc"
+	PropWindowWin32InstancePointer                 = "SDL.window.win32.instance"
+	PropWindowWaylandDisplayPointer                = "SDL.window.wayland.display"
+	PropWindowWaylandSurfacePointer                = "SDL.window.wayland.surface"
+	PropWindowWaylandViewportPointer               = "SDL.window.wayland.viewport"
+	PropWindowWaylandEglWindowPointer              = "SDL.window.wayland.egl_window"
+	PropWindowWaylandXdgSurfacePointer             = "SDL.window.wayland.xdg_surface"
+	PropWindowWaylandXdgToplevelPointer            = "SDL.window.wayland.xdg_toplevel"
+	PropWindowWaylandXdgToplevelExportHandleString = "SDL.window.wayland.xdg_toplevel_export_handle"
+	PropWindowWaylandXdgPopupPointer               = "SDL.window.wayland.xdg_popup"
+	PropWindowWaylandXdgPositionerPointer          = "SDL.window.wayland.xdg_positioner"
+	PropWindowX11DisplayPointer                    = "SDL.window.x11.display"
+	PropWindowX11ScreenNumber                      = "SDL.window.x11.screen"
+	PropWindowX11WindowNumber                      = "SDL.window.x11.window"
+	PropWindowEmscriptenCanvasIdString             = "SDL.window.emscripten.canvas_id"
+	PropWindowEmscriptenKeyboardElementString      = "SDL.window.emscripten.keyboard_element"
+)
+
+const (
+	WindowSurfaceVsyncDisabled int32 = 0
+	WindowSurfaceVsyncAdaptive int32 = (-1)
+)
+
 // [DisplayID] is a unique ID for a display for the time it is connected to the system, and is never reused for the lifetime of the application.
 //
 // [DisplayID]: https://wiki.libsdl.org/SDL3/SDL_DisplayID
@@ -76,6 +167,49 @@ const (
 	GLEGLPlatform
 )
 
+// [GLProfile] defines possible values to be set for the [GLContextProfileMask] attribute.
+//
+// [GLProfile]: https://wiki.libsdl.org/SDL3/SDL_GLProfile
+type GLProfile uint32
+
+const (
+	GLContextProfileCore          GLProfile = 0x0001 // OpenGL Core Profile context.
+	GLContextProfileCompatibility GLProfile = 0x0002 // OpenGL Compatibility Profile context.
+	GLContextProfileES            GLProfile = 0x0004 // GLX_CONTEXT_ES2_PROFILE_BIT_EXT.
+)
+
+// [GLContextFlag] defines possible flags to be set for the [GLContextFlags] attribute.
+//
+// [GLContextFlag]: https://wiki.libsdl.org/SDL3/SDL_GLContextFlag
+type GLContextFlag uint32
+
+const (
+	GLContextDebugFlag             GLContextFlag = 0x0001
+	GLContextForwardCompatibleFlag GLContextFlag = 0x0002
+	GLContextRobustAccessFlag      GLContextFlag = 0x0004
+	GLContextResetIsolationFlag    GLContextFlag = 0x0008
+)
+
+// [GLContextReleaseFlag] defines possible values to be set for the [GLContextReleaseBehavior] attribute.
+//
+// [GLContextReleaseFlag]: https://wiki.libsdl.org/SDL3/SDL_GLContextReleaseFlag
+type GLContextReleaseFlag uint32
+
+const (
+	GLContextReleaseBehaviorNone  GLContextReleaseFlag = 0x0000
+	GLContextReleaseBehaviorFlush GLContextReleaseFlag = 0x0001
+)
+
+// [GLContextResetNotification_] defines possible values to be set [GLContextResetNotification] attribute.
+//
+// [GLContextResetNotification_]: https://wiki.libsdl.org/SDL3/SDL_GLContextResetNotification
+type GLContextResetNotification_ uint32
+
+const (
+	GLContextResetNoNotification GLContextResetNotification_ = 0x0000
+	GLContextResetLoseContext    GLContextResetNotification_ = 0x0001
+)
+
 // [FlashOperation] window flash operation.
 //
 // [FlashOperation]: https://wiki.libsdl.org/SDL3/SDL_FlashOperation
@@ -85,6 +219,20 @@ const (
 	FlashCancel       FlashOperation = iota // Cancel any window flash state
 	FlashBriefly                            // Flash the window briefly to get attention
 	FlashUntilFocused                       // Flash the window until it gets focus
+)
+
+// [ProgressState] defines window progress state
+//
+// [ProgressState]: https://wiki.libsdl.org/SDL3/SDL_ProgressState
+type ProgressState int32
+
+const (
+	ProgressStateInvalid       ProgressState = iota - 1 // An invalid progress state indicating an error; check [GetError].
+	ProgressStateNone                                   // No progress bar is shown.
+	ProgressStateIndeterminate                          // The progress bar is shown in a indeterminate state.
+	ProgressStateNormal                                 // The progress bar is shown in a normal state.
+	ProgressStatePaused                                 // The progress bar is shown in a paused state.
+	ProgressStateError                                  // The progress bar is shown in a state indicating the application had an error.
 )
 
 // [DisplayModeData] internal display mode data.
@@ -163,6 +311,7 @@ const (
 	WindowTooltip           WindowFlags = 0x0000000000040000 // Window should be treated as a tooltip and does not get mouse or keyboard focus, requires a parent window
 	WindowPopupMenu         WindowFlags = 0x0000000000080000 // Window should be treated as a popup menu, requires a parent window
 	WindowKeyboardGrabbed   WindowFlags = 0x0000000000100000 // Window has grabbed keyboard input
+	WindowFillDocument      WindowFlags = 0x0000000000200000 // Window is in fill-document mode (Emscripten only), since SDL 3.4.0
 	WindowVulkan            WindowFlags = 0x0000000010000000 // Window usable for Vulkan surface
 	WindowMetal             WindowFlags = 0x0000000020000000 // Window usable for Metal view
 	WindowTransparent       WindowFlags = 0x0000000040000000 // Window with transparent buffer
@@ -170,8 +319,10 @@ const (
 )
 
 const (
-	WindowPosCenteredMask = 0x2FFF0000
-	WindowPosCentered     = WindowPosCenteredMask
+	WindowPosUndefinedMask uint32 = 0x1FFF0000
+	WindowPosUndefined            = WindowPosUndefinedMask
+	WindowPosCenteredMask  uint32 = 0x2FFF0000
+	WindowPosCentered             = WindowPosCenteredMask
 )
 
 type GLContextState struct{}
@@ -244,6 +395,42 @@ func CreateWindow(title string, w int32, h int32, flags WindowFlags) *Window {
 // [FlashWindow]: https://wiki.libsdl.org/SDL3/SDL_FlashWindow
 func FlashWindow(window *Window, operation FlashOperation) bool {
 	return sdlFlashWindow(window, operation)
+}
+
+// [SetWindowProgressState] sets the state of the progress bar for the given window’s taskbar icon.
+//
+// Available since SDL 3.4.0.
+//
+// [SetWindowProgressState]: https://wiki.libsdl.org/SDL3/SDL_SetWindowProgressState
+func SetWindowProgressState(window *Window, state ProgressState) bool {
+	return sdlSetWindowProgressState(window, state)
+}
+
+// [GetWindowProgressState] gets the state of the progress bar for the given window’s taskbar icon.
+//
+// Available since SDL 3.4.0.
+//
+// [GetWindowProgressState]: https://wiki.libsdl.org/SDL3/SDL_GetWindowProgressState
+func GetWindowProgressState(window *Window) ProgressState {
+	return sdlGetWindowProgressState(window)
+}
+
+// [SetWindowProgressValue] sets the value of the progress bar for the given window’s taskbar icon.
+//
+// Available since SDL 3.4.0.
+//
+// [SetWindowProgressValue]: https://wiki.libsdl.org/SDL3/SDL_SetWindowProgressValue
+func SetWindowProgressValue(window *Window, value float32) bool {
+	return sdlSetWindowProgressValue(window, value)
+}
+
+// [GetWindowProgressValue] gets the value of the progress bar for the given window’s taskbar icon.
+//
+// Available since SDL 3.4.0.
+//
+// [GetWindowProgressValue]: https://wiki.libsdl.org/SDL3/SDL_GetWindowProgressValue
+func GetWindowProgressValue(window *Window) float32 {
+	return sdlGetWindowProgressValue(window)
 }
 
 // [GetClosestFullscreenDisplayMode] gets the closest match to the requested display mode.
@@ -647,6 +834,15 @@ func RestoreWindow(window *Window) bool {
 func SetWindowAlwaysOnTop(window *Window, onTop bool) bool {
 	return sdlSetWindowAlwaysOnTop(window, onTop)
 }
+
+// [SetWindowFillDocument] sets the window to fill the current document space (Emscripten only).
+//
+// Available since SDL 3.4.0.
+//
+// [SetWindowFillDocument]: https://wiki.libsdl.org/SDL3/SDL_SetWindowFillDocument
+// func SetWindowFillDocument(window *Window, fill bool) bool {
+// 	return sdlSetWindowFillDocument(window, fill)
+// }
 
 // func SetWindowAspectRatio(window *Window, min_aspect float32, max_aspect float32) bool {
 //	return sdlSetWindowAspectRatio(window, min_aspect, max_aspect)

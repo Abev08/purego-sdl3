@@ -545,7 +545,7 @@ type MouseDeviceEvent struct {
 type MouseMotionEvent struct {
 	CommonEvent
 	WindowID WindowID         // The window with mouse focus, if any.
-	Which    MouseID          // The mouse instance id in relative mode, [TOUCH_MOUSEID] for touch events, or 0.
+	Which    MouseID          // The mouse instance id in relative mode, [TouchMouseID] for touch events, or 0.
 	State    MouseButtonFlags // The current button state.
 	X        float32          // X coordinate, relative to window.
 	Y        float32          // Y coordinate, relative to window.
@@ -559,7 +559,7 @@ type MouseMotionEvent struct {
 type MouseButtonEvent struct {
 	CommonEvent
 	WindowID WindowID // The window with mouse focus, if any.
-	Which    MouseID  // The mouse instance id in relative mode, [TOUCH_MOUSEID] for touch events, or 0.
+	Which    MouseID  // The mouse instance id in relative mode, [TouchMouseID] for touch events, or 0.
 	Button   uint8    // The mouse button index.
 	Down     bool     // True if the button is pressed.
 	Clicks   uint8    // 1 for single-click, 2 for double-click, etc.

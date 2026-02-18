@@ -12,6 +12,18 @@ const (
 	TouchDeviceIndirectRelative                 // Trackpad with screen cursor-relative coordinates.
 )
 
+const (
+	// [MouseID] for mouse events simulated with touch input.
+	//
+	// [MouseID]: https://wiki.libsdl.org/SDL3/SDL_TOUCH_MOUSEID
+	TouchMouseID = ^MouseID(0)
+
+	// [TouchID] for touch events simulated with mouse input.
+	//
+	// [MouseID]: https://wiki.libsdl.org/SDL3/SDL_MOUSE_TOUCHID
+	MouseTouchID = ^TouchID(0)
+)
+
 // [TouchID] is a unique ID for a touch device.
 //
 // [TouchID]: https://wiki.libsdl.org/SDL3/SDL_TouchID

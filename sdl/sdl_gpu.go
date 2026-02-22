@@ -1056,8 +1056,11 @@ const (
 	PropGPUDeviceCreateShadersMetallibBoolean                   = "SDL.gpu.device.create.shaders.metallib"
 	PropGPUDeviceCreateD3d12AllowFewerResourceSlotsBoolean      = "SDL.gpu.device.create.d3d12.allowtier1resourcebinding"
 	PropGPUDeviceCreateD3d12SemanticNameString                  = "SDL.gpu.device.create.d3d12.semantic"
+	PropGPUDeviceCreateD3d12AgilitySdkVersionNumber             = "SDL.gpu.device.create.d3d12.agility_sdk_version"
+	PropGPUDeviceCreateD3d12AgilitySdkPathString                = "SDL.gpu.device.create.d3d12.agility_sdk_path"
 	PropGPUDeviceCreateVulkanRequireHardwareAccelerationBoolean = "SDL.gpu.device.create.vulkan.requirehardwareacceleration"
 	PropGPUDeviceCreateVulkanOptionsPointer                     = "SDL.gpu.device.create.vulkan.options"
+	PropGPUDeviceCreateMetalAllowMacfamily1Boolean              = "SDL.gpu.device.create.metal.allowmacfamily1"
 )
 
 const (
@@ -1066,6 +1069,29 @@ const (
 	PropGPUDeviceDriverVersionString = "SDL.gpu.device.driver_version"
 	PropGPUDeviceDriverInfoString    = "SDL.gpu.device.driver_info"
 )
+
+const (
+	PropGPUComputepipelineCreateNameString  = "SDL.gpu.computepipeline.create.name"
+	PropGPUGraphicspipelineCreateNameString = "SDL.gpu.graphicspipeline.create.name"
+)
+
+const PropGPUSamplerCreateNameString = "SDL.gpu.sampler.create.name"
+
+const PropGPUShaderCreateNameString = "SDL.gpu.shader.create.name"
+
+const (
+	PropGPUTextureCreateD3d12ClearRFloat        = "SDL.gpu.texture.create.d3d12.clear.r"
+	PropGPUTextureCreateD3d12ClearGFloat        = "SDL.gpu.texture.create.d3d12.clear.g"
+	PropGPUTextureCreateD3d12ClearBFloat        = "SDL.gpu.texture.create.d3d12.clear.b"
+	PropGPUTextureCreateD3d12ClearAFloat        = "SDL.gpu.texture.create.d3d12.clear.a"
+	PropGPUTextureCreateD3d12ClearDepthFloat    = "SDL.gpu.texture.create.d3d12.clear.depth"
+	PropGPUTextureCreateD3d12ClearStencilNumber = "SDL.gpu.texture.create.d3d12.clear.stencil"
+	PropGPUTextureCreateNameString              = "SDL.gpu.texture.create.name"
+)
+
+const PropGPUBufferCreateNameString = "SDL.gpu.buffer.create.name"
+
+const PropGPUTransferbufferCreateNameString = "SDL.gpu.transferbuffer.create.name"
 
 // [AcquireGPUCommandBuffer] acquires a command buffer.
 //

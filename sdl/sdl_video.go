@@ -354,17 +354,26 @@ func CreateWindow(title string, w int32, h int32, flags WindowFlags) *Window {
 	return sdlCreateWindow(title, w, h, flags)
 }
 
-// func CreateWindowWithProperties(props PropertiesID) *Window {
-//	return sdlCreateWindowWithProperties(props)
-// }
+// [CreateWindowWithProperties] creates a window with the specified properties.
+//
+// [CreateWindowWithProperties]: https://wiki.libsdl.org/SDL3/SDL_CreateWindowWithProperties
+func CreateWindowWithProperties(props PropertiesID) *Window {
+	return sdlCreateWindowWithProperties(props)
+}
 
-// func DestroyWindowSurface(window *Window) bool {
-//	return sdlDestroyWindowSurface(window)
-// }
+// [DestroyWindowSurface] destroys the surface associated with the window.
+//
+// [DestroyWindowSurface]: https://wiki.libsdl.org/SDL3/SDL_DestroyWindowSurface
+func DestroyWindowSurface(window *Window) bool {
+	return sdlDestroyWindowSurface(window)
+}
 
-// func DisableScreenSaver() bool {
-//	return sdlDisableScreenSaver()
-// }
+// [DisableScreenSaver] prevents the screen from being blanked by a screen saver.
+//
+// [DisableScreenSaver]: https://wiki.libsdl.org/SDL3/SDL_DisableScreenSaver
+func DisableScreenSaver() bool {
+	return sdlDisableScreenSaver()
+}
 
 // func EGL_GetCurrentConfig() EGLConfig {
 //	return sdlEGL_GetCurrentConfig()
@@ -386,9 +395,12 @@ func CreateWindow(title string, w int32, h int32, flags WindowFlags) *Window {
 //	sdlEGL_SetAttributeCallbacks(platformAttribCallback, surfaceAttribCallback, contextAttribCallback, userdata)
 // }
 
-// func EnableScreenSaver() bool {
-//	return sdlEnableScreenSaver()
-// }
+// [EnableScreenSaver] allows the screen to be blanked by a screen saver.
+//
+// [EnableScreenSaver]: https://wiki.libsdl.org/SDL3/SDL_EnableScreenSaver
+func EnableScreenSaver() bool {
+	return sdlEnableScreenSaver()
+}
 
 // [FlashWindow] requests a window to demand attention from the user.
 //
@@ -447,9 +459,12 @@ func GetCurrentDisplayMode(displayID DisplayID) *DisplayMode {
 	return sdlGetCurrentDisplayMode(displayID)
 }
 
-// func GetCurrentDisplayOrientation(displayID DisplayID) DisplayOrientation {
-//	return sdlGetCurrentDisplayOrientation(displayID)
-// }
+// [GetCurrentDisplayOrientation] gets the orientation of a display.
+//
+// [GetCurrentDisplayOrientation]: https://wiki.libsdl.org/SDL3/SDL_GetCurrentDisplayOrientation
+func GetCurrentDisplayOrientation(displayID DisplayID) DisplayOrientation {
+	return sdlGetCurrentDisplayOrientation(displayID)
+}
 
 // [GetCurrentVideoDriver] gets the name of the currently initialized video driver.
 //
@@ -458,13 +473,19 @@ func GetCurrentVideoDriver() string {
 	return sdlGetCurrentVideoDriver()
 }
 
-// func GetDesktopDisplayMode(displayID DisplayID) *DisplayMode {
-//	return sdlGetDesktopDisplayMode(displayID)
-// }
+// [GetDesktopDisplayMode] gets information about the desktop's display mode.
+//
+// [GetDesktopDisplayMode]: https://wiki.libsdl.org/SDL3/SDL_GetDesktopDisplayMode
+func GetDesktopDisplayMode(displayID DisplayID) *DisplayMode {
+	return sdlGetDesktopDisplayMode(displayID)
+}
 
-// func GetDisplayBounds(displayID DisplayID, rect *Rect) bool {
-//	return sdlGetDisplayBounds(displayID, rect)
-// }
+// [GetDisplayBounds] gets the desktop area represented by a display.
+//
+// [GetDisplayBounds]: https://wiki.libsdl.org/SDL3/SDL_GetDisplayBounds
+func GetDisplayBounds(displayID DisplayID, rect *Rect) bool {
+	return sdlGetDisplayBounds(displayID, rect)
+}
 
 // [GetDisplayContentScale] gets the content scale of a display.
 //
@@ -473,13 +494,19 @@ func GetDisplayContentScale(displayID DisplayID) float32 {
 	return sdlGetDisplayContentScale(displayID)
 }
 
-// func GetDisplayForPoint(point *Point) DisplayID {
-//	return sdlGetDisplayForPoint(point)
-// }
+// [GetDisplayForPoint] gets the display containing a point.
+//
+// [GetDisplayForPoint]: https://wiki.libsdl.org/SDL3/SDL_GetDisplayForPoint
+func GetDisplayForPoint(point *Point) DisplayID {
+	return sdlGetDisplayForPoint(point)
+}
 
-// func GetDisplayForRect(rect *Rect) DisplayID {
-//	return sdlGetDisplayForRect(rect)
-// }
+// [GetDisplayForRect] gets the display primarily containing a rect.
+//
+// [GetDisplayForRect]: https://wiki.libsdl.org/SDL3/SDL_GetDisplayForRect
+func GetDisplayForRect(rect *Rect) DisplayID {
+	return sdlGetDisplayForRect(rect)
+}
 
 // [GetDisplayForWindow] gets the display associated with a window.
 //
@@ -495,9 +522,12 @@ func GetDisplayName(displayID DisplayID) string {
 	return sdlGetDisplayName(displayID)
 }
 
-// func GetDisplayProperties(displayID DisplayID) PropertiesID {
-//	return sdlGetDisplayProperties(displayID)
-// }
+// [GetDisplayProperties] gets the properties associated with a display.
+//
+// [GetDisplayProperties]: https://wiki.libsdl.org/SDL3/SDL_GetDisplayProperties
+func GetDisplayProperties(displayID DisplayID) PropertiesID {
+	return sdlGetDisplayProperties(displayID)
+}
 
 // [GetDisplays] gets a list of currently connected displays.
 //
@@ -509,9 +539,12 @@ func GetDisplays() []DisplayID {
 	return mem.Copy(displays, count)
 }
 
-// func GetDisplayUsableBounds(displayID DisplayID, rect *Rect) bool {
-//	return sdlGetDisplayUsableBounds(displayID, rect)
-// }
+// [GetDisplayUsableBounds] gets the usable desktop area represented by a display, in screen coordinates.
+//
+// [GetDisplayUsableBounds]: https://wiki.libsdl.org/SDL3/SDL_GetDisplayUsableBounds
+func GetDisplayUsableBounds(displayID DisplayID, rect *Rect) bool {
+	return sdlGetDisplayUsableBounds(displayID, rect)
+}
 
 // [GetFullscreenDisplayModes] gets a list of fullscreen display modes available on a display, or nil on error.
 //
@@ -523,13 +556,19 @@ func GetFullscreenDisplayModes(displayID DisplayID) []*DisplayMode {
 	return mem.DeepCopy(displayModes, count)
 }
 
-// func GetGrabbedWindow() *Window {
-//	return sdlGetGrabbedWindow()
-// }
+// [GetGrabbedWindow] gets the window that currently has an input grab enabled.
+//
+// [GetGrabbedWindow]: https://wiki.libsdl.org/SDL3/SDL_GetGrabbedWindow
+func GetGrabbedWindow() *Window {
+	return sdlGetGrabbedWindow()
+}
 
-// func GetNaturalDisplayOrientation(displayID DisplayID) DisplayOrientation {
-//	return sdlGetNaturalDisplayOrientation(displayID)
-// }
+// [GetNaturalDisplayOrientation] gets the orientation of a display when it is unrotated.
+//
+// [GetNaturalDisplayOrientation]: https://wiki.libsdl.org/SDL3/SDL_GetNaturalDisplayOrientation
+func GetNaturalDisplayOrientation(displayID DisplayID) DisplayOrientation {
+	return sdlGetNaturalDisplayOrientation(displayID)
+}
 
 // [GetNumVideoDrivers] gets the number of video drivers compiled into SDL.
 //
@@ -545,9 +584,12 @@ func GetPrimaryDisplay() DisplayID {
 	return sdlGetPrimaryDisplay()
 }
 
-// func GetSystemTheme() SystemTheme {
-//	return sdlGetSystemTheme()
-// }
+// [GetSystemTheme] gets the current system theme.
+//
+// [GetSystemTheme]: https://wiki.libsdl.org/SDL3/SDL_GetSystemTheme
+func GetSystemTheme() SystemTheme {
+	return sdlGetSystemTheme()
+}
 
 // [GetVideoDriver] gets the name of a built in video driver.
 //
@@ -556,13 +598,19 @@ func GetVideoDriver(index int32) string {
 	return sdlGetVideoDriver(index)
 }
 
-// func GetWindowAspectRatio(window *Window, min_aspect *float32, max_aspect *float32) bool {
-//	return sdlGetWindowAspectRatio(window, min_aspect, max_aspect)
-// }
+// [GetWindowAspectRatio] gets the aspect ratio of a window's client area.
+//
+// [GetWindowAspectRatio]: https://wiki.libsdl.org/SDL3/SDL_GetWindowAspectRatio
+func GetWindowAspectRatio(window *Window, minAspect, maxAspect *float32) bool {
+	return sdlGetWindowAspectRatio(window, minAspect, maxAspect)
+}
 
-// func GetWindowBordersSize(window *Window, top *int32, left *int32, bottom *int32, right *int32) bool {
-//	return sdlGetWindowBordersSize(window, top, left, bottom, right)
-// }
+// [GetWindowBordersSize] gets the size of a window's borders (decorations) around the client area.
+//
+// [GetWindowBordersSize]: https://wiki.libsdl.org/SDL3/SDL_GetWindowBordersSize
+func GetWindowBordersSize(window *Window, top, left, bottom, right *int32) bool {
+	return sdlGetWindowBordersSize(window, top, left, bottom, right)
+}
 
 // [GetWindowDisplayScale] gets the content display scale relative to a window's pixel size.
 //
@@ -585,9 +633,12 @@ func GetWindowFlags(window *Window) WindowFlags {
 	return sdlGetWindowFlags(window)
 }
 
-// func GetWindowFromID(id WindowID) *Window {
-//	return sdlGetWindowFromID(id)
-// }
+// [GetWindowFromID] gets a window from a stored ID.
+//
+// [GetWindowFromID]: https://wiki.libsdl.org/SDL3/SDL_GetWindowFromID
+func GetWindowFromID(id WindowID) *Window {
+	return sdlGetWindowFromID(id)
+}
 
 // [GetWindowFullscreenMode] queries the display mode to use when a window is visible at fullscreen.
 //
@@ -614,13 +665,19 @@ func GetWindowKeyboardGrab(window *Window) bool {
 	return sdlGetWindowKeyboardGrab(window)
 }
 
-// func GetWindowMaximumSize(window *Window, w *int32, h *int32) bool {
-//	return sdlGetWindowMaximumSize(window, w, h)
-// }
+// [GetWindowMaximumSize] gets the maximum size of a window's client area.
+//
+// [GetWindowMaximumSize]: https://wiki.libsdl.org/SDL3/SDL_GetWindowMaximumSize
+func GetWindowMaximumSize(window *Window, w, h *int32) bool {
+	return sdlGetWindowMaximumSize(window, w, h)
+}
 
-// func GetWindowMinimumSize(window *Window, w *int32, h *int32) bool {
-//	return sdlGetWindowMinimumSize(window, w, h)
-// }
+// [GetWindowMinimumSize] gets the minimum size of a window's client area.
+//
+// [GetWindowMinimumSize]: https://wiki.libsdl.org/SDL3/SDL_GetWindowMinimumSize
+func GetWindowMinimumSize(window *Window, w, h *int32) bool {
+	return sdlGetWindowMinimumSize(window, w, h)
+}
 
 // [GetWindowMouseGrab] returns true if mouse is grabbed, and false otherwise.
 //
@@ -629,9 +686,12 @@ func GetWindowMouseGrab(window *Window) bool {
 	return sdlGetWindowMouseGrab(window)
 }
 
-// func GetWindowMouseRect(window *Window) *Rect {
-//	return sdlGetWindowMouseRect(window)
-// }
+// [GetWindowMouseRect] gets the mouse confinement rectangle of a window.
+//
+// [GetWindowMouseRect]: https://wiki.libsdl.org/SDL3/SDL_GetWindowMouseRect
+func GetWindowMouseRect(window *Window) *Rect {
+	return sdlGetWindowMouseRect(window)
+}
 
 // [GetWindowOpacity] gets the opacity of a window.
 //
@@ -640,9 +700,12 @@ func GetWindowOpacity(window *Window) float32 {
 	return sdlGetWindowOpacity(window)
 }
 
-// func GetWindowParent(window *Window) *Window {
-//	return sdlGetWindowParent(window)
-// }
+// [GetWindowParent] gets parent of a window.
+//
+// [GetWindowParent]: https://wiki.libsdl.org/SDL3/SDL_GetWindowParent
+func GetWindowParent(window *Window) *Window {
+	return sdlGetWindowParent(window)
+}
 
 // [GetWindowPixelDensity] gets the pixel density of a window.
 //
@@ -651,9 +714,12 @@ func GetWindowPixelDensity(window *Window) float32 {
 	return sdlGetWindowPixelDensity(window)
 }
 
-// func GetWindowPixelFormat(window *Window) PixelFormat {
-//	return sdlGetWindowPixelFormat(window)
-// }
+// [GetWindowPixelFormat] gets the pixel format associated with the window.
+//
+// [GetWindowPixelFormat]: https://wiki.libsdl.org/SDL3/SDL_GetWindowPixelFormat
+func GetWindowPixelFormat(window *Window) PixelFormat {
+	return sdlGetWindowPixelFormat(window)
+}
 
 // [GetWindowPosition] gets the position of a window.
 //
@@ -662,17 +728,29 @@ func GetWindowPosition(window *Window, x *int32, y *int32) bool {
 	return sdlGetWindowPosition(window, x, y)
 }
 
-// func GetWindowProperties(window *Window) PropertiesID {
-//	return sdlGetWindowProperties(window)
-// }
+// [GetWindowProperties] gets the properties associated with a window.
+//
+// [GetWindowProperties]: https://wiki.libsdl.org/SDL3/SDL_GetWindowProperties
+func GetWindowProperties(window *Window) PropertiesID {
+	return sdlGetWindowProperties(window)
+}
 
-// func GetWindows(count *int32) **Window {
-//	return sdlGetWindows(count)
-// }
+// [GetWindows] gets a list of valid windows.
+//
+// [GetWindows]: https://wiki.libsdl.org/SDL3/SDL_GetWindows
+func GetWindows() []*Window {
+	var count int32
+	windows := sdlGetWindows(&count)
+	defer Free(unsafe.Pointer(windows))
+	return mem.Copy(windows, count)
+}
 
-// func GetWindowSafeArea(window *Window, rect *Rect) bool {
-//	return sdlGetWindowSafeArea(window, rect)
-// }
+// [GetWindowSafeArea] gets the safe area for this window.
+//
+// [GetWindowSafeArea]: https://wiki.libsdl.org/SDL3/SDL_GetWindowSafeArea
+func GetWindowSafeArea(window *Window, rect *Rect) bool {
+	return sdlGetWindowSafeArea(window, rect)
+}
 
 // [GetWindowSize] gets the size of a window's client area.
 //
@@ -695,9 +773,12 @@ func GetWindowSurface(window *Window) *Surface {
 	return sdlGetWindowSurface(window)
 }
 
-// func GetWindowSurfaceVSync(window *Window, vsync *int32) bool {
-//	return sdlGetWindowSurfaceVSync(window, vsync)
-// }
+// [GetWindowSurfaceVSync] gets VSync for the window surface.
+//
+// [GetWindowSurfaceVSync]: https://wiki.libsdl.org/SDL3/SDL_GetWindowSurfaceVSync
+func GetWindowSurfaceVSync(window *Window, vsync *int32) bool {
+	return sdlGetWindowSurfaceVSync(window, vsync)
+}
 
 // [GetWindowTitle] gets the title of a window.
 //
@@ -802,10 +883,16 @@ func HideWindow(window *Window) bool {
 	return sdlHideWindow(window)
 }
 
+// [MaximizeWindow] requests that the window be made as large as possible.
+//
+// [MaximizeWindow]: https://wiki.libsdl.org/SDL3/SDL_MaximizeWindow
 func MaximizeWindow(window *Window) bool {
 	return sdlMaximizeWindow(window)
 }
 
+// [MinimizeWindow] requests that the window be minimized to an iconic representation.
+//
+// [MinimizeWindow]: https://wiki.libsdl.org/SDL3/SDL_MinimizeWindow
 func MinimizeWindow(window *Window) bool {
 	return sdlMinimizeWindow(window)
 }
@@ -824,9 +911,12 @@ func RestoreWindow(window *Window) bool {
 	return sdlRestoreWindow(window)
 }
 
-// func ScreenSaverEnabled() bool {
-//	return sdlScreenSaverEnabled()
-// }
+// [ScreenSaverEnabled] checks whether the screensaver is currently enabled.
+//
+// [ScreenSaverEnabled]: https://wiki.libsdl.org/SDL3/SDL_ScreenSaverEnabled
+func ScreenSaverEnabled() bool {
+	return sdlScreenSaverEnabled()
+}
 
 // [SetWindowAlwaysOnTop] sets the window to always be above the others.
 //
@@ -844,9 +934,12 @@ func SetWindowAlwaysOnTop(window *Window, onTop bool) bool {
 // 	return sdlSetWindowFillDocument(window, fill)
 // }
 
-// func SetWindowAspectRatio(window *Window, min_aspect float32, max_aspect float32) bool {
-//	return sdlSetWindowAspectRatio(window, min_aspect, max_aspect)
-// }
+// [SetWindowAspectRatio] requests that the aspect ratio of a window's client area be set.
+//
+// [SetWindowAspectRatio]: https://wiki.libsdl.org/SDL3/SDL_SetWindowAspectRatio
+func SetWindowAspectRatio(window *Window, minAspect, maxAspect float32) bool {
+	return sdlSetWindowAspectRatio(window, minAspect, maxAspect)
+}
 
 // [SetWindowBordered] sets the border state of a window.
 //
@@ -902,17 +995,26 @@ func SetWindowKeyboardGrab(window *Window, grabbed bool) bool {
 	return sdlSetWindowKeyboardGrab(window, grabbed)
 }
 
-// func SetWindowMaximumSize(window *Window, max_w int32, max_h int32) bool {
-//	return sdlSetWindowMaximumSize(window, max_w, max_h)
-// }
+// [SetWindowMaximumSize] sets the maximum size of a window's client area.
+//
+// [SetWindowMaximumSize]: https://wiki.libsdl.org/SDL3/SDL_SetWindowMaximumSize
+func SetWindowMaximumSize(window *Window, maxW, maxH int32) bool {
+	return sdlSetWindowMaximumSize(window, maxW, maxH)
+}
 
-// func SetWindowMinimumSize(window *Window, min_w int32, min_h int32) bool {
-//	return sdlSetWindowMinimumSize(window, min_w, min_h)
-// }
+// [SetWindowMinimumSize] sets the minimum size of a window's client area.
+//
+// [SetWindowMinimumSize]: https://wiki.libsdl.org/SDL3/SDL_SetWindowMinimumSize
+func SetWindowMinimumSize(window *Window, minW, minH int32) bool {
+	return sdlSetWindowMinimumSize(window, minW, minH)
+}
 
-// func SetWindowModal(window *Window, modal bool) bool {
-//	return sdlSetWindowModal(window, modal)
-// }
+// [SetWindowModal] toggles the state of the window as modal.
+//
+// [SetWindowModal]: https://wiki.libsdl.org/SDL3/SDL_SetWindowModal
+func SetWindowModal(window *Window, modal bool) bool {
+	return sdlSetWindowModal(window, modal)
+}
 
 // [SetWindowMouseGrab] enables restriction of the mouse cursor to the window.
 //
@@ -921,9 +1023,12 @@ func SetWindowMouseGrab(window *Window, grabbed bool) bool {
 	return sdlSetWindowMouseGrab(window, grabbed)
 }
 
-// func SetWindowMouseRect(window *Window, rect *Rect) bool {
-//	return sdlSetWindowMouseRect(window, rect)
-// }
+// [SetWindowMouseRect] confines the cursor to the specified area of a window.
+//
+// [SetWindowMouseRect]: https://wiki.libsdl.org/SDL3/SDL_SetWindowMouseRect
+func SetWindowMouseRect(window *Window, rect *Rect) bool {
+	return sdlSetWindowMouseRect(window, rect)
+}
 
 // [SetWindowOpacity] sets the opacity for a window.
 //
@@ -932,9 +1037,12 @@ func SetWindowOpacity(window *Window, opacity float32) bool {
 	return sdlSetWindowOpacity(window, opacity)
 }
 
-// func SetWindowParent(window *Window, parent *Window) bool {
-//	return sdlSetWindowParent(window, parent)
-// }
+// [SetWindowParent] sets the window as a child of a parent window.
+//
+// [SetWindowParent]: https://wiki.libsdl.org/SDL3/SDL_SetWindowParent
+func SetWindowParent(window *Window, parent *Window) bool {
+	return sdlSetWindowParent(window, parent)
+}
 
 // [SetWindowPosition] requests that the window's position be set.
 //
@@ -961,9 +1069,12 @@ func SetWindowSize(window *Window, w int32, h int32) bool {
 	return sdlSetWindowSize(window, w, h)
 }
 
-// func SetWindowSurfaceVSync(window *Window, vsync int32) bool {
-//	return sdlSetWindowSurfaceVSync(window, vsync)
-// }
+// [SetWindowSurfaceVSync] toggles VSync for the window surface.
+//
+// [SetWindowSurfaceVSync]: https://wiki.libsdl.org/SDL3/SDL_SetWindowSurfaceVSync
+func SetWindowSurfaceVSync(window *Window, vsync int32) bool {
+	return sdlSetWindowSurfaceVSync(window, vsync)
+}
 
 // [SetWindowTitle] requests that the size of a window's client area be set.
 //
@@ -979,9 +1090,12 @@ func ShowWindow(window *Window) bool {
 	return sdlShowWindow(window)
 }
 
-// func ShowWindowSystemMenu(window *Window, x int32, y int32) bool {
-//	return sdlShowWindowSystemMenu(window, x, y)
-// }
+// [ShowWindowSystemMenu] displays the system-level window menu.
+//
+// [ShowWindowSystemMenu]: https://wiki.libsdl.org/SDL3/SDL_ShowWindowSystemMenu
+func ShowWindowSystemMenu(window *Window, x, y int32) bool {
+	return sdlShowWindowSystemMenu(window, x, y)
+}
 
 // [SyncWindow] blocks until any pending window state is finalized.
 //
@@ -1001,6 +1115,9 @@ func UpdateWindowSurface(window *Window) bool {
 //	return sdlUpdateWindowSurfaceRects(window, rects, numrects)
 // }
 
-// func WindowHasSurface(window *Window) bool {
-//	return sdlWindowHasSurface(window)
-// }
+// [WindowHasSurface] returns whether the window has a surface associated with it.
+//
+// [WindowHasSurface]: https://wiki.libsdl.org/SDL3/SDL_WindowHasSurface
+func WindowHasSurface(window *Window) bool {
+	return sdlWindowHasSurface(window)
+}

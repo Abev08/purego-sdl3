@@ -2,9 +2,6 @@ package sdl
 
 import (
 	"unsafe"
-
-	"github.com/ebitengine/purego"
-	"github.com/jupiterrider/purego-sdl3/internal/convert"
 )
 
 // [PropertyType] defines the SDL property type.
@@ -31,28 +28,10 @@ type PropertiesID uint32
 // [CleanupPropertyCallback]: https://wiki.libsdl.org/SDL3/SDL_CleanupPropertyCallback
 type CleanupPropertyCallback uintptr
 
-func NewCleanupPropertyCallback(callback func(userdata, value unsafe.Pointer)) CleanupPropertyCallback {
-	cb := purego.NewCallback(func(userdata, value unsafe.Pointer) uintptr {
-		callback(userdata, value)
-		return 0
-	})
-
-	return CleanupPropertyCallback(cb)
-}
-
 // [EnumeratePropertiesCallback] is a callback used to enumerate all the properties in a group of properties.
 //
 // [EnumeratePropertiesCallback]: https://wiki.libsdl.org/SDL3/SDL_EnumeratePropertiesCallback
 type EnumeratePropertiesCallback uintptr
-
-func NewEnumeratePropertiesCallback(callback func(userdata unsafe.Pointer, props PropertiesID, name string)) EnumeratePropertiesCallback {
-	cb := purego.NewCallback(func(userdata unsafe.Pointer, props PropertiesID, name *byte) uintptr {
-		callback(userdata, props, convert.ToString(name))
-		return 0
-	})
-
-	return EnumeratePropertiesCallback(cb)
-}
 
 // [ClearProperty] clears a property from a group of properties.
 //

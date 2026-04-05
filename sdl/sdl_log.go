@@ -3,9 +3,6 @@ package sdl
 import (
 	"fmt"
 	"unsafe"
-
-	"github.com/ebitengine/purego"
-	"github.com/jupiterrider/purego-sdl3/internal/convert"
 )
 
 // [LogPriority] is a structure specifying the predefined log priorities.
@@ -54,15 +51,6 @@ const (
 )
 
 type LogOutputFunction uintptr
-
-func NewLogOutputFunctionCallback(callback func(userdata unsafe.Pointer, category LogCategory, priority LogPriority, message string)) LogOutputFunction {
-	cb := purego.NewCallback(func(userdata unsafe.Pointer, category int32, priority LogPriority, message *byte) uintptr {
-		callback(userdata, LogCategory(category), priority, convert.ToString(message))
-		return 0
-	})
-
-	return LogOutputFunction(cb)
-}
 
 // func GetDefaultLogOutputFunction() LogOutputFunction {
 //	return sdlGetDefaultLogOutputFunction()

@@ -2,9 +2,6 @@ package sdl
 
 import (
 	"unsafe"
-
-	"github.com/ebitengine/purego"
-	"github.com/jupiterrider/purego-sdl3/internal/convert"
 )
 
 // [HintPriority] is an enumeration of hint priorities.
@@ -286,15 +283,6 @@ const (
 //
 // [HintCallback]: https://wiki.libsdl.org/SDL3/SDL_HintCallback
 type HintCallback uintptr
-
-func NewHintCallback(callback func(userdata unsafe.Pointer, name, oldValue, newValue string)) HintCallback {
-	cb := purego.NewCallback(func(userdata unsafe.Pointer, name, oldValue, newValue *byte) uintptr {
-		callback(userdata, convert.ToString(name), convert.ToString(oldValue), convert.ToString(newValue))
-		return 0
-	})
-
-	return HintCallback(cb)
-}
 
 // [SetHint] sets a hint with normal priority.
 //

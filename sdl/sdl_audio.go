@@ -2,8 +2,6 @@ package sdl
 
 import (
 	"unsafe"
-
-	"github.com/ebitengine/purego"
 )
 
 const PropAudiostreamAutoCleanupBoolean = "SDL.audiostream.auto_cleanup"
@@ -64,15 +62,6 @@ type AudioStreamCallback uintptr
 // [AudioStreamDataCompleteCallback]: https://wiki.libsdl.org/SDL3/SDL_AudioStreamDataCompleteCallback
 type AudioStreamDataCompleteCallback uintptr
 
-func NewAudioStreamCallback(callback func(userdata unsafe.Pointer, stream *AudioStream, additionalAmount, totalAmount int32)) AudioStreamCallback {
-	cb := purego.NewCallback(func(userdata unsafe.Pointer, stream *AudioStream, additionalAmount, totalAmount int32) uintptr {
-		callback(userdata, stream, additionalAmount, totalAmount)
-		return 0
-	})
-
-	return AudioStreamCallback(cb)
-}
-
 // func AudioDevicePaused(dev AudioDeviceID) bool {
 //	return sdlAudioDevicePaused(dev)
 // }
@@ -81,8 +70,7 @@ func NewAudioStreamCallback(callback func(userdata unsafe.Pointer, stream *Audio
 //
 // [AudioStreamDevicePaused]: https://wiki.libsdl.org/SDL3/SDL_AudioStreamDevicePaused
 func AudioStreamDevicePaused(stream *AudioStream) bool {
-	ret, _, _ := purego.SyscallN(sdlAudioStreamDevicePaused, uintptr(unsafe.Pointer(stream)))
-	return byte(ret) != 0
+	return sdlAudioStreamDevicePaused(stream)
 }
 
 // func BindAudioStream(devid AudioDeviceID, stream *AudioStream) bool {
@@ -97,8 +85,7 @@ func AudioStreamDevicePaused(stream *AudioStream) bool {
 //
 // [ClearAudioStream]: https://wiki.libsdl.org/SDL3/SDL_ClearAudioStream
 func ClearAudioStream(stream *AudioStream) bool {
-	ret, _, _ := purego.SyscallN(sdlClearAudioStream, uintptr(unsafe.Pointer(stream)))
-	return byte(ret) != 0
+	return sdlClearAudioStream(stream)
 }
 
 // func CloseAudioDevice(devid AudioDeviceID)  {
@@ -125,8 +112,7 @@ func DestroyAudioStream(stream *AudioStream) {
 //
 // [FlushAudioStream]: https://wiki.libsdl.org/SDL3/SDL_FlushAudioStream
 func FlushAudioStream(stream *AudioStream) bool {
-	ret, _, _ := purego.SyscallN(sdlFlushAudioStream, uintptr(unsafe.Pointer(stream)))
-	return byte(ret) != 0
+	return sdlFlushAudioStream(stream)
 }
 
 // func GetAudioDeviceChannelMap(devid AudioDeviceID, count *int32) *int32 {
@@ -216,8 +202,7 @@ func GetAudioStreamGain(stream *AudioStream) float32 {
 //
 // [GetAudioStreamQueued]: https://wiki.libsdl.org/SDL3/SDL_GetAudioStreamQueued
 func GetAudioStreamQueued(stream *AudioStream) int32 {
-	ret, _, _ := purego.SyscallN(sdlGetAudioStreamQueued, uintptr(unsafe.Pointer(stream)))
-	return int32(ret)
+	return sdlGetAudioStreamQueued(stream)
 }
 
 // [GetCurrentAudioDriver] gets the name of the current audio driver.
@@ -290,16 +275,14 @@ func OpenAudioDeviceStream(devid AudioDeviceID, spec *AudioSpec, callback AudioS
 //
 // [PauseAudioStreamDevice]: https://wiki.libsdl.org/SDL3/SDL_PauseAudioStreamDevice
 func PauseAudioStreamDevice(stream *AudioStream) bool {
-	ret, _, _ := purego.SyscallN(sdlPauseAudioStreamDevice, uintptr(unsafe.Pointer(stream)))
-	return byte(ret) != 0
+	return sdlPauseAudioStreamDevice(stream)
 }
 
 // [PutAudioStreamData] adds data to the stream.
 //
 // [PutAudioStreamData]: https://wiki.libsdl.org/SDL3/SDL_PutAudioStreamData
 func PutAudioStreamData(stream *AudioStream, buf *uint8, len int32) bool {
-	ret, _, _ := purego.SyscallN(sdlPutAudioStreamData, uintptr(unsafe.Pointer(stream)), uintptr(unsafe.Pointer(buf)), uintptr(len))
-	return byte(ret) != 0
+	return sdlPutAudioStreamData(stream, buf, len)
 }
 
 // [PutAudioStreamDataNoCopy] adds external data to an audio stream without copying it.
@@ -330,8 +313,7 @@ func PutAudioStreamData(stream *AudioStream, buf *uint8, len int32) bool {
 //
 // [ResumeAudioStreamDevice]: https://wiki.libsdl.org/SDL3/SDL_ResumeAudioStreamDevice
 func ResumeAudioStreamDevice(stream *AudioStream) bool {
-	ret, _, _ := purego.SyscallN(sdlResumeAudioStreamDevice, uintptr(unsafe.Pointer(stream)))
-	return byte(ret) != 0
+	return sdlResumeAudioStreamDevice(stream)
 }
 
 // func SetAudioDeviceGain(devid AudioDeviceID, gain float32) bool {

@@ -1,7 +1,5 @@
 package sdl
 
-import "github.com/ebitengine/purego"
-
 // [TimerID] is a definition of the timer ID type.
 //
 // [TimerID]: https://wiki.libsdl.org/SDL3/SDL_TimerID
@@ -46,32 +44,28 @@ func DelayNS(ns uint64) {
 //
 // [GetPerformanceCounter]: https://wiki.libsdl.org/SDL3/SDL_GetPerformanceCounter
 func GetPerformanceCounter() uint64 {
-	ret, _, _ := purego.SyscallN(sdlGetPerformanceCounter)
-	return uint64(ret)
+	return sdlGetPerformanceCounter()
 }
 
 // [GetPerformanceFrequency] returns the count per second of the high resolution counter.
 //
 // [GetPerformanceFrequency]: https://wiki.libsdl.org/SDL3/SDL_GetPerformanceFrequency
 func GetPerformanceFrequency() uint64 {
-	ret, _, _ := purego.SyscallN(sdlGetPerformanceFrequency)
-	return uint64(ret)
+	return sdlGetPerformanceFrequency()
 }
 
 // [GetTicks] returns the number of milliseconds that have elapsed since the SDL library initialization.
 //
 // [GetTicks]: https://wiki.libsdl.org/SDL3/SDL_GetTicks
 func GetTicks() uint64 {
-	ret, _, _ := purego.SyscallN(sdlGetTicks)
-	return uint64(ret)
+	return sdlGetTicks()
 }
 
 // [GetTicksNS] returns the number of nanoseconds since SDL library initialization.
 //
 // [GetTicksNS]: https://wiki.libsdl.org/SDL3/SDL_GetTicksNS
 func GetTicksNS() uint64 {
-	ret, _, _ := purego.SyscallN(sdlGetTicksNS)
-	return uint64(ret)
+	return sdlGetTicksNS()
 }
 
 // RemoveTimer remove a timer created with SDL_AddTimer().

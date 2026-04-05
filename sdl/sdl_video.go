@@ -3,7 +3,6 @@ package sdl
 import (
 	"unsafe"
 
-	"github.com/ebitengine/purego"
 	"github.com/jupiterrider/purego-sdl3/internal/mem"
 )
 
@@ -860,16 +859,14 @@ func GLSetAttribute(attr GLAttr, value int32) bool {
 //
 // [GLSetSwapInterval]: https://wiki.libsdl.org/SDL3/SDL_GL_SetSwapInterval
 func GLSetSwapInterval(interval int32) bool {
-	ret, _, _ := purego.SyscallN(sdlGLSetSwapInterval, uintptr(interval))
-	return byte(ret) != 0
+	return sdlGLSetSwapInterval(interval)
 }
 
 // [GLSwapWindow] updates a window with OpenGL rendering.
 //
 // [GLSwapWindow]: https://wiki.libsdl.org/SDL3/SDL_GL_SwapWindow
 func GLSwapWindow(window *Window) bool {
-	ret, _, _ := purego.SyscallN(sdlGLSwapWindow, uintptr(unsafe.Pointer(window)))
-	return byte(ret) != 0
+	return sdlGLSwapWindow(window)
 }
 
 // func GL_UnloadLibrary()  {

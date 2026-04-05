@@ -3,7 +3,6 @@ package sdl
 import (
 	"unsafe"
 
-	"github.com/ebitengine/purego"
 	"github.com/jupiterrider/purego-sdl3/internal/convert"
 )
 
@@ -52,15 +51,6 @@ func (d DialogFileFilter) Pattern() string {
 //
 // [DialogFileCallback]: https://wiki.libsdl.org/SDL3/SDL_DialogFileCallback
 type DialogFileCallback uintptr
-
-func NewDialogFileCallback(callback func(userdata unsafe.Pointer, filelist []string, filter int32)) DialogFileCallback {
-	cb := purego.NewCallback(func(userdata unsafe.Pointer, filelist **byte, filter int32) uintptr {
-		callback(userdata, convert.ToStringSlice(filelist), filter)
-		return 0
-	})
-
-	return DialogFileCallback(cb)
-}
 
 // [ShowFileDialogWithProperties] creates and launches a file dialog with the specified properties.
 //

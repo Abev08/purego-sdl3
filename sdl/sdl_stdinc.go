@@ -2,8 +2,6 @@ package sdl
 
 import (
 	"unsafe"
-
-	"github.com/ebitengine/purego"
 )
 
 // [Time] is a structure specifying SDL time.
@@ -174,7 +172,7 @@ func FourCC(a, b, c, d byte) uint32 {
 //
 // [Free]: https://wiki.libsdl.org/SDL3/SDL_free
 func Free(mem unsafe.Pointer) {
-	purego.SyscallN(sdlfree, uintptr(mem))
+	sdlfree(mem)
 }
 
 // func getenv(name string) string {

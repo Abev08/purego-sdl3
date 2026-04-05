@@ -3,7 +3,6 @@ package sdl
 import (
 	"unsafe"
 
-	"github.com/ebitengine/purego"
 	"github.com/jupiterrider/purego-sdl3/internal/convert"
 )
 
@@ -908,25 +907,11 @@ type UserEvent struct {
 // [EventFilter]: https://wiki.libsdl.org/SDL3/SDL_EventFilter
 type EventFilter uintptr
 
-// NewEventFilter converts the Go function to a C function pointer.
-func NewEventFilter(filter func(userdata unsafe.Pointer, event *Event) bool) EventFilter {
-	// workaround to avoid panic "expected function with one uintptr-sized result" on Windows
-	cb := purego.NewCallback(func(userdata unsafe.Pointer, event *Event) uintptr {
-		if filter(userdata, event) {
-			return 1
-		}
-		return 0
-	})
-
-	return EventFilter(cb)
-}
-
 // [PollEvent] polls for currently pending events.
 //
 // [PollEvent]: https://wiki.libsdl.org/SDL3/SDL_PollEvent
 func PollEvent(event *Event) bool {
-	ret, _, _ := purego.SyscallN(sdlPollEvent, uintptr(unsafe.Pointer(event)))
-	return byte(ret) != 0
+	return sdlPollEvent(event)
 }
 
 // [AddEventWatch] adds a callback to be triggered when an event is added to the event queue.

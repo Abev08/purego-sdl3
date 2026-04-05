@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"unsafe"
 
-	"github.com/ebitengine/purego"
 	"github.com/jupiterrider/purego-sdl3/internal/convert"
 )
 
@@ -223,24 +222,21 @@ func CreateWindowAndRenderer(title string, width, height int32, flags WindowFlag
 //
 // [SetRenderDrawColor]: https://wiki.libsdl.org/SDL3/SDL_SetRenderDrawColor
 func SetRenderDrawColor(renderer *Renderer, r, g, b, a uint8) bool {
-	ret, _, _ := purego.SyscallN(sdlSetRenderDrawColor, uintptr(unsafe.Pointer(renderer)), uintptr(r), uintptr(g), uintptr(b), uintptr(a))
-	return byte(ret) != 0
+	return sdlSetRenderDrawColor(renderer, r, g, b, a)
 }
 
 // [RenderPresent] updates the screen with any rendering performed since the previous call.
 //
 // [RenderPresent]: https://wiki.libsdl.org/SDL3/SDL_RenderPresent
 func RenderPresent(renderer *Renderer) bool {
-	ret, _, _ := purego.SyscallN(sdlRenderPresent, uintptr(unsafe.Pointer(renderer)))
-	return byte(ret) != 0
+	return sdlRenderPresent(renderer)
 }
 
 // [RenderClear] clears the current rendering target with the drawing color.
 //
 // [RenderClear]: https://wiki.libsdl.org/SDL3/SDL_RenderClear
 func RenderClear(renderer *Renderer) bool {
-	ret, _, _ := purego.SyscallN(sdlRenderClear, uintptr(unsafe.Pointer(renderer)))
-	return byte(ret) != 0
+	return sdlRenderClear(renderer)
 }
 
 // [DestroyRenderer] destroys the rendering context for a window and free all associated textures.
@@ -254,16 +250,14 @@ func DestroyRenderer(renderer *Renderer) {
 //
 // [RenderRect]: https://wiki.libsdl.org/SDL3/SDL_RenderRect
 func RenderRect(renderer *Renderer, rect *FRect) bool {
-	ret, _, _ := purego.SyscallN(sdlRenderRect, uintptr(unsafe.Pointer(renderer)), uintptr(unsafe.Pointer(rect)))
-	return byte(ret) != 0
+	return sdlRenderRect(renderer, rect)
 }
 
 // [RenderFillRect] fills a rectangle on the current rendering target with the drawing color at subpixel precision.
 //
 // [RenderFillRect]: https://wiki.libsdl.org/SDL3/SDL_RenderFillRect
 func RenderFillRect(renderer *Renderer, rect *FRect) bool {
-	ret, _, _ := purego.SyscallN(sdlRenderFillRect, uintptr(unsafe.Pointer(renderer)), uintptr(unsafe.Pointer(rect)))
-	return byte(ret) != 0
+	return sdlRenderFillRect(renderer, rect)
 }
 
 // [RenderDebugText] draws debug text to a [Renderer].
@@ -284,8 +278,7 @@ func CreateTextureFromSurface(renderer *Renderer, surface *Surface) *Texture {
 //
 // [RenderTexture]: https://wiki.libsdl.org/SDL3/SDL_RenderTexture
 func RenderTexture(renderer *Renderer, texture *Texture, srcrect *FRect, dstrect *FRect) bool {
-	ret, _, _ := purego.SyscallN(sdlRenderTexture, uintptr(unsafe.Pointer(renderer)), uintptr(unsafe.Pointer(texture)), uintptr(unsafe.Pointer(srcrect)), uintptr(unsafe.Pointer(dstrect)))
-	return byte(ret) != 0
+	return sdlRenderTexture(renderer, texture, srcrect, dstrect)
 }
 
 // [DestroyTexture] destroys the specified texture.
@@ -375,8 +368,7 @@ func CreateTextureWithProperties(renderer *Renderer, props PropertiesID) *Textur
 //
 // [FlushRenderer]: https://wiki.libsdl.org/SDL3/SDL_FlushRenderer
 func FlushRenderer(renderer *Renderer) bool {
-	ret, _, _ := purego.SyscallN(sdlFlushRenderer, uintptr(unsafe.Pointer(renderer)))
-	return byte(ret) != 0
+	return sdlFlushRenderer(renderer)
 }
 
 // [GetCurrentRenderOutputSize] gets the current output size in pixels of a rendering context.
@@ -714,13 +706,7 @@ func GetDefaultTextureScaleMode(renderer *Renderer, scaleMode *ScaleMode) bool {
 //
 // [RenderFillRects]: https://wiki.libsdl.org/SDL3/SDL_RenderFillRects
 func RenderFillRects(renderer *Renderer, rects []FRect) bool {
-	count := len(rects)
-	var rectsPtr *FRect
-	if count > 0 {
-		rectsPtr = &rects[0]
-	}
-	ret, _, _ := purego.SyscallN(sdlRenderFillRects, uintptr(unsafe.Pointer(renderer)), uintptr(unsafe.Pointer(rectsPtr)), uintptr(count))
-	return byte(ret) != 0
+	return sdlRenderFillRects(renderer, rects)
 }
 
 // [RenderGeometry] renders a list of triangles, optionally using a texture and indices into the vertex array Color and alpha
@@ -728,27 +714,7 @@ func RenderFillRects(renderer *Renderer, rects []FRect) bool {
 //
 // [RenderGeometry]: https://wiki.libsdl.org/SDL3/SDL_RenderGeometry
 func RenderGeometry(renderer *Renderer, texture *Texture, vertices []Vertex, indices []int32) bool {
-	numVertices := len(vertices)
-	var verticesPtr *Vertex
-	if numVertices > 0 {
-		verticesPtr = &vertices[0]
-	}
-
-	numIndices := len(indices)
-	var indicesPtr *int32
-	if numIndices > 0 {
-		indicesPtr = &indices[0]
-	}
-
-	ret, _, _ := purego.SyscallN(sdlRenderGeometry,
-		uintptr(unsafe.Pointer(renderer)),
-		uintptr(unsafe.Pointer(texture)),
-		uintptr(unsafe.Pointer(verticesPtr)),
-		uintptr(numVertices),
-		uintptr(unsafe.Pointer(indicesPtr)),
-		uintptr(numIndices))
-
-	return byte(ret) != 0
+	return sdlRenderGeometry(renderer, texture, vertices, indices)
 }
 
 // [RenderGeometryRaw] renders a list of triangles, optionally using a texture and indices into the vertex arrays Color and alpha
@@ -756,41 +722,7 @@ func RenderGeometry(renderer *Renderer, texture *Texture, vertices []Vertex, ind
 //
 // [RenderGeometryRaw]: https://wiki.libsdl.org/SDL3/SDL_RenderGeometryRaw
 func RenderGeometryRaw(renderer *Renderer, texture *Texture, xy []FPoint, color []FColor, uv []FPoint, indices []int32) bool {
-	var xyPtr, uvPtr *FPoint
-	numXY := len(xy)
-	if numXY > 0 {
-		xyPtr = &xy[0]
-	}
-	if len(uv) > 0 {
-		uvPtr = &uv[0]
-	}
-
-	var colorPtr *FColor
-	if len(color) > 0 {
-		colorPtr = &color[0]
-	}
-
-	var indicesPtr *int32
-	numIndices := len(indices)
-	if numIndices > 0 {
-		indicesPtr = &indices[0]
-	}
-
-	ret, _, _ := purego.SyscallN(sdlRenderGeometryRaw,
-		uintptr(unsafe.Pointer(renderer)),
-		uintptr(unsafe.Pointer(texture)),
-		uintptr(unsafe.Pointer(xyPtr)),
-		uintptr(8), // xyStride -> unsafe.Sizeof(sdl.FPoint{}) == 8
-		uintptr(unsafe.Pointer(colorPtr)),
-		uintptr(16), // colorStride -> unsafe.Sizeof(sdl.FPoint{}) == 16
-		uintptr(unsafe.Pointer(uvPtr)),
-		uintptr(8), // uvStride -> unsafe.Sizeof(sdl.FPoint{}) == 8
-		uintptr(numXY),
-		uintptr(unsafe.Pointer(indicesPtr)),
-		uintptr(numIndices),
-		uintptr(4)) // sizeIndices -> unsafe.Sizeof(int32(0)) == 4
-
-	return byte(ret) != 0
+	return sdlRenderGeometryRaw(renderer, texture, xy, color, uv, indices)
 }
 
 // [SetRenderTextureAddressMode] sets the texture addressing mode used in [RenderGeometry].
@@ -822,13 +754,7 @@ func RenderLine(renderer *Renderer, x1 float32, y1 float32, x2 float32, y2 float
 //
 // [RenderLines]: https://wiki.libsdl.org/SDL3/SDL_RenderLines
 func RenderLines(renderer *Renderer, points []FPoint) bool {
-	count := len(points)
-	var pointsPtr *FPoint
-	if count > 0 {
-		pointsPtr = &points[0]
-	}
-	ret, _, _ := purego.SyscallN(sdlRenderLines, uintptr(unsafe.Pointer(renderer)), uintptr(unsafe.Pointer(pointsPtr)), uintptr(count))
-	return byte(ret) != 0
+	return sdlRenderLines(renderer, points)
 }
 
 // [RenderPoint] draws a point on the current rendering target at subpixel precision.
@@ -842,13 +768,7 @@ func RenderPoint(renderer *Renderer, x float32, y float32) bool {
 //
 // [RenderPoints]: https://wiki.libsdl.org/SDL3/SDL_RenderPoints
 func RenderPoints(renderer *Renderer, points []FPoint) bool {
-	count := len(points)
-	var pointsPtr *FPoint
-	if count > 0 {
-		pointsPtr = &points[0]
-	}
-	ret, _, _ := purego.SyscallN(sdlRenderPoints, uintptr(unsafe.Pointer(renderer)), uintptr(unsafe.Pointer(pointsPtr)), uintptr(count))
-	return byte(ret) != 0
+	return sdlRenderPoints(renderer, points)
 }
 
 // [RenderReadPixels] reads pixels from the current rendering target.
@@ -862,13 +782,7 @@ func RenderReadPixels(renderer *Renderer, rect *Rect) *Surface {
 //
 // [RenderRects]: https://wiki.libsdl.org/SDL3/SDL_RenderRects
 func RenderRects(renderer *Renderer, rects []FRect) bool {
-	count := len(rects)
-	var rectsPtr *FRect
-	if count > 0 {
-		rectsPtr = &rects[0]
-	}
-	ret, _, _ := purego.SyscallN(sdlRenderRects, uintptr(unsafe.Pointer(renderer)), uintptr(unsafe.Pointer(rectsPtr)), uintptr(count))
-	return byte(ret) != 0
+	return sdlRenderRects(renderer, rects)
 }
 
 // [RenderTexture9Grid] performs a scaled copy using the 9-grid algorithm to the current rendering target at subpixel precision.
@@ -891,16 +805,7 @@ func RenderTexture9GridTiled(renderer *Renderer, texture *Texture, srcrect *FRec
 //
 // [RenderTextureAffine]: https://wiki.libsdl.org/SDL3/SDL_RenderTextureAffine
 func RenderTextureAffine(renderer *Renderer, texture *Texture, srcrect *FRect, origin *FPoint, right *FPoint, down *FPoint) bool {
-	ret, _, _ := purego.SyscallN(
-		sdlRenderTextureAffine,
-		uintptr(unsafe.Pointer(renderer)),
-		uintptr(unsafe.Pointer(texture)),
-		uintptr(unsafe.Pointer(srcrect)),
-		uintptr(unsafe.Pointer(origin)),
-		uintptr(unsafe.Pointer(right)),
-		uintptr(unsafe.Pointer(down)))
-
-	return byte(ret) != 0
+	return sdlRenderTextureAffine(renderer, texture, srcrect, origin, right, down)
 }
 
 // [RenderTextureRotated] copies a portion of the source texture to the current rendering target, with rotation and flipping, at subpixel precision.
@@ -991,8 +896,7 @@ func SetRenderVSync(renderer *Renderer, vsync int32) bool {
 //
 // [SetTextureAlphaMod]: https://wiki.libsdl.org/SDL3/SDL_SetTextureAlphaMod
 func SetTextureAlphaMod(texture *Texture, alpha uint8) bool {
-	ret, _, _ := purego.SyscallN(sdlSetTextureAlphaMod, uintptr(unsafe.Pointer(texture)), uintptr(alpha))
-	return byte(ret) != 0
+	return sdlSetTextureAlphaMod(texture, alpha)
 }
 
 // [SetTextureAlphaModFloat] sets an additional alpha value multiplied into render copy operations.
@@ -1013,8 +917,7 @@ func SetTextureBlendMode(texture *Texture, blendMode BlendMode) bool {
 //
 // [SetTextureColorMod]: https://wiki.libsdl.org/SDL3/SDL_SetTextureColorMod
 func SetTextureColorMod(texture *Texture, r uint8, g uint8, b uint8) bool {
-	ret, _, _ := purego.SyscallN(sdlSetTextureColorMod, uintptr(unsafe.Pointer(texture)), uintptr(r), uintptr(g), uintptr(b))
-	return byte(ret) != 0
+	return sdlSetTextureColorMod(texture, r, g, b)
 }
 
 // [SetTextureColorModFloat] sets an additional color value multiplied into render copy operations.
@@ -1042,35 +945,19 @@ func UnlockTexture(texture *Texture) {
 //
 // [UpdateNVTexture]: https://wiki.libsdl.org/SDL3/SDL_UpdateNVTexture
 func UpdateNVTexture(texture *Texture, rect *Rect, yPlane *uint8, yPitch int32, uvPlane *uint8, uvPitch int32) bool {
-	ret, _, _ := purego.SyscallN(
-		sdlUpdateNVTexture,
-		uintptr(unsafe.Pointer(texture)),
-		uintptr(unsafe.Pointer(rect)),
-		uintptr(unsafe.Pointer(yPlane)), uintptr(yPitch),
-		uintptr(unsafe.Pointer(uvPlane)), uintptr(uvPitch))
-
-	return byte(ret) != 0
+	return sdlUpdateNVTexture(texture, rect, yPlane, yPitch, uvPlane, uvPitch)
 }
 
 // [UpdateTexture] updates the given texture rectangle with new pixel data.
 //
 // [UpdateTexture]: https://wiki.libsdl.org/SDL3/SDL_UpdateTexture
 func UpdateTexture(texture *Texture, rect *Rect, pixels unsafe.Pointer, pitch int32) bool {
-	ret, _, _ := purego.SyscallN(sdlUpdateTexture, uintptr(unsafe.Pointer(texture)), uintptr(unsafe.Pointer(rect)), uintptr(pixels), uintptr(pitch))
-	return byte(ret) != 0
+	return sdlUpdateTexture(texture, rect, pixels, pitch)
 }
 
 // [UpdateYUVTexture] updates a rectangle within a planar YV12 or IYUV texture with new pixel data.
 //
 // [UpdateYUVTexture]: https://wiki.libsdl.org/SDL3/SDL_UpdateYUVTexture
 func UpdateYUVTexture(texture *Texture, rect *Rect, yPlane *uint8, yPitch int32, uPlane *uint8, uPitch int32, vPlane *uint8, vPitch int32) bool {
-	ret, _, _ := purego.SyscallN(
-		sdlUpdateYUVTexture,
-		uintptr(unsafe.Pointer(texture)),
-		uintptr(unsafe.Pointer(rect)),
-		uintptr(unsafe.Pointer(yPlane)), uintptr(yPitch),
-		uintptr(unsafe.Pointer(uPlane)), uintptr(uPitch),
-		uintptr(unsafe.Pointer(vPlane)), uintptr(vPitch))
-
-	return byte(ret) != 0
+	return sdlUpdateYUVTexture(texture, rect, yPlane, yPitch, uPlane, uPitch, vPlane, vPitch)
 }

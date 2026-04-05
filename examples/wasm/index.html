@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <script src="wasm_exec.js"></script>
+  <script src="sdl_bridge.js"></script>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    async function run() {
+      const sdlModule = await createSDLModule({
+        canvas: document.getElementById('canvas')
+      });
+
+      const dummyFRect = sdlModule._malloc(16);
+      const dummyEvent = sdlModule._malloc(128);
+
+      window.sdlBridge = new Proxy({}, {
+        get: (target, prop) => {
+          switch (prop) {
+            case "SDL_GetRevision": return () => { return sdlModule.UTF8ToString(sdlModule._SDL_GetRevision()) };
+            case "SDL_GetError": return () => { return sdlModule.UTF8ToString(sdlModule._SDL_GetError()) };
+            case "SDL_GetWindowTitle": return (...args) => { return sdlModule.UTF8ToString(sdlModule._SDL_GetWindowTitle(args[0])) };
+            case "SDL_CreateWindow": return (...args) => {
+              const titlePtr = sdlModule.allocateUTF8(args[0]);
+              const windowPtr = sdlModule._SDL_CreateWindow(titlePtr, args[1], args[2], BigInt(args[3]));
+              sdlModule._free(titlePtr); // Free memory allocated by the string
+              return windowPtr;
+            };
+            case "SDL_CreateRenderer": return (...args) => {
+              const namePtr = sdlModule.allocateUTF8(args[1]);
+              const rendererPtr = sdlModule._SDL_CreateRenderer(args[0], namePtr);
+              sdlModule._free(namePtr); // Free memory allocated by the string
+              return rendererPtr;
+            };
+            case "SDL_RenderFillRect": return (...args) => {
+              sdlModule.HEAPF32.set(args.slice(1), dummyFRect >> 2);
+              return sdlModule._SDL_RenderFillRect(args[0], dummyFRect);
+            };
+            case "SDL_PollEvent": return (event) => {
+              const ret = sdlModule._SDL_PollEvent(dummyEvent);
+              return [ret, sdlModule.HEAPU8.subarray(dummyEvent, dummyEvent + 128)];
+            };
+            case "SDL_RenderDebugText": return (...args) => {
+              const textPtr = sdlModule.allocateUTF8(args[3]);
+              const ret = sdlModule._SDL_RenderDebugText(args[0], args[1], args[2], textPtr);
+              sdlModule._free(textPtr); // Free memory allocated by the string
+              return ret;
+            }
+
+            default:
+              const funcName = prop.startsWith('_') ? prop : '_' + prop;
+              const func = sdlModule[funcName];
+              if (typeof func !== 'function') { return () => 0; }
+              return func.bind(sdlModule);
+          }
+        }
+      });
+
+      const go = new Go();
+      const result = await WebAssembly.instantiateStreaming(
+        fetch("go.wasm"),
+        go.importObject
+      );
+      go.run(result.instance);
+    }
+
+    run().catch(console.error);
+  </script>
+</body>
+
+</html>

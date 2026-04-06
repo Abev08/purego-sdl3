@@ -15,8 +15,8 @@ One of the highlights of this setup is that the example app can be built for bot
 
 * **Emscripten**: To build SDL3 to WASM, you need [Emscripten](https://emscripten.org/docs/getting_started/downloads.html) installed. Follow their getting started guide.  
 * **Local HTTP Server**: WASM applications cannot be run by simply opening `index.html`. You need a server to host the files. This example uses the `python` built-in HTTP server, but any server will work. To follow the example as is, you need `python` installed.  
-  > [!Tip]
-  > The HTTP server could be improved with hot-reloading by monitoring changes in .go files and automatically triggering the build script.
+> [!Tip]
+> The HTTP server could be improved with hot-reloading by monitoring changes in .go files and automatically triggering the build script.
 
 
 ### How to run the example

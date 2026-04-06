@@ -4,8 +4,9 @@
 cp -n "$(go env GOROOT)/lib/wasm/wasm_exec.js" .
 
 # Compile SDL3 directly into JS/WASM
+# The command assumes that you failed adding emcc to path so the absolute path to emcc is used
 touch nothing.c
-/usr/lib/emsdk/upstream/emscripten/emcc nothing.c -o sdl_bridge.js \
+/usr/lib/emsdk/upstream/emscripten/emcc nothing.c -o sdl.js \
     -s USE_SDL=3 \
     -s MODULARIZE=1 \
     -s EXPORT_NAME='createSDLModule' \

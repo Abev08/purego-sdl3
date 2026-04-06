@@ -4,24 +4,25 @@ This example demonstrates how to compile **Go + SDL3** into WebAssembly (WASM).
 The build process is currently designed for Linux. Windows users may need to adjust specific shell commands.
 
 One of the highlights of this setup is that the example app can be built for both PC and WASM **without changing any application code** — only the build command needs to be adjusted.  
-[!WARNING]
-This example is highly experimental and serves as a proof of concept. It is intended to be a foundation that can be expanded into a robust WASM build pipeline.  
-[!NOTE]
-Not all of the SDL functions are available in the WASM build, so some changes may be necessary.  
+> [!WARNING]
+> This example is highly experimental and serves as a proof of concept. It is intended to be a foundation that can be expanded into a robust WASM build pipeline.  
+
+> [!NOTE]
+> Not all of the SDL functions are available in the WASM build, so some changes in the app may be necessary.  
 
 
 ### Requirements
 
 * **Emscripten**: To build SDL3 to WASM, you need [Emscripten](https://emscripten.org/docs/getting_started/downloads.html) installed. Follow their getting started guide.  
 * **Local HTTP Server**: WASM applications cannot be run by simply opening `index.html`. You need a server to host the files. This example uses the `python` built-in HTTP server, but any server will work. To follow the example as is, you need `python` installed.  
-  [!Tip]
-  The HTTP server could be improved with hot-reloading by monitoring changes in .go files and automatically triggering the build script.
+  > [!Tip]
+  > The HTTP server could be improved with hot-reloading by monitoring changes in .go files and automatically triggering the build script.
 
 
 ### How to run the example
 
-* **WASM**: To run the example on WASM execute `build.sh`. It will compile everything and host the app on http://localhost:8080/
-* **PC**: To run the example on PC execute `go run main.go` in the project example.
+* **WASM**: To run the example on WASM execute `build.sh`. It will compile everything and host the app on http://localhost:8080/.
+* **PC**: To run the example on PC execute `go run main.go` in the example directory.
 
 
 ### How does it work? (`build.sh` explained)

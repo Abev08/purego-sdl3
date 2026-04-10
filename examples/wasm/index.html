@@ -14,7 +14,9 @@
         canvas: document.getElementById('canvas')
       });
 
+      const dummyFPoint = sdlModule._malloc(8);
       const dummyFRect = sdlModule._malloc(16);
+      const dummyFRect2 = sdlModule._malloc(16);
       const dummyEvent = sdlModule._malloc(128);
       const memoryBuffer = sdlModule._malloc(1024 * 1024 * 10); // 10MB buffer
       const memoryBufferView = new Uint8Array(sdlModule.HEAPU8.buffer, memoryBuffer, 1024 * 1024 * 10);
@@ -86,6 +88,91 @@
             case "SDL_RenderLines": return (renderer, count) => { return sdlModule._SDL_RenderLines(renderer, memoryBuffer, count); };
             case "SDL_RenderRects": return (renderer, count) => { return sdlModule._SDL_RenderRects(renderer, memoryBuffer, count); };
             case "SDL_RenderFillRects": return (renderer, count) => { return sdlModule._SDL_RenderFillRects(renderer, memoryBuffer, count); };
+            case "SDL_RenderPoints": return (renderer, count) => { return sdlModule._SDL_RenderPoints(renderer, memoryBuffer, count); };
+            case "SDL_SetPointerProperty": return (props, name, value) => {
+              const namePtr = sdlModule.allocateUTF8(name);
+              const res = sdlModule._SDL_SetPointerProperty(props, namePtr, value);
+              sdlModule._free(namePtr); // Free memory allocated by the string
+              return res;
+            };
+            case "SDL_SetNumberProperty": return (props, name, value) => {
+              const namePtr = sdlModule.allocateUTF8(name);
+              const res = sdlModule._SDL_SetNumberProperty(props, namePtr, BigInt(value));
+              sdlModule._free(namePtr); // Free memory allocated by the string
+              return res;
+            };
+            case "SDL_LoadBMP": return (file) => {
+              const filePtr = sdlModule.allocateUTF8(file);
+              const res = sdlModule._SDL_LoadBMP(filePtr);
+              sdlModule._free(filePtr); // Free memory allocated by the string
+              return res;
+            };
+            case "SDL_IOFromConstMem": return (size) => { return sdlModule._SDL_IOFromConstMem(memoryBuffer, size); };
+            case "SDL_RenderTexture": return (renderer, texture,
+              srcrectX, srcrectY, srcrectW, srcrectH,
+              dstrectX, dstrectY, dstrectW, dstrectH) => {
+              let r1, r2;
+              if (srcrectX != undefined || srcrectY != undefined || srcrectW != undefined || srcrectH != undefined) {
+                sdlModule.HEAPF32.set([srcrectX, srcrectY, srcrectW, srcrectH], dummyFRect >> 2);
+                r1 = dummyFRect;
+              }
+              if (dstrectX != undefined || dstrectY != undefined || dstrectW != undefined || dstrectH != undefined) {
+                sdlModule.HEAPF32.set([dstrectX, dstrectY, dstrectW, dstrectH], dummyFRect2 >> 2);
+                r2 = dummyFRect2;
+              }
+              return sdlModule._SDL_RenderTexture(renderer, texture, r1, r2);
+            };
+            case "SDL_RenderTextureRotated": return (renderer, texture,
+              srcrectX, srcrectY, srcrectW, srcrectH,
+              dstrectX, dstrectY, dstrectW, dstrectH,
+              angle,
+              centerX, centerY,
+              flip) => {
+              let r1, r2, p;
+              if (srcrectX != undefined && srcrectY != undefined && srcrectW != undefined && srcrectH != undefined) {
+                sdlModule.HEAPF32.set([srcrectX, srcrectY, srcrectW, srcrectH], dummyFRect >> 2);
+                r1 = dummyFRect;
+              }
+              if (dstrectX != undefined && dstrectY != undefined && dstrectW != undefined && dstrectH != undefined) {
+                sdlModule.HEAPF32.set([dstrectX, dstrectY, dstrectW, dstrectH], dummyFRect2 >> 2);
+                r2 = dummyFRect2;
+              }
+              if (centerX != undefined && centerY != undefined) {
+                sdlModule.HEAPF32.set([centerX, centerY], dummyFPoint >> 2);
+                p = dummyFPoint;
+              }
+              return sdlModule._SDL_RenderTextureRotated(renderer, texture, r1, r2, angle, p, flip);
+            };
+            case "SDL_RenderTexture9Grid": return (renderer, texture,
+              srcrectX, srcrectY, srcrectW, srcrectH,
+              leftWidth, rightWidth, topHeight, bottomHeight, scale,
+              dstrectX, dstrectY, dstrectW, dstrectH) => {
+              let r1, r2;
+              if (srcrectX != undefined && srcrectY != undefined && srcrectW != undefined && srcrectH != undefined) {
+                sdlModule.HEAPF32.set([srcrectX, srcrectY, srcrectW, srcrectH], dummyFRect >> 2);
+                r1 = dummyFRect;
+              }
+              if (dstrectX != undefined && dstrectY != undefined && dstrectW != undefined && dstrectH != undefined) {
+                sdlModule.HEAPF32.set([dstrectX, dstrectY, dstrectW, dstrectH], dummyFRect2 >> 2);
+                r2 = dummyFRect2;
+              }
+              return sdlModule._SDL_RenderTexture9Grid(renderer, texture, r1, leftWidth, rightWidth, topHeight, bottomHeight, scale, r2);
+            };
+            case "SDL_RenderTextureTiled": return (renderer, texture,
+              srcrectX, srcrectY, srcrectW, srcrectH,
+              scale,
+              dstrectX, dstrectY, dstrectW, dstrectH) => {
+              let r1, r2;
+              if (srcrectX != undefined && srcrectY != undefined && srcrectW != undefined && srcrectH != undefined) {
+                sdlModule.HEAPF32.set([srcrectX, srcrectY, srcrectW, srcrectH], dummyFRect >> 2);
+                r1 = dummyFRect;
+              }
+              if (dstrectX != undefined && dstrectY != undefined && dstrectW != undefined && dstrectH != undefined) {
+                sdlModule.HEAPF32.set([dstrectX, dstrectY, dstrectW, dstrectH], dummyFRect2 >> 2);
+                r2 = dummyFRect2;
+              }
+              return sdlModule._SDL_RenderTextureTiled(renderer, texture, r1, scale, r2);
+            };
 
             default:
               const funcName = prop.startsWith('_') ? prop : '_' + prop;

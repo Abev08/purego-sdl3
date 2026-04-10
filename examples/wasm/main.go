@@ -1,12 +1,18 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
+	"math/rand/v2"
 	"runtime"
 	"time"
 
 	"github.com/jupiterrider/purego-sdl3/sdl"
 )
+
+// For now the image gets embedded to allow texture creation on WASM, maybe there is other way?
+//go:embed gopher-happy.bmp
+var gopherHappy []byte
 
 func main() {
 	fmt.Println("Running on:", runtime.GOOS, runtime.GOARCH)
@@ -32,11 +38,28 @@ func main() {
 
 	var window *sdl.Window
 	var renderer *sdl.Renderer
-	// window = sdl.CreateWindow("Hello WASM", 1280, 720, sdl.WindowResizable)
-	// renderer = sdl.CreateRenderer(window, "")
+	// Window and renderer in one call
 	if !sdl.CreateWindowAndRenderer("Hello WASM", 1280, 720, sdl.WindowResizable, &window, &renderer) {
 		panic(sdl.GetError())
 	}
+
+	// Separate calls for window and renderer
+	// window = sdl.CreateWindow("Hello WASM", 1280, 720, sdl.WindowResizable)
+	// renderer = sdl.CreateRenderer(window, "")
+
+	// Renderer with properties
+	// rendererProperties := sdl.CreateProperties()
+	// if rendererProperties == 0 {
+	// 	panic(sdl.GetError())
+	// }
+	// if !sdl.SetPointerProperty(rendererProperties, sdl.PropRendererCreateWindowPointer, unsafe.Pointer(window)) {
+	// 	panic(sdl.GetError())
+	// }
+	// if !sdl.SetNumberProperty(rendererProperties, sdl.PropRendererCreatePresentVSyncNumber, 1) {
+	// 	panic(sdl.GetError())
+	// }
+	// renderer = sdl.CreateRendererWithProperties(rendererProperties)
+
 	defer sdl.DestroyWindow(window)
 	defer sdl.DestroyRenderer(renderer)
 
@@ -47,6 +70,23 @@ func main() {
 	if !runningOnWasm && !sdl.SetRenderVSync(renderer, 1) {
 		fmt.Println(sdl.GetError())
 	}
+
+	// Loading texture
+	gopherStream := sdl.IOFromConstMem(gopherHappy)
+	if gopherStream == nil {
+		panic(sdl.GetError())
+	}
+	gopherSurface := sdl.LoadBMPIO(gopherStream, true)
+	if gopherSurface == nil {
+		panic(sdl.GetError())
+	}
+	defer sdl.DestroySurface(gopherSurface)
+	gopherTexture := sdl.CreateTextureFromSurface(renderer, gopherSurface)
+	if gopherTexture == nil {
+		panic(gopherTexture)
+	}
+	defer sdl.DestroyTexture(gopherTexture)
+	sdl.SetTextureScaleMode(gopherTexture, sdl.ScaleModeNearest)
 
 	perfFreq, frameStart, frameCount := float32(sdl.GetPerformanceFrequency()), sdl.GetPerformanceCounter(), 0
 	var fps, frameTime float32
@@ -133,6 +173,22 @@ func main() {
 			{X: 550, Y: 440, W: 30, H: 30}, {X: 590, Y: 440, W: 30, H: 30}, {X: 630, Y: 440, W: 30, H: 30}, {X: 670, Y: 440, W: 30, H: 30},
 			{X: 550, Y: 480, W: 30, H: 30}, {X: 590, Y: 480, W: 30, H: 30}, {X: 630, Y: 480, W: 30, H: 30}, {X: 670, Y: 480, W: 30, H: 30},
 		})
+
+		// Points
+		sdl.SetRenderDrawColor(renderer, 255, 255, 255, 255)
+		sdl.RenderPoint(renderer, 150, 150)
+		points := make([]sdl.FPoint, 1000)
+		for i := range points {
+			points[i].X, points[i].Y = 100+100*rand.Float32(), 175+100*rand.Float32()
+		}
+		sdl.SetRenderDrawColor(renderer, 255, 0, 0, 255)
+		sdl.RenderPoints(renderer, points)
+
+		// Texture
+		sdl.RenderTexture(renderer, gopherTexture, nil, &sdl.FRect{X: 600, Y: 275, W: 96, H: 96})
+		sdl.RenderTextureRotated(renderer, gopherTexture, &sdl.FRect{X: 0, Y: 0, W: 32, H: 16}, &sdl.FRect{X: 700, Y: 250, W: 64, H: 32}, -45, nil, sdl.FlipNone)
+		sdl.RenderTexture9Grid(renderer, gopherTexture, nil, 8, 8, 8, 8, 1, &sdl.FRect{X: 620, Y: 210, W: 64, H: 64})
+		sdl.RenderTextureTiled(renderer, gopherTexture, nil, 1, &sdl.FRect{X: 720, Y: 320, W: 96, H: 160})
 
 		// Simple debug text
 		sdl.SetRenderDrawColorFloat(renderer, 1, 1, 1, 1)

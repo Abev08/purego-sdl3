@@ -159,14 +159,23 @@ func init() {
 	// // purego.RegisterLibFunc(&sdlCreateProcess, lib, "SDL_CreateProcess")
 	// // purego.RegisterLibFunc(&sdlCreateProcessWithProperties, lib, "SDL_CreateProcessWithProperties")
 	// purego.RegisterLibFunc(&sdlCreateProperties, lib, "SDL_CreateProperties")
+	sdlCreateProperties = func() PropertiesID {
+		return PropertiesID(bridge.Call("SDL_CreateProperties").Int())
+	}
 	sdlCreateRenderer = func(window *Window, b *byte) *Renderer {
-		res := bridge.Call("SDL_CreateRenderer", uintptr(unsafe.Pointer(window)), convert.ToString(b)).Int()
+		res := bridge.Call("SDL_CreateRenderer", unsafe.Pointer(window), convert.ToString(b)).Int()
 		if res == 0 {
 			return nil
 		}
 		return (*Renderer)(unsafe.Pointer(uintptr(res)))
 	}
-	// purego.RegisterLibFunc(&sdlCreateRendererWithProperties, lib, "SDL_CreateRendererWithProperties")
+	sdlCreateRendererWithProperties = func(props PropertiesID) *Renderer {
+		res := bridge.Call("SDL_CreateRendererWithProperties", uint32(props)).Int()
+		if res == 0 {
+			return nil
+		}
+		return (*Renderer)(unsafe.Pointer(uintptr(res)))
+	}
 	// // purego.RegisterLibFunc(&sdlCreateRWLock, lib, "SDL_CreateRWLock")
 	// // purego.RegisterLibFunc(&sdlCreateSemaphore, lib, "SDL_CreateSemaphore")
 	// purego.RegisterLibFunc(&sdlCreateSoftwareRenderer, lib, "SDL_CreateSoftwareRenderer")
@@ -176,7 +185,13 @@ func init() {
 	// purego.RegisterLibFunc(&sdlCreateSurfacePalette, lib, "SDL_CreateSurfacePalette")
 	// purego.RegisterLibFunc(&sdlCreateSystemCursor, lib, "SDL_CreateSystemCursor")
 	// purego.RegisterLibFunc(&sdlCreateTexture, lib, "SDL_CreateTexture")
-	// purego.RegisterLibFunc(&sdlCreateTextureFromSurface, lib, "SDL_CreateTextureFromSurface")
+	sdlCreateTextureFromSurface = func(renderer *Renderer, surface *Surface) *Texture {
+		res := bridge.Call("SDL_CreateTextureFromSurface", unsafe.Pointer(renderer), unsafe.Pointer(surface)).Int()
+		if res == 0 {
+			return nil
+		}
+		return (*Texture)(unsafe.Pointer(uintptr(res)))
+	}
 	// purego.RegisterLibFunc(&sdlCreateTextureWithProperties, lib, "SDL_CreateTextureWithProperties")
 	// // purego.RegisterLibFunc(&sdlCreateThreadRuntime, lib, "SDL_CreateThreadRuntime")
 	// // purego.RegisterLibFunc(&sdlCreateThreadWithPropertiesRuntime, lib, "SDL_CreateThreadWithPropertiesRuntime")
@@ -216,13 +231,13 @@ func init() {
 	// purego.RegisterLibFunc(&sdlDestroyPalette, lib, "SDL_DestroyPalette")
 	// // purego.RegisterLibFunc(&sdlDestroyProcess, lib, "SDL_DestroyProcess")
 	// purego.RegisterLibFunc(&sdlDestroyProperties, lib, "SDL_DestroyProperties")
-	sdlDestroyRenderer = func(renderer *Renderer) { bridge.Call("SDL_DestroyRenderer", uintptr(unsafe.Pointer(renderer))) }
+	sdlDestroyRenderer = func(renderer *Renderer) { bridge.Call("SDL_DestroyRenderer", unsafe.Pointer(renderer)) }
 	// // purego.RegisterLibFunc(&sdlDestroyRWLock, lib, "SDL_DestroyRWLock")
 	// // purego.RegisterLibFunc(&sdlDestroySemaphore, lib, "SDL_DestroySemaphore")
-	// purego.RegisterLibFunc(&sdlDestroySurface, lib, "SDL_DestroySurface")
-	// purego.RegisterLibFunc(&sdlDestroyTexture, lib, "SDL_DestroyTexture")
+	sdlDestroySurface = func(surface *Surface) { bridge.Call("SDL_DestroySurface", unsafe.Pointer(surface)) }
+	sdlDestroyTexture = func(texture *Texture) { bridge.Call("SDL_DestroyTexture", unsafe.Pointer(texture)) }
 	// // purego.RegisterLibFunc(&sdlDestroyTray, lib, "SDL_DestroyTray")
-	sdlDestroyWindow = func(window *Window) { bridge.Call("SDL_DestroyWindow", uintptr(unsafe.Pointer(window))) }
+	sdlDestroyWindow = func(window *Window) { bridge.Call("SDL_DestroyWindow", unsafe.Pointer(window)) }
 	// purego.RegisterLibFunc(&sdlDestroyWindowSurface, lib, "SDL_DestroyWindowSurface")
 	// // purego.RegisterLibFunc(&sdlDetachThread, lib, "SDL_DetachThread")
 	// // purego.RegisterLibFunc(&sdlDetachVirtualJoystick, lib, "SDL_DetachVirtualJoystick")
@@ -655,7 +670,7 @@ func init() {
 	// purego.RegisterLibFunc(&sdlGetWindowSurface, lib, "SDL_GetWindowSurface")
 	// purego.RegisterLibFunc(&sdlGetWindowSurfaceVSync, lib, "SDL_GetWindowSurfaceVSync")
 	sdlGetWindowTitle = func(window *Window) string {
-		return bridge.Call("SDL_GetWindowTitle", uintptr(unsafe.Pointer(window))).String()
+		return bridge.Call("SDL_GetWindowTitle", unsafe.Pointer(window)).String()
 	}
 	// purego.RegisterLibFunc(&sdlGLCreateContext, lib, "SDL_GL_CreateContext")
 	// purego.RegisterLibFunc(&sdlGLDestroyContext, lib, "SDL_GL_DestroyContext")
@@ -751,7 +766,14 @@ func init() {
 	// // purego.RegisterLibFunc(&sdlInitSubSystem, lib, "SDL_InitSubSystem")
 	// // purego.RegisterLibFunc(&sdlInsertGPUDebugLabel, lib, "SDL_InsertGPUDebugLabel")
 	// // purego.RegisterLibFunc(&sdlInsertTrayEntryAt, lib, "SDL_InsertTrayEntryAt")
-	// purego.RegisterLibFunc(&sdlIOFromConstMem, lib, "SDL_IOFromConstMem")
+	sdlIOFromConstMem = func(mem []byte, size int) *IOStream {
+		js.CopyBytesToJS(memoryBufferView, mem) // Copy the bytes over
+		res := bridge.Call("SDL_IOFromConstMem", size).Int()
+		if res == 0 {
+			return nil
+		}
+		return (*IOStream)(unsafe.Pointer(uintptr(res)))
+	}
 	// // purego.RegisterLibFunc(&sdlIOFromDynamicMem, lib, "SDL_IOFromDynamicMem")
 	// purego.RegisterLibFunc(&sdlIOFromFile, lib, "SDL_IOFromFile")
 	// purego.RegisterLibFunc(&sdlIOFromMem, lib, "SDL_IOFromMem")
@@ -787,8 +809,20 @@ func init() {
 	// purego.RegisterLibFunc(&sdlJoystickEventsEnabled, lib, "SDL_JoystickEventsEnabled")
 	// // purego.RegisterLibFunc(&sdlKillProcess, lib, "SDL_KillProcess")
 	// // purego.RegisterLibFunc(&sdllltoa, lib, "SDL_lltoa")
-	// purego.RegisterLibFunc(&sdlLoadBMP, lib, "SDL_LoadBMP")
-	// purego.RegisterLibFunc(&sdlLoadBMPIO, lib, "SDL_LoadBMP_IO")
+	sdlLoadBMP = func(file string) *Surface {
+		res := bridge.Call("SDL_LoadBMP", file).Int()
+		if res == 0 {
+			return nil
+		}
+		return (*Surface)(unsafe.Pointer(uintptr(res)))
+	}
+	sdlLoadBMPIO = func(src *IOStream, closeio bool) *Surface {
+		res := bridge.Call("SDL_LoadBMP_IO", unsafe.Pointer(src), closeio).Int()
+		if res == 0 {
+			return nil
+		}
+		return (*Surface)(unsafe.Pointer(uintptr(res)))
+	}
 	// purego.RegisterLibFunc(&sdlLoadFile, lib, "SDL_LoadFile")
 	// // purego.RegisterLibFunc(&sdlLoadFile_IO, lib, "SDL_LoadFile_IO")
 	// // purego.RegisterLibFunc(&sdlLoadFileAsync, lib, "SDL_LoadFileAsync")
@@ -879,7 +913,7 @@ func init() {
 	// purego.RegisterLibFunc(&sdlPeepEvents, lib, "SDL_PeepEvents")
 	// // purego.RegisterLibFunc(&sdlPlayHapticRumble, lib, "SDL_PlayHapticRumble")
 	sdlPollEvent = func(event *Event) bool {
-		res := bridge.Call("SDL_PollEvent", uintptr(unsafe.Pointer(event)))
+		res := bridge.Call("SDL_PollEvent", unsafe.Pointer(event))
 		js.CopyBytesToGo(unsafe.Slice((*byte)(unsafe.Pointer(event)), 128), res.Index(1))
 		return res.Index(0).Int() != 0
 	}
@@ -954,24 +988,24 @@ func init() {
 	// // purego.RegisterLibFunc(&sdlRenamePath, lib, "SDL_RenamePath")
 	// // purego.RegisterLibFunc(&sdlRenameStoragePath, lib, "SDL_RenameStoragePath")
 	sdlRenderClear = func(renderer *Renderer) bool {
-		return bridge.Call("SDL_RenderClear", uintptr(unsafe.Pointer(renderer))).Int() != 0
+		return bridge.Call("SDL_RenderClear", unsafe.Pointer(renderer)).Int() != 0
 	}
 	// purego.RegisterLibFunc(&sdlRenderClipEnabled, lib, "SDL_RenderClipEnabled")
 	// purego.RegisterLibFunc(&sdlRenderCoordinatesFromWindow, lib, "SDL_RenderCoordinatesFromWindow")
 	// purego.RegisterLibFunc(&sdlRenderCoordinatesToWindow, lib, "SDL_RenderCoordinatesToWindow")
 	sdlRenderDebugText = func(renderer *Renderer, x, y float32, text string) bool {
-		return bridge.Call("SDL_RenderDebugText", uintptr(unsafe.Pointer(renderer)), x, y, text).Int() != 0
+		return bridge.Call("SDL_RenderDebugText", unsafe.Pointer(renderer), x, y, text).Int() != 0
 	}
 	sdlRenderDebugTextFormat = func(renderer *Renderer, x, y float32, text string) bool {
-		return bridge.Call("SDL_RenderDebugTextFormat", uintptr(unsafe.Pointer(renderer)), x, y, text).Int() != 0
+		return bridge.Call("SDL_RenderDebugTextFormat", unsafe.Pointer(renderer), x, y, text).Int() != 0
 	}
 	sdlRenderFillRect = func(renderer *Renderer, rect *FRect) bool {
-		return bridge.Call("SDL_RenderFillRect", uintptr(unsafe.Pointer(renderer)), rect.X, rect.Y, rect.W, rect.H).Int() != 0
+		return bridge.Call("SDL_RenderFillRect", unsafe.Pointer(renderer), rect.X, rect.Y, rect.W, rect.H).Int() != 0
 	}
 	sdlRenderFillRects = func(renderer *Renderer, rects []FRect) bool {
 		r := unsafe.Slice((*byte)(unsafe.Pointer(&rects[0])), len(rects)*int(unsafe.Sizeof(FRect{}))) // Treat rects slice as byte array
 		js.CopyBytesToJS(memoryBufferView, r)                                                         // Copy the bytes over
-		return bridge.Call("SDL_RenderFillRects", uintptr(unsafe.Pointer(renderer)), len(rects)).Int() != 0
+		return bridge.Call("SDL_RenderFillRects", unsafe.Pointer(renderer), len(rects)).Int() != 0
 	}
 	// sdlRenderGeometryPtr := shared.Get(lib, "SDL_RenderGeometry")
 	// sdlRenderGeometry = func(renderer *Renderer, texture *Texture, vertices []Vertex, indices []int32) bool {
@@ -1036,53 +1070,63 @@ func init() {
 	// 	return byte(ret) != 0
 	// }
 	sdlRenderLine = func(renderer *Renderer, x1, y1, x2, y2 float32) bool {
-		return bridge.Call("SDL_RenderLine", uintptr(unsafe.Pointer(renderer)), x1, y1, x2, y2).Int() != 0
+		return bridge.Call("SDL_RenderLine", unsafe.Pointer(renderer), x1, y1, x2, y2).Int() != 0
 	}
 	sdlRenderLines = func(renderer *Renderer, points []FPoint) bool {
 		p := unsafe.Slice((*byte)(unsafe.Pointer(&points[0])), len(points)*int(unsafe.Sizeof(FPoint{}))) // Treat points slice as byte array
 		// pView := memoryBufferView.Call("subarray", 0, len(p)) // Get part of the memory buffer as an array, not required?
 		js.CopyBytesToJS(memoryBufferView, p) // Copy the bytes over
-		return bridge.Call("SDL_RenderLines", uintptr(unsafe.Pointer(renderer)), len(points)).Int() != 0
+		return bridge.Call("SDL_RenderLines", unsafe.Pointer(renderer), len(points)).Int() != 0
 	}
-	// purego.RegisterLibFunc(&sdlRenderPoint, lib, "SDL_RenderPoint")
-	// sdlRenderPointsPtr := shared.Get(lib, "SDL_RenderPoints")
-	// sdlRenderPoints = func(renderer *Renderer, points []FPoint) bool {
-	// 	count := len(points)
-	// 	var pointsPtr *FPoint
-	// 	if count > 0 {
-	// 		pointsPtr = &points[0]
-	// 	}
-	// 	ret, _, _ := purego.SyscallN(sdlRenderPointsPtr, uintptr(unsafe.Pointer(renderer)), uintptr(unsafe.Pointer(pointsPtr)), uintptr(count))
-	// 	return byte(ret) != 0
-	// }
+	sdlRenderPoint = func(renderer *Renderer, x, y float32) bool {
+		return bridge.Call("SDL_RenderPoint", unsafe.Pointer(renderer), x, y).Int() != 0
+	}
+	sdlRenderPoints = func(renderer *Renderer, points []FPoint) bool {
+		r := unsafe.Slice((*byte)(unsafe.Pointer(&points[0])), len(points)*int(unsafe.Sizeof(FPoint{}))) // Treat points slice as byte array
+		js.CopyBytesToJS(memoryBufferView, r)                                                            // Copy the bytes over
+		return bridge.Call("SDL_RenderPoints", unsafe.Pointer(renderer), len(points)).Int() != 0
+	}
 	sdlRenderPresent = func(renderer *Renderer) bool {
-		return bridge.Call("SDL_RenderPresent", uintptr(unsafe.Pointer(renderer))).Int() != 0
+		return bridge.Call("SDL_RenderPresent", unsafe.Pointer(renderer)).Int() != 0
 	}
 	// purego.RegisterLibFunc(&sdlRenderReadPixels, lib, "SDL_RenderReadPixels")
 	sdlRenderRect = func(renderer *Renderer, rect *FRect) bool {
-		return bridge.Call("SDL_RenderRect", uintptr(unsafe.Pointer(renderer)), rect.X, rect.Y, rect.W, rect.H).Int() != 0
+		return bridge.Call("SDL_RenderRect", unsafe.Pointer(renderer), rect.X, rect.Y, rect.W, rect.H).Int() != 0
 	}
 	sdlRenderRects = func(renderer *Renderer, rects []FRect) bool {
 		r := unsafe.Slice((*byte)(unsafe.Pointer(&rects[0])), len(rects)*int(unsafe.Sizeof(FRect{}))) // Treat rects slice as byte array
 		js.CopyBytesToJS(memoryBufferView, r)                                                         // Copy the bytes over
-		return bridge.Call("SDL_RenderRects", uintptr(unsafe.Pointer(renderer)), len(rects)).Int() != 0
+		return bridge.Call("SDL_RenderRects", unsafe.Pointer(renderer), len(rects)).Int() != 0
 	}
-	// sdlRenderRectsPtr := shared.Get(lib, "SDL_RenderRects")
-	// sdlRenderRects = func(renderer *Renderer, rects []FRect) bool {
-	// 	count := len(rects)
-	// 	var rectsPtr *FRect
-	// 	if count > 0 {
-	// 		rectsPtr = &rects[0]
-	// 	}
-	// 	ret, _, _ := purego.SyscallN(sdlRenderRectsPtr, uintptr(unsafe.Pointer(renderer)), uintptr(unsafe.Pointer(rectsPtr)), uintptr(count))
-	// 	return byte(ret) != 0
-	// }
-	// sdlRenderTexturePtr := shared.Get(lib, "SDL_RenderTexture")
-	// sdlRenderTexture = func(renderer *Renderer, texture *Texture, srcrect, dstrect *FRect) bool {
-	// 	ret, _, _ := purego.SyscallN(sdlRenderTexturePtr, uintptr(unsafe.Pointer(renderer)), uintptr(unsafe.Pointer(texture)), uintptr(unsafe.Pointer(srcrect)), uintptr(unsafe.Pointer(dstrect)))
-	// 	return byte(ret) != 0
-	// }
-	// purego.RegisterLibFunc(&sdlRenderTexture9Grid, lib, "SDL_RenderTexture9Grid")
+	sdlRenderTexture = func(renderer *Renderer, texture *Texture, srcrect, dstrect *FRect) bool {
+		var srX, srY, srW, srH any
+		var drX, drY, drW, drH any
+		if srcrect != nil {
+			srX, srY, srW, srH = srcrect.X, srcrect.Y, srcrect.W, srcrect.H
+		}
+		if dstrect != nil {
+			drX, drY, drW, drH = dstrect.X, dstrect.Y, dstrect.W, dstrect.H
+		}
+		return bridge.Call("SDL_RenderTexture", unsafe.Pointer(renderer), unsafe.Pointer(texture),
+			srX, srY, srW, srH,
+			drX, drY, drW, drH,
+		).Int() != 0
+	}
+	sdlRenderTexture9Grid = func(renderer *Renderer, texture *Texture, srcrect *FRect, leftWidth, rightWidth, topHeight, bottomHeight, scale float32, dstrect *FRect) bool {
+		var srX, srY, srW, srH any
+		var drX, drY, drW, drH any
+		if srcrect != nil {
+			srX, srY, srW, srH = srcrect.X, srcrect.Y, srcrect.W, srcrect.H
+		}
+		if dstrect != nil {
+			drX, drY, drW, drH = dstrect.X, dstrect.Y, dstrect.W, dstrect.H
+		}
+		return bridge.Call("SDL_RenderTexture9Grid", unsafe.Pointer(renderer), unsafe.Pointer(texture),
+			srX, srY, srW, srH,
+			leftWidth, rightWidth, topHeight, bottomHeight, scale,
+			drX, drY, drW, drH,
+		).Int() != 0
+	}
 	// sdlRenderTextureAffinePtr := shared.Get(lib, "SDL_RenderTextureAffine")
 	// sdlRenderTextureAffine = func(renderer *Renderer, texture *Texture, srcrect *FRect, origin, right, down *FPoint) bool {
 	// 	ret, _, _ := purego.SyscallN(
@@ -1096,8 +1140,40 @@ func init() {
 
 	// 	return byte(ret) != 0
 	// }
-	// purego.RegisterLibFunc(&sdlRenderTextureRotated, lib, "SDL_RenderTextureRotated")
-	// purego.RegisterLibFunc(&sdlRenderTextureTiled, lib, "SDL_RenderTextureTiled")
+	sdlRenderTextureRotated = func(renderer *Renderer, texture *Texture, srcrect, dstrect *FRect, angle float64, center *FPoint, flip FlipMode) bool {
+		var srX, srY, srW, srH any
+		var drX, drY, drW, drH any
+		var pX, pY any
+		if srcrect != nil {
+			srX, srY, srW, srH = srcrect.X, srcrect.Y, srcrect.W, srcrect.H
+		}
+		if dstrect != nil {
+			drX, drY, drW, drH = dstrect.X, dstrect.Y, dstrect.W, dstrect.H
+		}
+		if center != nil {
+			pX, pY = center.X, center.Y
+		}
+		return bridge.Call("SDL_RenderTextureRotated", unsafe.Pointer(renderer), unsafe.Pointer(texture),
+			srX, srY, srW, srH,
+			drX, drY, drW, drH,
+			angle,
+			pX, pY,
+			uint32(flip)).Int() != 0
+	}
+	sdlRenderTextureTiled = func(renderer *Renderer, texture *Texture, srcrect *FRect, scale float32, dstrect *FRect) bool {
+		var srX, srY, srW, srH any
+		var drX, drY, drW, drH any
+		if srcrect != nil {
+			srX, srY, srW, srH = srcrect.X, srcrect.Y, srcrect.W, srcrect.H
+		}
+		if dstrect != nil {
+			drX, drY, drW, drH = dstrect.X, dstrect.Y, dstrect.W, dstrect.H
+		}
+		return bridge.Call("SDL_RenderTextureTiled", unsafe.Pointer(renderer), unsafe.Pointer(texture),
+			srX, srY, srW, srH,
+			scale,
+			drX, drY, drW, drH).Int() != 0
+	}
 	// purego.RegisterLibFunc(&sdlRenderViewportSet, lib, "SDL_RenderViewportSet")
 	// // purego.RegisterLibFunc(&sdlReportAssertion, lib, "SDL_ReportAssertion")
 	// // purego.RegisterLibFunc(&sdlResetAssertionReport, lib, "SDL_ResetAssertionReport")
@@ -1197,16 +1273,20 @@ func init() {
 	// // purego.RegisterLibFunc(&sdlSetMainReady, lib, "SDL_SetMainReady")
 	// // purego.RegisterLibFunc(&sdlSetMemoryFunctions, lib, "SDL_SetMemoryFunctions")
 	// purego.RegisterLibFunc(&sdlSetModState, lib, "SDL_SetModState")
-	// purego.RegisterLibFunc(&sdlSetNumberProperty, lib, "SDL_SetNumberProperty")
+	sdlSetNumberProperty = func(props PropertiesID, name string, value int64) bool {
+		return bridge.Call("SDL_SetNumberProperty", uint32(props), name, value).Int() != 0
+	}
 	// purego.RegisterLibFunc(&sdlSetPaletteColors, lib, "SDL_SetPaletteColors")
-	// purego.RegisterLibFunc(&sdlSetPointerProperty, lib, "SDL_SetPointerProperty")
+	sdlSetPointerProperty = func(props PropertiesID, name string, value unsafe.Pointer) bool {
+		return bridge.Call("SDL_SetPointerProperty", uint32(props), name, value).Int() != 0
+	}
 	// purego.RegisterLibFunc(&sdlSetPointerPropertyWithCleanup, lib, "SDL_SetPointerPropertyWithCleanup")
 	// // purego.RegisterLibFunc(&sdlSetPrimarySelectionText, lib, "SDL_SetPrimarySelectionText")
 	// purego.RegisterLibFunc(&sdlSetRenderClipRect, lib, "SDL_SetRenderClipRect")
 	// purego.RegisterLibFunc(&sdlSetRenderColorScale, lib, "SDL_SetRenderColorScale")
 	// purego.RegisterLibFunc(&sdlSetRenderDrawBlendMode, lib, "SDL_SetRenderDrawBlendMode")
 	sdlSetRenderDrawColor = func(renderer *Renderer, r, g, b, a uint8) bool {
-		return bridge.Call("SDL_SetRenderDrawColor", uintptr(unsafe.Pointer(renderer)), r, g, b, a).Int() != 0
+		return bridge.Call("SDL_SetRenderDrawColor", unsafe.Pointer(renderer), r, g, b, a).Int() != 0
 	}
 	sdlSetRenderDrawColorFloat = func(renderer *Renderer, r, g, b, a float32) bool {
 		return bridge.Call("SDL_SetRenderDrawColorFloat", unsafe.Pointer(renderer), r, g, b, a).Int() != 0
@@ -1216,7 +1296,7 @@ func init() {
 	// purego.RegisterLibFunc(&sdlSetRenderTarget, lib, "SDL_SetRenderTarget")
 	// purego.RegisterLibFunc(&sdlSetRenderViewport, lib, "SDL_SetRenderViewport")
 	sdlSetRenderVSync = func(renderer *Renderer, vsync int32) bool {
-		return bridge.Call("SDL_SetRenderVSync", uintptr(unsafe.Pointer(renderer)), vsync).Int() != 0
+		return bridge.Call("SDL_SetRenderVSync", unsafe.Pointer(renderer), vsync).Int() != 0
 	}
 	// purego.RegisterLibFunc(&sdlSetScancodeName, lib, "SDL_SetScancodeName")
 	// purego.RegisterLibFunc(&sdlSetStringProperty, lib, "SDL_SetStringProperty")
@@ -1243,6 +1323,9 @@ func init() {
 	// }
 	// purego.RegisterLibFunc(&sdlSetTextureColorModFloat, lib, "SDL_SetTextureColorModFloat")
 	// purego.RegisterLibFunc(&sdlSetTextureScaleMode, lib, "SDL_SetTextureScaleMode")
+	sdlSetTextureScaleMode = func(texture *Texture, scaleMode ScaleMode) bool {
+		return bridge.Call("SDL_SetTextureScaleMode", unsafe.Pointer(texture), int32(scaleMode)).Int() != 0
+	}
 	// // purego.RegisterLibFunc(&sdlSetTLS, lib, "SDL_SetTLS")
 	// // purego.RegisterLibFunc(&sdlSetTrayEntryCallback, lib, "SDL_SetTrayEntryCallback")
 	// // purego.RegisterLibFunc(&sdlSetTrayEntryChecked, lib, "SDL_SetTrayEntryChecked")

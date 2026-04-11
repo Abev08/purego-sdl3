@@ -3,16 +3,28 @@ package main
 import (
 	_ "embed"
 	"fmt"
+	"math"
 	"math/rand/v2"
 	"runtime"
 	"time"
+	"unsafe"
 
 	"github.com/jupiterrider/purego-sdl3/sdl"
 )
 
+const WASM_TARGET_FPS float64 = 60
+
+var WASM_FRAME_TIME time.Duration = time.Microsecond * time.Duration(math.Floor((1000.0/WASM_TARGET_FPS)*1000.0))
+
 // For now the image gets embedded to allow texture creation on WASM, maybe there is other way?
+//
 //go:embed gopher-happy.bmp
 var gopherHappy []byte
+
+// For now the audio sample gets embedded so that it can be used on WASM, maybe there is other way?
+//
+//go:embed tone.wav
+var tone []byte
 
 func main() {
 	fmt.Println("Running on:", runtime.GOOS, runtime.GOARCH)
@@ -26,7 +38,7 @@ func main() {
 	fmt.Println("SDL3 revision:", sdl.GetRevision())
 
 	defer sdl.Quit()
-	if !sdl.Init(sdl.InitVideo) {
+	if !sdl.Init(sdl.InitVideo | sdl.InitAudio) {
 		panic("SDL3 initialization failed, err: " + sdl.GetError())
 	}
 
@@ -88,13 +100,32 @@ func main() {
 	defer sdl.DestroyTexture(gopherTexture)
 	sdl.SetTextureScaleMode(gopherTexture, sdl.ScaleModeNearest)
 
+	// Loading audio sample
+	toneStream := sdl.IOFromConstMem(tone)
+	toneSample := AudioSample{}
+	if !sdl.LoadWAVIO(toneStream, true, &toneSample.Spec, &toneSample.Data, &toneSample.Length) {
+		panic(sdl.GetError())
+	}
+	defer sdl.Free(unsafe.Pointer(toneSample.Data))
+	toneSample.Stream = sdl.OpenAudioDeviceStream(sdl.AudioDeviceDefaultPlayback, &toneSample.Spec, 0, nil)
+	if toneSample.Stream == nil {
+		panic(sdl.GetError())
+	}
+	defer sdl.DestroyAudioStream(toneSample.Stream)
+	sdl.SetAudioStreamGain(toneSample.Stream, 0.2) // Reduce the volume
+
+	// FPS counter variables
 	perfFreq, frameStart, frameCount := float32(sdl.GetPerformanceFrequency()), sdl.GetPerformanceCounter(), 0
 	var fps, frameTime float32
+	frameExecutionStart := time.Now()
 
+	// Main loop start
 	mousePos := sdl.FPoint{}
-	running, mouseButtonDown := true, false
+	running, mouseButtonDown, mouseLeftClick := true, false, false
 	event := sdl.Event{}
 	for running {
+		mouseLeftClick = false
+
 		for sdl.PollEvent(&event) {
 			switch event.Type() {
 			case sdl.EventQuit:
@@ -123,10 +154,23 @@ func main() {
 				switch sdl.MouseButtonFlags(e.Button) {
 				case sdl.ButtonLeft:
 					mouseButtonDown = false
+					mouseLeftClick = true
 				}
 			}
 		}
 
+		// Update audio stream before render part
+		if toneSample.playing {
+			toneSample.Update()
+			if toneSample.finished {
+				fmt.Println("Tone sample, finished playing")
+				toneSample.playing = false
+				toneSample.finished = false
+				sdl.PauseAudioStreamDevice(toneSample.Stream)
+			}
+		}
+
+		// Render start
 		sdl.SetRenderDrawColor(renderer, 0, 0, 255, 255)
 		sdl.RenderClear(renderer)
 
@@ -190,6 +234,45 @@ func main() {
 		sdl.RenderTexture9Grid(renderer, gopherTexture, nil, 8, 8, 8, 8, 1, &sdl.FRect{X: 620, Y: 210, W: 64, H: 64})
 		sdl.RenderTextureTiled(renderer, gopherTexture, nil, 1, &sdl.FRect{X: 720, Y: 320, W: 96, H: 160})
 
+		// Geometry, an arrow
+		sdl.RenderGeometry(renderer, nil, []sdl.Vertex{
+			{Position: sdl.FPoint{X: 820, Y: 60}, Color: sdl.FColor{R: 1, G: 1, B: 1, A: 1}},  // Body top left
+			{Position: sdl.FPoint{X: 920, Y: 60}, Color: sdl.FColor{R: 1, G: 0, B: 0, A: 1}},  // Body top right
+			{Position: sdl.FPoint{X: 820, Y: 110}, Color: sdl.FColor{R: 0, G: 1, B: 0, A: 1}}, // Body bottom left
+			{Position: sdl.FPoint{X: 920, Y: 110}, Color: sdl.FColor{R: 0, G: 0, B: 1, A: 1}}, // Body bottom right
+			{Position: sdl.FPoint{X: 920, Y: 30}, Color: sdl.FColor{R: 1, G: 1, B: 0, A: 1}},  // Point top
+			{Position: sdl.FPoint{X: 920, Y: 140}, Color: sdl.FColor{R: 0, G: 1, B: 1, A: 1}}, // Point bottom
+			{Position: sdl.FPoint{X: 975, Y: 85}, Color: sdl.FColor{R: 1, G: 0, B: 1, A: 1}},  // Point right
+		}, []int32{
+			1, 0, 2,
+			1, 2, 3,
+			6, 4, 1,
+			6, 5, 3,
+			6, 1, 3,
+		})
+
+		// Button to play audio sample
+		sdl.SetRenderDrawColor(renderer, 255, 255, 255, 255)
+		sdl.RenderDebugText(renderer, 40, 530, "Click to play audio sample")
+		r = sdl.FRect{X: 10, Y: 523, W: 20, H: 20}
+		sdl.RenderRect(renderer, &r)
+		if sdl.PointInRectFloat(mousePos, r) {
+			sdl.RenderFillRect(renderer, &r)
+			if mouseLeftClick {
+				if toneSample.playing {
+					fmt.Println("Tone sample, reset")
+					sdl.ClearAudioStream(toneSample.Stream)
+				} else {
+					fmt.Println("Tone sample, starts playing")
+				}
+				toneSample.playing = true
+				sdl.PutAudioStreamData(toneSample.Stream, toneSample.Data, int32(toneSample.Length)) // Queue data to be played
+				if !sdl.ResumeAudioStreamDevice(toneSample.Stream) {
+					panic(sdl.GetError())
+				}
+			}
+		}
+
 		// Simple debug text
 		sdl.SetRenderDrawColorFloat(renderer, 1, 1, 1, 1)
 		sdl.RenderDebugText(renderer, 10, 10, "Hello")
@@ -210,8 +293,40 @@ func main() {
 
 		sdl.RenderPresent(renderer)
 
+		// On Wasm the main loop has to be somehow slowed down?
+		frameExecutionTime := time.Since(frameExecutionStart)
 		if runningOnWasm {
-			time.Sleep(time.Millisecond * 16) // On Wasm the main loop has to be somehow slown down?
+			if sleepDur := WASM_FRAME_TIME - frameExecutionTime - time.Millisecond; sleepDur > 0 {
+				time.Sleep(sleepDur)
+			}
 		}
+		frameExecutionStart = time.Now()
+	}
+}
+
+type AudioSample struct {
+	Spec   sdl.AudioSpec    // Audio format of the audio sample
+	Data   *uint8           // Audio data of the audio sample
+	Length uint32           // Audio data length of the audio sample
+	Stream *sdl.AudioStream // Handle to audio stream to allow playing of the audio sample
+
+	playing  bool // Is the audio sample currently playing?
+	finished bool // Has the audio sample finished playing?
+
+	lastQueuedDataLength   int32
+	finishedPlayingCounter uint8
+}
+
+func (as *AudioSample) Update() {
+	dataQueued := sdl.GetAudioStreamQueued(as.Stream)
+	if as.lastQueuedDataLength == dataQueued {
+		as.finishedPlayingCounter++
+	} else {
+		as.finishedPlayingCounter = 0
+		as.lastQueuedDataLength = dataQueued
+	}
+	if dataQueued == 0 || as.finishedPlayingCounter >= 10 {
+		as.finished = true
+		as.finishedPlayingCounter = 0
 	}
 }

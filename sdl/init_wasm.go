@@ -11,6 +11,7 @@ import (
 )
 
 var bridge js.Value
+var structToSDLPointer = make(map[unsafe.Pointer]int) // Used to translate structs into SDL pointers, not used for opaque structs
 
 func init() {
 	runtime.LockOSThread()
@@ -95,11 +96,9 @@ func init() {
 	// // purego.RegisterLibFunc(&sdlceilf, lib, "SDL_ceilf")
 	// purego.RegisterLibFunc(&sdlClaimWindowForGPUDevice, lib, "SDL_ClaimWindowForGPUDevice")
 	// // purego.RegisterLibFunc(&sdlCleanupTLS, lib, "SDL_CleanupTLS")
-	// sdlClearAudioStreamPtr := shared.Get(lib, "SDL_ClearAudioStream")
-	// sdlClearAudioStream = func(stream *AudioStream) bool {
-	// 	ret, _, _ := purego.SyscallN(sdlClearAudioStreamPtr, uintptr(unsafe.Pointer(stream)))
-	// 	return byte(ret) != 0
-	// }
+	sdlClearAudioStream = func(stream *AudioStream) bool {
+		return bridge.Call("SDL_ClearAudioStream", unsafe.Pointer(stream)).Int() != 0
+	}
 	// // purego.RegisterLibFunc(&sdlClearClipboardData, lib, "SDL_ClearClipboardData")
 	// purego.RegisterLibFunc(&sdlClearComposition, lib, "SDL_ClearComposition")
 	// purego.RegisterLibFunc(&sdlClearError, lib, "SDL_ClearError")
@@ -186,11 +185,16 @@ func init() {
 	// purego.RegisterLibFunc(&sdlCreateSystemCursor, lib, "SDL_CreateSystemCursor")
 	// purego.RegisterLibFunc(&sdlCreateTexture, lib, "SDL_CreateTexture")
 	sdlCreateTextureFromSurface = func(renderer *Renderer, surface *Surface) *Texture {
-		res := bridge.Call("SDL_CreateTextureFromSurface", unsafe.Pointer(renderer), unsafe.Pointer(surface)).Int()
+		res := bridge.Call("SDL_CreateTextureFromSurface", unsafe.Pointer(renderer), structToSDLPointer[unsafe.Pointer(surface)]).Int()
 		if res == 0 {
 			return nil
 		}
-		return (*Texture)(unsafe.Pointer(uintptr(res)))
+		tex := Texture{}
+		texBytes := unsafe.Slice((*byte)(unsafe.Pointer(&tex)), unsafe.Sizeof(Texture{}))
+		memoryView := bridge.Call("copyBytes", res, unsafe.Sizeof(Texture{}))
+		js.CopyBytesToGo(texBytes, memoryView)
+		structToSDLPointer[unsafe.Pointer(&tex)] = res
+		return &tex
 	}
 	// purego.RegisterLibFunc(&sdlCreateTextureWithProperties, lib, "SDL_CreateTextureWithProperties")
 	// // purego.RegisterLibFunc(&sdlCreateThreadRuntime, lib, "SDL_CreateThreadRuntime")
@@ -234,8 +238,8 @@ func init() {
 	sdlDestroyRenderer = func(renderer *Renderer) { bridge.Call("SDL_DestroyRenderer", unsafe.Pointer(renderer)) }
 	// // purego.RegisterLibFunc(&sdlDestroyRWLock, lib, "SDL_DestroyRWLock")
 	// // purego.RegisterLibFunc(&sdlDestroySemaphore, lib, "SDL_DestroySemaphore")
-	sdlDestroySurface = func(surface *Surface) { bridge.Call("SDL_DestroySurface", unsafe.Pointer(surface)) }
-	sdlDestroyTexture = func(texture *Texture) { bridge.Call("SDL_DestroyTexture", unsafe.Pointer(texture)) }
+	sdlDestroySurface = func(surface *Surface) { bridge.Call("SDL_DestroySurface", structToSDLPointer[unsafe.Pointer(surface)]) }
+	sdlDestroyTexture = func(texture *Texture) { bridge.Call("SDL_DestroyTexture", structToSDLPointer[unsafe.Pointer(texture)]) }
 	// // purego.RegisterLibFunc(&sdlDestroyTray, lib, "SDL_DestroyTray")
 	sdlDestroyWindow = func(window *Window) { bridge.Call("SDL_DestroyWindow", unsafe.Pointer(window)) }
 	// purego.RegisterLibFunc(&sdlDestroyWindowSurface, lib, "SDL_DestroyWindowSurface")
@@ -328,11 +332,9 @@ func init() {
 	// // purego.RegisterLibFunc(&sdlGetAudioStreamInputChannelMap, lib, "SDL_GetAudioStreamInputChannelMap")
 	// // purego.RegisterLibFunc(&sdlGetAudioStreamOutputChannelMap, lib, "SDL_GetAudioStreamOutputChannelMap")
 	// // purego.RegisterLibFunc(&sdlGetAudioStreamProperties, lib, "SDL_GetAudioStreamProperties")
-	// sdlGetAudioStreamQueuedPtr := shared.Get(lib, "SDL_GetAudioStreamQueued")
-	// sdlGetAudioStreamQueued = func(stream *AudioStream) int32 {
-	// 	ret, _, _ := purego.SyscallN(sdlGetAudioStreamQueuedPtr, uintptr(unsafe.Pointer(stream)))
-	// 	return int32(ret)
-	// }
+	sdlGetAudioStreamQueued = func(stream *AudioStream) int32 {
+		return int32(bridge.Call("SDL_GetAudioStreamQueued", unsafe.Pointer(stream)).Int())
+	}
 	// purego.RegisterLibFunc(&sdlGetBasePath, lib, "SDL_GetBasePath")
 	// purego.RegisterLibFunc(&sdlGetBooleanProperty, lib, "SDL_GetBooleanProperty")
 	// purego.RegisterLibFunc(&sdlGetCameraDriver, lib, "SDL_GetCameraDriver")
@@ -814,14 +816,24 @@ func init() {
 		if res == 0 {
 			return nil
 		}
-		return (*Surface)(unsafe.Pointer(uintptr(res)))
+		sur := Surface{}
+		surBytes := unsafe.Slice((*byte)(unsafe.Pointer(&sur)), unsafe.Sizeof(Surface{}))
+		memoryView := bridge.Call("copyBytes", res, unsafe.Sizeof(Surface{}))
+		js.CopyBytesToGo(surBytes, memoryView)
+		structToSDLPointer[unsafe.Pointer(&sur)] = res
+		return &sur
 	}
 	sdlLoadBMPIO = func(src *IOStream, closeio bool) *Surface {
 		res := bridge.Call("SDL_LoadBMP_IO", unsafe.Pointer(src), closeio).Int()
 		if res == 0 {
 			return nil
 		}
-		return (*Surface)(unsafe.Pointer(uintptr(res)))
+		sur := Surface{}
+		surBytes := unsafe.Slice((*byte)(unsafe.Pointer(&sur)), unsafe.Sizeof(Surface{}))
+		memoryView := bridge.Call("copyBytes", res, unsafe.Sizeof(Surface{}))
+		js.CopyBytesToGo(surBytes, memoryView)
+		structToSDLPointer[unsafe.Pointer(&sur)] = res
+		return &sur
 	}
 	// purego.RegisterLibFunc(&sdlLoadFile, lib, "SDL_LoadFile")
 	// // purego.RegisterLibFunc(&sdlLoadFile_IO, lib, "SDL_LoadFile_IO")
@@ -829,7 +841,20 @@ func init() {
 	// // purego.RegisterLibFunc(&sdlLoadFunction, lib, "SDL_LoadFunction")
 	// // purego.RegisterLibFunc(&sdlLoadObject, lib, "SDL_LoadObject")
 	// purego.RegisterLibFunc(&sdlLoadWAV, lib, "SDL_LoadWAV")
-	// purego.RegisterLibFunc(&sdlLoadWAVIO, lib, "SDL_LoadWAV_IO")
+	sdlLoadWAVIO = func(src *IOStream, closeio bool, spec *AudioSpec, audioBuf **uint8, audioLen *uint32) bool {
+		res := bridge.Call("SDL_LoadWAV_IO", unsafe.Pointer(src), closeio)
+		if res.Index(0).Int() == 0 {
+			return false
+		}
+		*spec = AudioSpec{}
+		audioSpecBytes := unsafe.Slice((*byte)(unsafe.Pointer(spec)), unsafe.Sizeof(AudioSpec{}))
+		memoryView := bridge.Call("copyBytes", res.Index(1), unsafe.Sizeof(AudioSpec{}))
+		js.CopyBytesToGo(audioSpecBytes, memoryView)
+		*audioBuf = (*uint8)(unsafe.Pointer(uintptr(res.Index(2).Int())))
+		*audioLen = uint32(res.Index(3).Int())
+		structToSDLPointer[unsafe.Pointer(spec)] = res.Index(1).Int()
+		return res.Index(0).Int() != 0
+	}
 	// // purego.RegisterLibFunc(&sdlLockAudioStream, lib, "SDL_LockAudioStream")
 	// purego.RegisterLibFunc(&sdlLockJoysticks, lib, "SDL_LockJoysticks")
 	// // purego.RegisterLibFunc(&sdlLockMutex, lib, "SDL_LockMutex")
@@ -888,7 +913,13 @@ func init() {
 	// // purego.RegisterLibFunc(&sdlOnApplicationWillEnterForeground, lib, "SDL_OnApplicationWillEnterForeground")
 	// // purego.RegisterLibFunc(&sdlOnApplicationWillTerminate, lib, "SDL_OnApplicationWillTerminate")
 	// // purego.RegisterLibFunc(&sdlOpenAudioDevice, lib, "SDL_OpenAudioDevice")
-	// purego.RegisterLibFunc(&sdlOpenAudioDeviceStream, lib, "SDL_OpenAudioDeviceStream")
+	sdlOpenAudioDeviceStream = func(devid AudioDeviceID, spec *AudioSpec, callback AudioStreamCallback, userdata unsafe.Pointer) *AudioStream {
+		res := bridge.Call("SDL_OpenAudioDeviceStream", uint32(devid), structToSDLPointer[unsafe.Pointer(spec)], unsafe.Pointer(callback), userdata).Int()
+		if res == 0 {
+			return nil
+		}
+		return (*AudioStream)(unsafe.Pointer(uintptr(res)))
+	}
 	// purego.RegisterLibFunc(&sdlOpenCamera, lib, "SDL_OpenCamera")
 	// // purego.RegisterLibFunc(&sdlOpenFileStorage, lib, "SDL_OpenFileStorage")
 	// purego.RegisterLibFunc(&sdlOpenGamepad, lib, "SDL_OpenGamepad")
@@ -904,11 +935,9 @@ func init() {
 	// // purego.RegisterLibFunc(&sdlOpenUserStorage, lib, "SDL_OpenUserStorage")
 	// // purego.RegisterLibFunc(&sdlOutOfMemory, lib, "SDL_OutOfMemory")
 	// // purego.RegisterLibFunc(&sdlPauseAudioDevice, lib, "SDL_PauseAudioDevice")
-	// sdlPauseAudioStreamDevicePtr := shared.Get(lib, "SDL_PauseAudioStreamDevice")
-	// sdlPauseAudioStreamDevice = func(stream *AudioStream) bool {
-	// 	ret, _, _ := purego.SyscallN(sdlPauseAudioStreamDevicePtr, uintptr(unsafe.Pointer(stream)))
-	// 	return byte(ret) != 0
-	// }
+	sdlPauseAudioStreamDevice = func(stream *AudioStream) bool {
+		return bridge.Call("SDL_PauseAudioStreamDevice", unsafe.Pointer(stream)).Int() != 0
+	}
 	// // purego.RegisterLibFunc(&sdlPauseHaptic, lib, "SDL_PauseHaptic")
 	// purego.RegisterLibFunc(&sdlPeepEvents, lib, "SDL_PeepEvents")
 	// // purego.RegisterLibFunc(&sdlPlayHapticRumble, lib, "SDL_PlayHapticRumble")
@@ -928,11 +957,9 @@ func init() {
 	// // purego.RegisterLibFunc(&sdlPushGPUDebugGroup, lib, "SDL_PushGPUDebugGroup")
 	// purego.RegisterLibFunc(&sdlPushGPUFragmentUniformData, lib, "SDL_PushGPUFragmentUniformData")
 	// purego.RegisterLibFunc(&sdlPushGPUVertexUniformData, lib, "SDL_PushGPUVertexUniformData")
-	// sdlPutAudioStreamDataPtr := shared.Get(lib, "SDL_PutAudioStreamData")
-	// sdlPutAudioStreamData = func(stream *AudioStream, buf *uint8, len int32) bool {
-	// 	ret, _, _ := purego.SyscallN(sdlPutAudioStreamDataPtr, uintptr(unsafe.Pointer(stream)), uintptr(unsafe.Pointer(buf)), uintptr(len))
-	// 	return byte(ret) != 0
-	// }
+	sdlPutAudioStreamData = func(stream *AudioStream, buf *uint8, len int32) bool {
+		return bridge.Call("SDL_PutAudioStreamData", unsafe.Pointer(stream), unsafe.Pointer(buf), len).Int() != 0
+	}
 	// // purego.RegisterLibFunc(&sdlqsort, lib, "SDL_qsort")
 	// // purego.RegisterLibFunc(&sdlqsort_r, lib, "SDL_qsort_r")
 	// // purego.RegisterLibFunc(&sdlQueryGPUFence, lib, "SDL_QueryGPUFence")
@@ -1007,30 +1034,15 @@ func init() {
 		js.CopyBytesToJS(memoryBufferView, r)                                                         // Copy the bytes over
 		return bridge.Call("SDL_RenderFillRects", unsafe.Pointer(renderer), len(rects)).Int() != 0
 	}
-	// sdlRenderGeometryPtr := shared.Get(lib, "SDL_RenderGeometry")
-	// sdlRenderGeometry = func(renderer *Renderer, texture *Texture, vertices []Vertex, indices []int32) bool {
-	// 	numVertices := len(vertices)
-	// 	var verticesPtr *Vertex
-	// 	if numVertices > 0 {
-	// 		verticesPtr = &vertices[0]
-	// 	}
-
-	// 	numIndices := len(indices)
-	// 	var indicesPtr *int32
-	// 	if numIndices > 0 {
-	// 		indicesPtr = &indices[0]
-	// 	}
-
-	// 	ret, _, _ := purego.SyscallN(sdlRenderGeometryPtr,
-	// 		uintptr(unsafe.Pointer(renderer)),
-	// 		uintptr(unsafe.Pointer(texture)),
-	// 		uintptr(unsafe.Pointer(verticesPtr)),
-	// 		uintptr(numVertices),
-	// 		uintptr(unsafe.Pointer(indicesPtr)),
-	// 		uintptr(numIndices))
-
-	// 	return byte(ret) != 0
-	// }
+	sdlRenderGeometry = func(renderer *Renderer, texture *Texture, vertices []Vertex, indices []int32) bool {
+		v := unsafe.Slice((*byte)(unsafe.Pointer(&vertices[0])), len(vertices)*int(unsafe.Sizeof(Vertex{}))) // Treat vertices slice as byte array
+		i := unsafe.Slice((*byte)(unsafe.Pointer(&indices[0])), len(indices)*int(unsafe.Sizeof(int32(0))))   // Treat indices slice as byte array
+		tmp := make([]byte, len(v)+len(i))                                                                   // Create temporary slice that will hold vertices and indices
+		copy(tmp, v)
+		copy(tmp[len(v):], i)
+		js.CopyBytesToJS(memoryBufferView, tmp) // Copy the bytes over
+		return bridge.Call("SDL_RenderGeometry", unsafe.Pointer(renderer), structToSDLPointer[unsafe.Pointer(texture)], len(vertices), len(indices), len(v)).Int() != 0
+	}
 	// sdlRenderGeometryRawPtr := shared.Get(lib, "SDL_RenderGeometryRaw")
 	// sdlRenderGeometryRaw = func(renderer *Renderer, texture *Texture, xy []FPoint, color []FColor, uv []FPoint, indices []int32) bool {
 	// 	var xyPtr, uvPtr *FPoint
@@ -1074,8 +1086,7 @@ func init() {
 	}
 	sdlRenderLines = func(renderer *Renderer, points []FPoint) bool {
 		p := unsafe.Slice((*byte)(unsafe.Pointer(&points[0])), len(points)*int(unsafe.Sizeof(FPoint{}))) // Treat points slice as byte array
-		// pView := memoryBufferView.Call("subarray", 0, len(p)) // Get part of the memory buffer as an array, not required?
-		js.CopyBytesToJS(memoryBufferView, p) // Copy the bytes over
+		js.CopyBytesToJS(memoryBufferView, p)                                                            // Copy the bytes over
 		return bridge.Call("SDL_RenderLines", unsafe.Pointer(renderer), len(points)).Int() != 0
 	}
 	sdlRenderPoint = func(renderer *Renderer, x, y float32) bool {
@@ -1107,7 +1118,7 @@ func init() {
 		if dstrect != nil {
 			drX, drY, drW, drH = dstrect.X, dstrect.Y, dstrect.W, dstrect.H
 		}
-		return bridge.Call("SDL_RenderTexture", unsafe.Pointer(renderer), unsafe.Pointer(texture),
+		return bridge.Call("SDL_RenderTexture", unsafe.Pointer(renderer), structToSDLPointer[unsafe.Pointer(texture)],
 			srX, srY, srW, srH,
 			drX, drY, drW, drH,
 		).Int() != 0
@@ -1121,7 +1132,7 @@ func init() {
 		if dstrect != nil {
 			drX, drY, drW, drH = dstrect.X, dstrect.Y, dstrect.W, dstrect.H
 		}
-		return bridge.Call("SDL_RenderTexture9Grid", unsafe.Pointer(renderer), unsafe.Pointer(texture),
+		return bridge.Call("SDL_RenderTexture9Grid", unsafe.Pointer(renderer), structToSDLPointer[unsafe.Pointer(texture)],
 			srX, srY, srW, srH,
 			leftWidth, rightWidth, topHeight, bottomHeight, scale,
 			drX, drY, drW, drH,
@@ -1153,7 +1164,7 @@ func init() {
 		if center != nil {
 			pX, pY = center.X, center.Y
 		}
-		return bridge.Call("SDL_RenderTextureRotated", unsafe.Pointer(renderer), unsafe.Pointer(texture),
+		return bridge.Call("SDL_RenderTextureRotated", unsafe.Pointer(renderer), structToSDLPointer[unsafe.Pointer(texture)],
 			srX, srY, srW, srH,
 			drX, drY, drW, drH,
 			angle,
@@ -1169,7 +1180,7 @@ func init() {
 		if dstrect != nil {
 			drX, drY, drW, drH = dstrect.X, dstrect.Y, dstrect.W, dstrect.H
 		}
-		return bridge.Call("SDL_RenderTextureTiled", unsafe.Pointer(renderer), unsafe.Pointer(texture),
+		return bridge.Call("SDL_RenderTextureTiled", unsafe.Pointer(renderer), structToSDLPointer[unsafe.Pointer(texture)],
 			srX, srY, srW, srH,
 			scale,
 			drX, drY, drW, drH).Int() != 0
@@ -1183,11 +1194,9 @@ func init() {
 	// purego.RegisterLibFunc(&sdlResetLogPriorities, lib, "SDL_ResetLogPriorities")
 	// purego.RegisterLibFunc(&sdlRestoreWindow, lib, "SDL_RestoreWindow")
 	// // purego.RegisterLibFunc(&sdlResumeAudioDevice, lib, "SDL_ResumeAudioDevice")
-	// sdlResumeAudioStreamDevicePtr := shared.Get(lib, "SDL_ResumeAudioStreamDevice")
-	// sdlResumeAudioStreamDevice = func(stream *AudioStream) bool {
-	// 	ret, _, _ := purego.SyscallN(sdlResumeAudioStreamDevicePtr, uintptr(unsafe.Pointer(stream)))
-	// 	return byte(ret) != 0
-	// }
+	sdlResumeAudioStreamDevice = func(stream *AudioStream) bool {
+		return bridge.Call("SDL_ResumeAudioStreamDevice", unsafe.Pointer(stream)).Int() != 0
+	}
 	// // purego.RegisterLibFunc(&sdlResumeHaptic, lib, "SDL_ResumeHaptic")
 	// // purego.RegisterLibFunc(&sdlround, lib, "SDL_round")
 	// // purego.RegisterLibFunc(&sdlroundf, lib, "SDL_roundf")
@@ -1221,7 +1230,9 @@ func init() {
 	// // purego.RegisterLibFunc(&sdlSetAudioPostmixCallback, lib, "SDL_SetAudioPostmixCallback")
 	// purego.RegisterLibFunc(&sdlSetAudioStreamFormat, lib, "SDL_SetAudioStreamFormat")
 	// purego.RegisterLibFunc(&sdlSetAudioStreamFrequencyRatio, lib, "SDL_SetAudioStreamFrequencyRatio")
-	// purego.RegisterLibFunc(&sdlSetAudioStreamGain, lib, "SDL_SetAudioStreamGain")
+	sdlSetAudioStreamGain = func(stream *AudioStream, gain float32) bool {
+		return bridge.Call("SDL_SetAudioStreamGain", unsafe.Pointer(stream), gain).Int() != 0
+	}
 	// // purego.RegisterLibFunc(&sdlSetAudioStreamGetCallback, lib, "SDL_SetAudioStreamGetCallback")
 	// // purego.RegisterLibFunc(&sdlSetAudioStreamInputChannelMap, lib, "SDL_SetAudioStreamInputChannelMap")
 	// // purego.RegisterLibFunc(&sdlSetAudioStreamOutputChannelMap, lib, "SDL_SetAudioStreamOutputChannelMap")
@@ -1322,9 +1333,8 @@ func init() {
 	// 	return byte(ret) != 0
 	// }
 	// purego.RegisterLibFunc(&sdlSetTextureColorModFloat, lib, "SDL_SetTextureColorModFloat")
-	// purego.RegisterLibFunc(&sdlSetTextureScaleMode, lib, "SDL_SetTextureScaleMode")
 	sdlSetTextureScaleMode = func(texture *Texture, scaleMode ScaleMode) bool {
-		return bridge.Call("SDL_SetTextureScaleMode", unsafe.Pointer(texture), int32(scaleMode)).Int() != 0
+		return bridge.Call("SDL_SetTextureScaleMode", structToSDLPointer[unsafe.Pointer(texture)], int32(scaleMode)).Int() != 0
 	}
 	// // purego.RegisterLibFunc(&sdlSetTLS, lib, "SDL_SetTLS")
 	// // purego.RegisterLibFunc(&sdlSetTrayEntryCallback, lib, "SDL_SetTrayEntryCallback")

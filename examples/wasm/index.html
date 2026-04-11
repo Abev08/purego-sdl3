@@ -26,6 +26,11 @@
           switch (prop) {
             case "getMemoryBufferPtr": return () => { return memoryBuffer; };
             case "getMemoryBufferView": return () => { return memoryBufferView; };
+            case "copyBytes": return (ptr, length) => {
+              const view = new Uint8Array(sdlModule.HEAPU8.buffer, ptr, length);
+              return new Uint8Array(view);
+            };
+            case "getValue": return (ptr, type) => { return sdlModule.getValue(ptr, type); };
 
             case "SDL_GetRevision": return () => { return sdlModule.UTF8ToString(sdlModule._SDL_GetRevision()); };
             case "SDL_GetError": return () => { return sdlModule.UTF8ToString(sdlModule._SDL_GetError()); };
@@ -71,8 +76,8 @@
               const res = sdlModule._SDL_CreateWindowAndRenderer(titlePtr, width, height, BigInt(flags), windowTmpPtr, rendererTmpPtr);
               let windowPtr = 0, rendererPtr = 0;
               if (res != 0) {
-                windowPtr = Number(sdlModule.getValue(windowTmpPtr, "i64"));
-                rendererPtr = Number(sdlModule.getValue(rendererTmpPtr, "i64"));
+                windowPtr = Number(sdlModule.getValue(windowTmpPtr, "i32"));
+                rendererPtr = Number(sdlModule.getValue(rendererTmpPtr, "i32"));
               }
               sdlModule._free(titlePtr);
               sdlModule._free(rendererTmpPtr);
@@ -172,6 +177,20 @@
                 r2 = dummyFRect2;
               }
               return sdlModule._SDL_RenderTextureTiled(renderer, texture, r1, scale, r2);
+            };
+            case "SDL_RenderGeometry": return (renderer, texture, numVertices, numIndices, indicesOffset) => {
+              return sdlModule._SDL_RenderGeometry(renderer, texture, memoryBuffer, numVertices, memoryBuffer + indicesOffset, numIndices);
+            };
+            case "SDL_LoadWAV_IO": return (src, closeio) => {
+              const specPtr = sdlModule._malloc(8);
+              const audioBufPtr = sdlModule._malloc(8);
+              const audioLenPtr = sdlModule._malloc(8);
+              const res = sdlModule._SDL_LoadWAV_IO(src, closeio, specPtr, audioBufPtr, audioLenPtr);
+              const dataPtr = sdlModule.getValue(audioBufPtr, "i32");
+              const len = sdlModule.getValue(audioLenPtr, "i32");
+              sdlModule._free(audioBufPtr); // Free memory allocated for data pointer
+              sdlModule._free(audioLenPtr); // Free memory allocated for length pointer
+              return [res, specPtr, dataPtr, len];
             };
 
             default:

@@ -15,6 +15,8 @@
       });
 
       const dummyFPoint = sdlModule._malloc(8);
+      const dummyFPoint2 = sdlModule._malloc(8);
+      const dummyFPoint3 = sdlModule._malloc(8);
       const dummyFRect = sdlModule._malloc(16);
       const dummyFRect2 = sdlModule._malloc(16);
       const dummyEvent = sdlModule._malloc(128);
@@ -47,9 +49,13 @@
               sdlModule._free(namePtr); // Free memory allocated by the string
               return rendererPtr;
             };
-            case "SDL_RenderFillRect": return (...args) => { // args = [renderer, x, y, w, h]
-              sdlModule.HEAPF32.set(args.slice(1), dummyFRect >> 2);
-              return sdlModule._SDL_RenderFillRect(args[0], dummyFRect);
+            case "SDL_RenderFillRect": return (renderer, x, y, w, h) => {
+              let r;
+              if (x != undefined && y != undefined && w != undefined && h != undefined) {
+                sdlModule.HEAPF32.set([x, y, w, h], dummyFRect >> 2);
+                r = dummyFRect;
+              }
+              return sdlModule._SDL_RenderFillRect(renderer, r);
             };
             case "SDL_PollEvent": return (event) => {
               const res = sdlModule._SDL_PollEvent(dummyEvent);
@@ -86,14 +92,34 @@
             };
             case "SDL_GetPerformanceFrequency": return () => { return Number(sdlModule._SDL_GetPerformanceFrequency()); };
             case "SDL_GetPerformanceCounter": return () => { return Number(sdlModule._SDL_GetPerformanceCounter()); };
-            case "SDL_RenderRect": return (...args) => { // args = [renderer, x, y, w, h]
-              sdlModule.HEAPF32.set(args.slice(1), dummyFRect >> 2);
-              return sdlModule._SDL_RenderRect(args[0], dummyFRect);
+            case "SDL_RenderRect": return (renderer, x, y, w, h) => {
+              let r;
+              if (x != undefined && y != undefined && w != undefined && h != undefined) {
+                sdlModule.HEAPF32.set([x, y, w, h], dummyFRect >> 2);
+                r = dummyFRect;
+              }
+              return sdlModule._SDL_RenderRect(renderer, r);
             };
-            case "SDL_RenderLines": return (renderer, count) => { return sdlModule._SDL_RenderLines(renderer, memoryBuffer, count); };
-            case "SDL_RenderRects": return (renderer, count) => { return sdlModule._SDL_RenderRects(renderer, memoryBuffer, count); };
-            case "SDL_RenderFillRects": return (renderer, count) => { return sdlModule._SDL_RenderFillRects(renderer, memoryBuffer, count); };
-            case "SDL_RenderPoints": return (renderer, count) => { return sdlModule._SDL_RenderPoints(renderer, memoryBuffer, count); };
+            case "SDL_RenderLines": return (renderer, count) => {
+              let buff;
+              if (count != -1) { buff = memoryBuffer; }
+              return sdlModule._SDL_RenderLines(renderer, buff, count);
+            };
+            case "SDL_RenderRects": return (renderer, count) => {
+              let buff;
+              if (count != -1) { buff = memoryBuffer; }
+              return sdlModule._SDL_RenderRects(renderer, buff, count);
+            };
+            case "SDL_RenderFillRects": return (renderer, count) => {
+              let buff;
+              if (count != -1) { buff = memoryBuffer; }
+              return sdlModule._SDL_RenderFillRects(renderer, buff, count);
+            };
+            case "SDL_RenderPoints": return (renderer, count) => {
+              let buff;
+              if (count != -1) { buff = memoryBuffer; }
+              return sdlModule._SDL_RenderPoints(renderer, buff, count);
+            };
             case "SDL_SetPointerProperty": return (props, name, value) => {
               const namePtr = sdlModule.allocateUTF8(name);
               const res = sdlModule._SDL_SetPointerProperty(props, namePtr, value);
@@ -179,7 +205,10 @@
               return sdlModule._SDL_RenderTextureTiled(renderer, texture, r1, scale, r2);
             };
             case "SDL_RenderGeometry": return (renderer, texture, numVertices, numIndices, indicesOffset) => {
-              return sdlModule._SDL_RenderGeometry(renderer, texture, memoryBuffer, numVertices, memoryBuffer + indicesOffset, numIndices);
+              let verticesBuffer, indicesBuffer;
+              if (numVertices != -1) { verticesBuffer = memoryBuffer; }
+              if (numIndices != -1) { indicesBuffer = memoryBuffer + indicesOffset }
+              return sdlModule._SDL_RenderGeometry(renderer, texture, verticesBuffer, numVertices, indicesBuffer, numIndices);
             };
             case "SDL_LoadWAV_IO": return (src, closeio) => {
               const specPtr = sdlModule._malloc(8);
@@ -191,6 +220,28 @@
               sdlModule._free(audioBufPtr); // Free memory allocated for data pointer
               sdlModule._free(audioLenPtr); // Free memory allocated for length pointer
               return [res, specPtr, dataPtr, len];
+            };
+            case "SDL_RenderTextureAffine": return (renderer, texture,
+              srX, srY, srW, srH,
+              p1X, p1Y, p2X, p2Y, p3X, p3Y) => {
+              let r1, p1, p2, p3;
+              if (srX != undefined && srY != undefined && srW != undefined && srH != undefined) {
+                sdlModule.HEAPF32.set([srX, srY, srW, srH], dummyFRect >> 2);
+                r1 = dummyFRect;
+              }
+              if (p1X != undefined && p1Y != undefined) {
+                sdlModule.HEAPF32.set([p1X, p1Y], dummyFPoint >> 2);
+                p1 = dummyFPoint;
+              }
+              if (p2X != undefined && p2Y != undefined) {
+                sdlModule.HEAPF32.set([p2X, p2Y], dummyFPoint2 >> 2);
+                p2 = dummyFPoint2;
+              }
+              if (p3X != undefined && p3Y != undefined) {
+                sdlModule.HEAPF32.set([p3X, p3Y], dummyFPoint3 >> 2);
+                p3 = dummyFPoint3;
+              }
+              return sdlModule._SDL_RenderTextureAffine(renderer, texture, r1, p1, p2, p3);
             };
 
             default:

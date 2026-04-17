@@ -11,7 +11,7 @@ import (
 )
 
 var bridge js.Value
-var structToSDLPointer = make(map[unsafe.Pointer]int) // Used to translate structs into SDL pointers, not used for opaque structs
+var structToSDLPointer = make(map[unsafe.Pointer]int) // Used to translate structs into SDL pointers, not used with opaque structs
 
 func init() {
 	runtime.LockOSThread()
@@ -161,8 +161,8 @@ func init() {
 	sdlCreateProperties = func() PropertiesID {
 		return PropertiesID(bridge.Call("SDL_CreateProperties").Int())
 	}
-	sdlCreateRenderer = func(window *Window, b *byte) *Renderer {
-		res := bridge.Call("SDL_CreateRenderer", unsafe.Pointer(window), convert.ToString(b)).Int()
+	sdlCreateRenderer = func(window *Window, name *byte) *Renderer {
+		res := bridge.Call("SDL_CreateRenderer", unsafe.Pointer(window), convert.ToString(name)).Int()
 		if res == 0 {
 			return nil
 		}
@@ -213,8 +213,12 @@ func init() {
 		res := bridge.Call("SDL_CreateWindowAndRenderer", title, width, height, uint32(flags), 0, 0)
 		result := res.Index(0).Int()
 		if result != 0 {
-			*window = (*Window)(unsafe.Pointer(uintptr(res.Index(1).Int())))
-			*renderer = (*Renderer)(unsafe.Pointer(uintptr(res.Index(2).Int())))
+			if window != nil {
+				*window = (*Window)(unsafe.Pointer(uintptr(res.Index(1).Int())))
+			}
+			if renderer != nil {
+				*renderer = (*Renderer)(unsafe.Pointer(uintptr(res.Index(2).Int())))
+			}
 		}
 		return result != 0
 	}
@@ -846,12 +850,18 @@ func init() {
 		if res.Index(0).Int() == 0 {
 			return false
 		}
-		*spec = AudioSpec{}
-		audioSpecBytes := unsafe.Slice((*byte)(unsafe.Pointer(spec)), unsafe.Sizeof(AudioSpec{}))
-		memoryView := bridge.Call("copyBytes", res.Index(1), unsafe.Sizeof(AudioSpec{}))
-		js.CopyBytesToGo(audioSpecBytes, memoryView)
-		*audioBuf = (*uint8)(unsafe.Pointer(uintptr(res.Index(2).Int())))
-		*audioLen = uint32(res.Index(3).Int())
+		if spec != nil {
+			*spec = AudioSpec{}
+			audioSpecBytes := unsafe.Slice((*byte)(unsafe.Pointer(spec)), unsafe.Sizeof(AudioSpec{}))
+			memoryView := bridge.Call("copyBytes", res.Index(1), unsafe.Sizeof(AudioSpec{}))
+			js.CopyBytesToGo(audioSpecBytes, memoryView)
+		}
+		if audioBuf != nil {
+			*audioBuf = (*uint8)(unsafe.Pointer(uintptr(res.Index(2).Int())))
+		}
+		if audioLen != nil {
+			*audioLen = uint32(res.Index(3).Int())
+		}
 		structToSDLPointer[unsafe.Pointer(spec)] = res.Index(1).Int()
 		return res.Index(0).Int() != 0
 	}
@@ -943,7 +953,9 @@ func init() {
 	// // purego.RegisterLibFunc(&sdlPlayHapticRumble, lib, "SDL_PlayHapticRumble")
 	sdlPollEvent = func(event *Event) bool {
 		res := bridge.Call("SDL_PollEvent", unsafe.Pointer(event))
-		js.CopyBytesToGo(unsafe.Slice((*byte)(unsafe.Pointer(event)), 128), res.Index(1))
+		if event != nil {
+			js.CopyBytesToGo(unsafe.Slice((*byte)(unsafe.Pointer(event)), 128), res.Index(1))
+		}
 		return res.Index(0).Int() != 0
 	}
 	// // purego.RegisterLibFunc(&sdlPopGPUDebugGroup, lib, "SDL_PopGPUDebugGroup")
@@ -1027,21 +1039,40 @@ func init() {
 		return bridge.Call("SDL_RenderDebugTextFormat", unsafe.Pointer(renderer), x, y, text).Int() != 0
 	}
 	sdlRenderFillRect = func(renderer *Renderer, rect *FRect) bool {
-		return bridge.Call("SDL_RenderFillRect", unsafe.Pointer(renderer), rect.X, rect.Y, rect.W, rect.H).Int() != 0
+		var x, y, w, h any = nil, nil, nil, nil
+		if rect != nil {
+			x, y, w, h = rect.X, rect.Y, rect.W, rect.H
+		}
+		return bridge.Call("SDL_RenderFillRect", unsafe.Pointer(renderer), x, y, w, h).Int() != 0
 	}
 	sdlRenderFillRects = func(renderer *Renderer, rects []FRect) bool {
-		r := unsafe.Slice((*byte)(unsafe.Pointer(&rects[0])), len(rects)*int(unsafe.Sizeof(FRect{}))) // Treat rects slice as byte array
-		js.CopyBytesToJS(memoryBufferView, r)                                                         // Copy the bytes over
-		return bridge.Call("SDL_RenderFillRects", unsafe.Pointer(renderer), len(rects)).Int() != 0
+		numRects := len(rects)
+		if rects != nil {
+			r := unsafe.Slice((*byte)(unsafe.Pointer(&rects[0])), numRects*int(unsafe.Sizeof(FRect{}))) // Treat rects slice as byte array
+			js.CopyBytesToJS(memoryBufferView, r)                                                       // Copy the bytes over
+		} else {
+			numRects = -1
+		}
+		return bridge.Call("SDL_RenderFillRects", unsafe.Pointer(renderer), numRects).Int() != 0
 	}
 	sdlRenderGeometry = func(renderer *Renderer, texture *Texture, vertices []Vertex, indices []int32) bool {
-		v := unsafe.Slice((*byte)(unsafe.Pointer(&vertices[0])), len(vertices)*int(unsafe.Sizeof(Vertex{}))) // Treat vertices slice as byte array
-		i := unsafe.Slice((*byte)(unsafe.Pointer(&indices[0])), len(indices)*int(unsafe.Sizeof(int32(0))))   // Treat indices slice as byte array
-		tmp := make([]byte, len(v)+len(i))                                                                   // Create temporary slice that will hold vertices and indices
+		var v, i []byte
+		numVertices, numIndices := len(vertices), len(indices)
+		if vertices != nil {
+			v = unsafe.Slice((*byte)(unsafe.Pointer(&vertices[0])), len(vertices)*int(unsafe.Sizeof(Vertex{}))) // Treat vertices slice as byte array
+		} else {
+			numVertices = -1
+		}
+		if indices != nil {
+			i = unsafe.Slice((*byte)(unsafe.Pointer(&indices[0])), len(indices)*int(unsafe.Sizeof(int32(0)))) // Treat indices slice as byte array
+		} else {
+			numIndices = -1
+		}
+		tmp := make([]byte, len(v)+len(i)) // Create temporary slice that will hold vertices and indices
 		copy(tmp, v)
 		copy(tmp[len(v):], i)
 		js.CopyBytesToJS(memoryBufferView, tmp) // Copy the bytes over
-		return bridge.Call("SDL_RenderGeometry", unsafe.Pointer(renderer), structToSDLPointer[unsafe.Pointer(texture)], len(vertices), len(indices), len(v)).Int() != 0
+		return bridge.Call("SDL_RenderGeometry", unsafe.Pointer(renderer), structToSDLPointer[unsafe.Pointer(texture)], numVertices, numIndices, len(v)).Int() != 0
 	}
 	// sdlRenderGeometryRawPtr := shared.Get(lib, "SDL_RenderGeometryRaw")
 	// sdlRenderGeometryRaw = func(renderer *Renderer, texture *Texture, xy []FPoint, color []FColor, uv []FPoint, indices []int32) bool {
@@ -1085,29 +1116,48 @@ func init() {
 		return bridge.Call("SDL_RenderLine", unsafe.Pointer(renderer), x1, y1, x2, y2).Int() != 0
 	}
 	sdlRenderLines = func(renderer *Renderer, points []FPoint) bool {
-		p := unsafe.Slice((*byte)(unsafe.Pointer(&points[0])), len(points)*int(unsafe.Sizeof(FPoint{}))) // Treat points slice as byte array
-		js.CopyBytesToJS(memoryBufferView, p)                                                            // Copy the bytes over
-		return bridge.Call("SDL_RenderLines", unsafe.Pointer(renderer), len(points)).Int() != 0
+		numPoints := len(points)
+		if points != nil {
+			p := unsafe.Slice((*byte)(unsafe.Pointer(&points[0])), numPoints*int(unsafe.Sizeof(FPoint{}))) // Treat points slice as byte array
+			js.CopyBytesToJS(memoryBufferView, p)                                                          // Copy the bytes over
+		} else {
+			numPoints = -1
+		}
+		return bridge.Call("SDL_RenderLines", unsafe.Pointer(renderer), numPoints).Int() != 0
 	}
 	sdlRenderPoint = func(renderer *Renderer, x, y float32) bool {
 		return bridge.Call("SDL_RenderPoint", unsafe.Pointer(renderer), x, y).Int() != 0
 	}
 	sdlRenderPoints = func(renderer *Renderer, points []FPoint) bool {
-		r := unsafe.Slice((*byte)(unsafe.Pointer(&points[0])), len(points)*int(unsafe.Sizeof(FPoint{}))) // Treat points slice as byte array
-		js.CopyBytesToJS(memoryBufferView, r)                                                            // Copy the bytes over
-		return bridge.Call("SDL_RenderPoints", unsafe.Pointer(renderer), len(points)).Int() != 0
+		numPoints := len(points)
+		if points != nil {
+			r := unsafe.Slice((*byte)(unsafe.Pointer(&points[0])), numPoints*int(unsafe.Sizeof(FPoint{}))) // Treat points slice as byte array
+			js.CopyBytesToJS(memoryBufferView, r)                                                          // Copy the bytes over
+		} else {
+			numPoints = -1
+		}
+		return bridge.Call("SDL_RenderPoints", unsafe.Pointer(renderer), numPoints).Int() != 0
 	}
 	sdlRenderPresent = func(renderer *Renderer) bool {
 		return bridge.Call("SDL_RenderPresent", unsafe.Pointer(renderer)).Int() != 0
 	}
 	// purego.RegisterLibFunc(&sdlRenderReadPixels, lib, "SDL_RenderReadPixels")
 	sdlRenderRect = func(renderer *Renderer, rect *FRect) bool {
-		return bridge.Call("SDL_RenderRect", unsafe.Pointer(renderer), rect.X, rect.Y, rect.W, rect.H).Int() != 0
+		var x, y, w, h any = nil, nil, nil, nil
+		if rect != nil {
+			x, y, w, h = rect.X, rect.Y, rect.W, rect.H
+		}
+		return bridge.Call("SDL_RenderRect", unsafe.Pointer(renderer), x, y, w, h).Int() != 0
 	}
 	sdlRenderRects = func(renderer *Renderer, rects []FRect) bool {
-		r := unsafe.Slice((*byte)(unsafe.Pointer(&rects[0])), len(rects)*int(unsafe.Sizeof(FRect{}))) // Treat rects slice as byte array
-		js.CopyBytesToJS(memoryBufferView, r)                                                         // Copy the bytes over
-		return bridge.Call("SDL_RenderRects", unsafe.Pointer(renderer), len(rects)).Int() != 0
+		numRects := len(rects)
+		if rects != nil {
+			r := unsafe.Slice((*byte)(unsafe.Pointer(&rects[0])), numRects*int(unsafe.Sizeof(FRect{}))) // Treat rects slice as byte array
+			js.CopyBytesToJS(memoryBufferView, r)                                                       // Copy the bytes over
+		} else {
+			numRects = -1
+		}
+		return bridge.Call("SDL_RenderRects", unsafe.Pointer(renderer), numRects).Int() != 0
 	}
 	sdlRenderTexture = func(renderer *Renderer, texture *Texture, srcrect, dstrect *FRect) bool {
 		var srX, srY, srW, srH any
@@ -1138,19 +1188,25 @@ func init() {
 			drX, drY, drW, drH,
 		).Int() != 0
 	}
-	// sdlRenderTextureAffinePtr := shared.Get(lib, "SDL_RenderTextureAffine")
-	// sdlRenderTextureAffine = func(renderer *Renderer, texture *Texture, srcrect *FRect, origin, right, down *FPoint) bool {
-	// 	ret, _, _ := purego.SyscallN(
-	// 		sdlRenderTextureAffinePtr,
-	// 		uintptr(unsafe.Pointer(renderer)),
-	// 		uintptr(unsafe.Pointer(texture)),
-	// 		uintptr(unsafe.Pointer(srcrect)),
-	// 		uintptr(unsafe.Pointer(origin)),
-	// 		uintptr(unsafe.Pointer(right)),
-	// 		uintptr(unsafe.Pointer(down)))
-
-	// 	return byte(ret) != 0
-	// }
+	sdlRenderTextureAffine = func(renderer *Renderer, texture *Texture, srcrect *FRect, origin, right, down *FPoint) bool {
+		var srX, srY, srW, srH any
+		var p1X, p1Y, p2X, p2Y, p3X, p3Y any
+		if srcrect != nil {
+			srX, srY, srW, srH = srcrect.X, srcrect.Y, srcrect.W, srcrect.H
+		}
+		if origin != nil {
+			p1X, p1Y = origin.X, origin.Y
+		}
+		if right != nil {
+			p2X, p2Y = right.X, right.Y
+		}
+		if down != nil {
+			p3X, p3Y = down.X, down.Y
+		}
+		return bridge.Call("SDL_RenderTextureAffine", unsafe.Pointer(renderer), structToSDLPointer[unsafe.Pointer(texture)],
+			srX, srY, srW, srH,
+			p1X, p1Y, p2X, p2Y, p3X, p3Y).Int() != 0
+	}
 	sdlRenderTextureRotated = func(renderer *Renderer, texture *Texture, srcrect, dstrect *FRect, angle float64, center *FPoint, flip FlipMode) bool {
 		var srX, srY, srW, srH any
 		var drX, drY, drW, drH any

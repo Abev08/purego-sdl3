@@ -18,12 +18,12 @@ var WASM_FRAME_TIME time.Duration = time.Microsecond * time.Duration(math.Floor(
 
 // For now the image gets embedded to allow texture creation on WASM, maybe there is other way?
 //
-//go:embed gopher-happy.bmp
+//go:embed assets/gopher-happy.bmp
 var gopherHappy []byte
 
 // For now the audio sample gets embedded so that it can be used on WASM, maybe there is other way?
 //
-//go:embed tone.wav
+//go:embed assets/tone.wav
 var tone []byte
 
 func main() {
@@ -233,6 +233,7 @@ func main() {
 		sdl.RenderTextureRotated(renderer, gopherTexture, &sdl.FRect{X: 0, Y: 0, W: 32, H: 16}, &sdl.FRect{X: 700, Y: 250, W: 64, H: 32}, -45, nil, sdl.FlipNone)
 		sdl.RenderTexture9Grid(renderer, gopherTexture, nil, 8, 8, 8, 8, 1, &sdl.FRect{X: 620, Y: 210, W: 64, H: 64})
 		sdl.RenderTextureTiled(renderer, gopherTexture, nil, 1, &sdl.FRect{X: 720, Y: 320, W: 96, H: 160})
+		sdl.RenderTextureAffine(renderer, gopherTexture, nil, &sdl.FPoint{X: 820, Y: 220}, &sdl.FPoint{X: 900, Y: 260}, &sdl.FPoint{X: 780, Y: 290})
 
 		// Geometry, an arrow
 		sdl.RenderGeometry(renderer, nil, []sdl.Vertex{

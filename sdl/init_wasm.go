@@ -229,7 +229,7 @@ func init() {
 	// purego.RegisterLibFunc(&sdlDelayNS, lib, "SDL_DelayNS")
 	// // purego.RegisterLibFunc(&sdlDelayPrecise, lib, "SDL_DelayPrecise")
 	// // purego.RegisterLibFunc(&sdlDestroyAsyncIOQueue, lib, "SDL_DestroyAsyncIOQueue")
-	// purego.RegisterLibFunc(&sdlDestroyAudioStream, lib, "SDL_DestroyAudioStream")
+	sdlDestroyAudioStream = func(stream *AudioStream) { bridge.Call("SDL_DestroyAudioStream", unsafe.Pointer(stream)) }
 	// // purego.RegisterLibFunc(&sdlDestroyCondition, lib, "SDL_DestroyCondition")
 	// purego.RegisterLibFunc(&sdlDestroyCursor, lib, "SDL_DestroyCursor")
 	// // purego.RegisterLibFunc(&sdlDestroyEnvironment, lib, "SDL_DestroyEnvironment")
@@ -299,10 +299,7 @@ func init() {
 	// }
 	// // purego.RegisterLibFunc(&sdlfmod, lib, "SDL_fmod")
 	// // purego.RegisterLibFunc(&sdlfmodf, lib, "SDL_fmodf")
-	// sdlfreePtr := shared.Get(lib, "SDL_free")
-	// sdlfree = func(mem unsafe.Pointer) {
-	// 	purego.SyscallN(sdlfreePtr, uintptr(mem))
-	// }
+	sdlfree = func(mem unsafe.Pointer) { bridge.Call("SDL_free", mem) }
 	// // purego.RegisterLibFunc(&sdlGamepadConnected, lib, "SDL_GamepadConnected")
 	// // purego.RegisterLibFunc(&sdlGamepadEventsEnabled, lib, "SDL_GamepadEventsEnabled")
 	// // purego.RegisterLibFunc(&sdlGamepadHasAxis, lib, "SDL_GamepadHasAxis")

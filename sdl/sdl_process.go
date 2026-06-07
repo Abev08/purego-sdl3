@@ -25,6 +25,10 @@ const (
 // [Process]: https://wiki.libsdl.org/SDL3/SDL_Process
 type Process struct{}
 
+// func CreateProcess(args **byte, pipe_stdio bool) *Process {
+//	return sdlCreateProcess(args, pipe_stdio)
+// }
+
 // [ProcessIO] defines the description of where standard I/O should be directed when creating a process.
 //
 // [ProcessIO]: https://wiki.libsdl.org/SDL3/SDL_ProcessIO
@@ -37,16 +41,16 @@ const (
 	ProcessStdioRedirect                   // The I/O stream is redirected to an existing [IOStream].
 )
 
-// func CreateProcess(args **byte, pipe_stdio bool) *Process {
-//	return sdlCreateProcess(args, pipe_stdio)
-// }
-
 // func CreateProcessWithProperties(props PropertiesID) *Process {
 //	return sdlCreateProcessWithProperties(props)
 // }
 
-// func DestroyProcess(process *Process)  {
-//	sdlDestroyProcess(process)
+// func GetProcessProperties(process *Process) PropertiesID {
+//	return sdlGetProcessProperties(process)
+// }
+
+// func ReadProcess(process *Process, datasize *uint64, exitcode *int32) unsafe.Pointer {
+//	return sdlReadProcess(process, datasize, exitcode)
 // }
 
 // func GetProcessInput(process *Process) *IOStream {
@@ -57,18 +61,14 @@ const (
 //	return sdlGetProcessOutput(process)
 // }
 
-// func GetProcessProperties(process *Process) PropertiesID {
-//	return sdlGetProcessProperties(process)
-// }
-
 // func KillProcess(process *Process, force bool) bool {
 //	return sdlKillProcess(process, force)
 // }
 
-// func ReadProcess(process *Process, datasize *uint64, exitcode *int32) unsafe.Pointer {
-//	return sdlReadProcess(process, datasize, exitcode)
-// }
-
 // func WaitProcess(process *Process, block bool, exitcode *int32) bool {
 //	return sdlWaitProcess(process, block, exitcode)
+// }
+
+// func DestroyProcess(process *Process)  {
+//	sdlDestroyProcess(process)
 // }

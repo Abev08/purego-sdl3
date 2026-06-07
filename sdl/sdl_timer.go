@@ -1,27 +1,32 @@
 package sdl
 
-// [TimerID] is a definition of the timer ID type.
+// [GetTicks] returns the number of milliseconds that have elapsed since the SDL library initialization.
 //
-// [TimerID]: https://wiki.libsdl.org/SDL3/SDL_TimerID
-type TimerID uint32
+// [GetTicks]: https://wiki.libsdl.org/SDL3/SDL_GetTicks
+func GetTicks() uint64 {
+	return sdlGetTicks()
+}
 
-// [TimerCallback] is a function prototype for the millisecond timer callback function.
+// [GetTicksNS] returns the number of nanoseconds since SDL library initialization.
 //
-// [TimerCallback]: https://wiki.libsdl.org/SDL3/SDL_TimerCallback
-type TimerCallback uintptr
+// [GetTicksNS]: https://wiki.libsdl.org/SDL3/SDL_GetTicksNS
+func GetTicksNS() uint64 {
+	return sdlGetTicksNS()
+}
 
-// [NSTimerCallback] is a function prototype for the nanosecond timer callback function.
+// [GetPerformanceCounter] returns the current value of the high resolution counter.
 //
-// [NSTimerCallback]: https://wiki.libsdl.org/SDL3/SDL_NSTimerCallback
-type NSTimerCallback uintptr
+// [GetPerformanceCounter]: https://wiki.libsdl.org/SDL3/SDL_GetPerformanceCounter
+func GetPerformanceCounter() uint64 {
+	return sdlGetPerformanceCounter()
+}
 
-// func AddTimer(interval uint32, callback TimerCallback, userdata unsafe.Pointer) TimerID {
-//	return sdlAddTimer(interval, callback, userdata)
-// }
-
-// func AddTimerNS(interval uint64, callback NSTimerCallback, userdata unsafe.Pointer) TimerID {
-//	return sdlAddTimerNS(interval, callback, userdata)
-// }
+// [GetPerformanceFrequency] returns the count per second of the high resolution counter.
+//
+// [GetPerformanceFrequency]: https://wiki.libsdl.org/SDL3/SDL_GetPerformanceFrequency
+func GetPerformanceFrequency() uint64 {
+	return sdlGetPerformanceFrequency()
+}
 
 // Delay wait a specified number of milliseconds before returning.
 // func Delay(ms uint32)  {
@@ -40,33 +45,28 @@ func DelayNS(ns uint64) {
 //	sdlDelayPrecise(ns)
 // }
 
-// [GetPerformanceCounter] returns the current value of the high resolution counter.
+// [TimerID] is a definition of the timer ID type.
 //
-// [GetPerformanceCounter]: https://wiki.libsdl.org/SDL3/SDL_GetPerformanceCounter
-func GetPerformanceCounter() uint64 {
-	return sdlGetPerformanceCounter()
-}
+// [TimerID]: https://wiki.libsdl.org/SDL3/SDL_TimerID
+type TimerID uint32
 
-// [GetPerformanceFrequency] returns the count per second of the high resolution counter.
+// [TimerCallback] is a function prototype for the millisecond timer callback function.
 //
-// [GetPerformanceFrequency]: https://wiki.libsdl.org/SDL3/SDL_GetPerformanceFrequency
-func GetPerformanceFrequency() uint64 {
-	return sdlGetPerformanceFrequency()
-}
+// [TimerCallback]: https://wiki.libsdl.org/SDL3/SDL_TimerCallback
+type TimerCallback uintptr
 
-// [GetTicks] returns the number of milliseconds that have elapsed since the SDL library initialization.
-//
-// [GetTicks]: https://wiki.libsdl.org/SDL3/SDL_GetTicks
-func GetTicks() uint64 {
-	return sdlGetTicks()
-}
+// func AddTimer(interval uint32, callback TimerCallback, userdata unsafe.Pointer) TimerID {
+//	return sdlAddTimer(interval, callback, userdata)
+// }
 
-// [GetTicksNS] returns the number of nanoseconds since SDL library initialization.
+// [NSTimerCallback] is a function prototype for the nanosecond timer callback function.
 //
-// [GetTicksNS]: https://wiki.libsdl.org/SDL3/SDL_GetTicksNS
-func GetTicksNS() uint64 {
-	return sdlGetTicksNS()
-}
+// [NSTimerCallback]: https://wiki.libsdl.org/SDL3/SDL_NSTimerCallback
+type NSTimerCallback uintptr
+
+// func AddTimerNS(interval uint64, callback NSTimerCallback, userdata unsafe.Pointer) TimerID {
+//	return sdlAddTimerNS(interval, callback, userdata)
+// }
 
 // RemoveTimer remove a timer created with SDL_AddTimer().
 // func RemoveTimer(id TimerID) bool {

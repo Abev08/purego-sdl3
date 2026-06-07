@@ -6,6 +6,14 @@ import (
 	"github.com/jupiterrider/purego-sdl3/internal/mem"
 )
 
+const (
+	PropJoystickCapMonoLEDBoolean       = "SDL.joystick.cap.mono_led"
+	PropJoystickCapRGBLEDBoolean        = "SDL.joystick.cap.rgb_led"
+	PropJoystickCapPlayerLEDBoolean     = "SDL.joystick.cap.player_led"
+	PropJoystickCapRumbleBoolean        = "SDL.joystick.cap.rumble"
+	PropJoystickCapTriggerRumbleBoolean = "SDL.joystick.cap.trigger_rumble"
+)
+
 // [Joystick] is a structure specifying the joystick structure used to identify an SDL joysticks.
 //
 // [Joystick]: https://wiki.libsdl.org/SDL3/SDL_Joystick
@@ -245,14 +253,6 @@ type VirtualJoystickDesc struct {
 func GetJoystickProperties(joystick *Joystick) PropertiesID {
 	return sdlGetJoystickProperties(joystick)
 }
-
-const (
-	PropJoystickCapMonoLEDBoolean       = "SDL.joystick.cap.mono_led"
-	PropJoystickCapRGBLEDBoolean        = "SDL.joystick.cap.rgb_led"
-	PropJoystickCapPlayerLEDBoolean     = "SDL.joystick.cap.player_led"
-	PropJoystickCapRumbleBoolean        = "SDL.joystick.cap.rumble"
-	PropJoystickCapTriggerRumbleBoolean = "SDL.joystick.cap.trigger_rumble"
-)
 
 // [GetJoystickName] gets the implementation dependent name of a joystick.
 //

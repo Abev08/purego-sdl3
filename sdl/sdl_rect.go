@@ -2,6 +2,20 @@ package sdl
 
 import "math"
 
+// [Point] is a structure specifying the structure that defines a point (using integers)s.
+//
+// [Point]: https://wiki.libsdl.org/SDL3/SDL_Point
+type Point struct {
+	X, Y int32
+}
+
+// [FPoint] is a structure specifying the structure that defines a point (using floating point values)s.
+//
+// [FPoint]: https://wiki.libsdl.org/SDL3/SDL_FPoint
+type FPoint struct {
+	X, Y float32
+}
+
 // [Rect] is a rectangle, with the origin at the upper left (using integers).
 //
 // [Rect]: https://wiki.libsdl.org/SDL3/SDL_Rect
@@ -14,20 +28,6 @@ type Rect struct {
 // [FRect]: https://wiki.libsdl.org/SDL3/SDL_FRect
 type FRect struct {
 	X, Y, W, H float32
-}
-
-// [FPoint] is a structure specifying the structure that defines a point (using floating point values)s.
-//
-// [FPoint]: https://wiki.libsdl.org/SDL3/SDL_FPoint
-type FPoint struct {
-	X, Y float32
-}
-
-// [Point] is a structure specifying the structure that defines a point (using integers)s.
-//
-// [Point]: https://wiki.libsdl.org/SDL3/SDL_Point
-type Point struct {
-	X, Y int32
 }
 
 // [RectToFRect] converts an [Rect] to [FRect].
@@ -44,13 +44,6 @@ func PointInRect(p Point, r Rect) bool {
 	return (p.X >= r.X) && (p.X < (r.X + r.W)) && (p.Y >= r.Y) && (p.Y < (r.Y + r.H))
 }
 
-// [PointInRectFloat] determines whether a point resides inside a floating point rectangle.
-//
-// [PointInRectFloat]: https://wiki.libsdl.org/SDL3/SDL_PointInRectFloat
-func PointInRectFloat(p FPoint, r FRect) bool {
-	return (p.X >= r.X) && (p.X < (r.X + r.W)) && (p.Y >= r.Y) && (p.Y < (r.Y + r.H))
-}
-
 // [RectEmpty] determines whether a rectangle has no area.
 //
 // [RectEmpty]: https://wiki.libsdl.org/SDL3/SDL_RectEmpty
@@ -58,25 +51,36 @@ func RectEmpty(r Rect) bool {
 	return r.W <= 0 || r.H <= 0
 }
 
-// [RectEmptyFloat] determines whether a floating point rectangle takes no space.
+// [RectsEqual] determines whether two rectangles are equal.
 //
-// [RectEmptyFloat]: https://wiki.libsdl.org/SDL3/SDL_RectEmptyFloat
-func RectEmptyFloat(r FRect) bool {
-	return r.W <= 0 || r.H <= 0
+// [RectsEqual]: https://wiki.libsdl.org/SDL3/SDL_RectsEqual
+func RectsEqual(a, b Rect) bool {
+	return a == b
 }
 
-// [GetRectAndLineIntersection] calculates the intersection of a rectangle and line segment.
+// [HasRectIntersection] determines whether two rectangles intersect.
 //
-// [GetRectAndLineIntersection]: https://wiki.libsdl.org/SDL3/SDL_GetRectAndLineIntersection
-func GetRectAndLineIntersection(rect Rect, x1, y1, x2, y2 *int32) bool {
-	return sdlGetRectAndLineIntersection(&rect, x1, y1, x2, y2)
+// [HasRectIntersection]: https://wiki.libsdl.org/SDL3/SDL_HasRectIntersection
+func HasRectIntersection(a, b Rect) bool {
+	return sdlHasRectIntersection(&a, &b)
 }
 
-// [GetRectAndLineIntersectionFloat] calculates the intersection of a rectangle and line segment with float precision.
+// [GetRectIntersection] calculates the intersection of two rectangles.
 //
-// [GetRectAndLineIntersectionFloat]: https://wiki.libsdl.org/SDL3/SDL_GetRectAndLineIntersectionFloat
-func GetRectAndLineIntersectionFloat(rect FRect, x1, y1, x2, y2 *float32) bool {
-	return sdlGetRectAndLineIntersectionFloat(&rect, x1, y1, x2, y2)
+// [GetRectIntersection]: https://wiki.libsdl.org/SDL3/SDL_GetRectIntersection
+func GetRectIntersection(a, b Rect) (Rect, bool) {
+	var result Rect
+	ret := sdlGetRectIntersection(&a, &b, &result)
+	return result, ret
+}
+
+// [GetRectUnion] calculates the union of two rectangles.
+//
+// [GetRectUnion]: https://wiki.libsdl.org/SDL3/SDL_GetRectUnion
+func GetRectUnion(a, b Rect) (Rect, bool) {
+	var result Rect
+	ret := sdlGetRectUnion(&a, &b, &result)
+	return result, ret
 }
 
 // [GetRectEnclosingPoints] calculates a minimal rectangle enclosing a set of points.
@@ -92,67 +96,25 @@ func GetRectEnclosingPoints(points []Point, clip *Rect) (Rect, bool) {
 	return result, ret
 }
 
-// [GetRectEnclosingPointsFloat] calculates a minimal rectangle enclosing a set of points with float precision.
+// [GetRectAndLineIntersection] calculates the intersection of a rectangle and line segment.
 //
-// [GetRectEnclosingPointsFloat]: https://wiki.libsdl.org/SDL3/SDL_GetRectEnclosingPointsFloat
-func GetRectEnclosingPointsFloat(points []FPoint, clip *FRect) (FRect, bool) {
-	var result FRect
-	var pointsPtr *FPoint
-	if len(points) > 0 {
-		pointsPtr = &points[0]
-	}
-	ret := sdlGetRectEnclosingPointsFloat(pointsPtr, int32(len(points)), clip, &result)
-	return result, ret
+// [GetRectAndLineIntersection]: https://wiki.libsdl.org/SDL3/SDL_GetRectAndLineIntersection
+func GetRectAndLineIntersection(rect Rect, x1, y1, x2, y2 *int32) bool {
+	return sdlGetRectAndLineIntersection(&rect, x1, y1, x2, y2)
 }
 
-// [GetRectIntersection] calculates the intersection of two rectangles.
+// [PointInRectFloat] determines whether a point resides inside a floating point rectangle.
 //
-// [GetRectIntersection]: https://wiki.libsdl.org/SDL3/SDL_GetRectIntersection
-func GetRectIntersection(a, b Rect) (Rect, bool) {
-	var result Rect
-	ret := sdlGetRectIntersection(&a, &b, &result)
-	return result, ret
+// [PointInRectFloat]: https://wiki.libsdl.org/SDL3/SDL_PointInRectFloat
+func PointInRectFloat(p FPoint, r FRect) bool {
+	return (p.X >= r.X) && (p.X < (r.X + r.W)) && (p.Y >= r.Y) && (p.Y < (r.Y + r.H))
 }
 
-// [GetRectIntersectionFloat] calculates the intersection of two rectangles with float precision.
+// [RectEmptyFloat] determines whether a floating point rectangle takes no space.
 //
-// [GetRectIntersectionFloat]: https://wiki.libsdl.org/SDL3/SDL_GetRectIntersectionFloat
-func GetRectIntersectionFloat(a, b FRect) (FRect, bool) {
-	var result FRect
-	ret := sdlGetRectIntersectionFloat(&a, &b, &result)
-	return result, ret
-}
-
-// [GetRectUnion] calculates the union of two rectangles.
-//
-// [GetRectUnion]: https://wiki.libsdl.org/SDL3/SDL_GetRectUnion
-func GetRectUnion(a, b Rect) (Rect, bool) {
-	var result Rect
-	ret := sdlGetRectUnion(&a, &b, &result)
-	return result, ret
-}
-
-// [GetRectUnionFloat] calculates the union of two rectangles.
-//
-// [GetRectUnionFloat]: https://wiki.libsdl.org/SDL3/SDL_GetRectUnionFloat
-func GetRectUnionFloat(a, b FRect) (FRect, bool) {
-	var result FRect
-	ret := sdlGetRectUnionFloat(&a, &b, &result)
-	return result, ret
-}
-
-// [HasRectIntersection] determines whether two rectangles intersect.
-//
-// [HasRectIntersection]: https://wiki.libsdl.org/SDL3/SDL_HasRectIntersection
-func HasRectIntersection(a, b Rect) bool {
-	return sdlHasRectIntersection(&a, &b)
-}
-
-// [HasRectIntersectionFloat] determines whether two rectangles intersect with float precision.
-//
-// [HasRectIntersectionFloat]: https://wiki.libsdl.org/SDL3/SDL_HasRectIntersectionFloat
-func HasRectIntersectionFloat(a, b FRect) bool {
-	return sdlHasRectIntersectionFloat(&a, &b)
+// [RectEmptyFloat]: https://wiki.libsdl.org/SDL3/SDL_RectEmptyFloat
+func RectEmptyFloat(r FRect) bool {
+	return r.W <= 0 || r.H <= 0
 }
 
 // [RectsEqualEpsilon] determines whether two floating point rectangles are equal, within some given epsilon.
@@ -172,9 +134,47 @@ func RectsEqualFloat(a, b FRect) bool {
 	return RectsEqualEpsilon(a, b, FltEpsilon)
 }
 
-// [RectsEqual] determines whether two rectangles are equal.
+// [HasRectIntersectionFloat] determines whether two rectangles intersect with float precision.
 //
-// [RectsEqual]: https://wiki.libsdl.org/SDL3/SDL_RectsEqual
-func RectsEqual(a, b Rect) bool {
-	return a == b
+// [HasRectIntersectionFloat]: https://wiki.libsdl.org/SDL3/SDL_HasRectIntersectionFloat
+func HasRectIntersectionFloat(a, b FRect) bool {
+	return sdlHasRectIntersectionFloat(&a, &b)
+}
+
+// [GetRectIntersectionFloat] calculates the intersection of two rectangles with float precision.
+//
+// [GetRectIntersectionFloat]: https://wiki.libsdl.org/SDL3/SDL_GetRectIntersectionFloat
+func GetRectIntersectionFloat(a, b FRect) (FRect, bool) {
+	var result FRect
+	ret := sdlGetRectIntersectionFloat(&a, &b, &result)
+	return result, ret
+}
+
+// [GetRectUnionFloat] calculates the union of two rectangles.
+//
+// [GetRectUnionFloat]: https://wiki.libsdl.org/SDL3/SDL_GetRectUnionFloat
+func GetRectUnionFloat(a, b FRect) (FRect, bool) {
+	var result FRect
+	ret := sdlGetRectUnionFloat(&a, &b, &result)
+	return result, ret
+}
+
+// [GetRectEnclosingPointsFloat] calculates a minimal rectangle enclosing a set of points with float precision.
+//
+// [GetRectEnclosingPointsFloat]: https://wiki.libsdl.org/SDL3/SDL_GetRectEnclosingPointsFloat
+func GetRectEnclosingPointsFloat(points []FPoint, clip *FRect) (FRect, bool) {
+	var result FRect
+	var pointsPtr *FPoint
+	if len(points) > 0 {
+		pointsPtr = &points[0]
+	}
+	ret := sdlGetRectEnclosingPointsFloat(pointsPtr, int32(len(points)), clip, &result)
+	return result, ret
+}
+
+// [GetRectAndLineIntersectionFloat] calculates the intersection of a rectangle and line segment with float precision.
+//
+// [GetRectAndLineIntersectionFloat]: https://wiki.libsdl.org/SDL3/SDL_GetRectAndLineIntersectionFloat
+func GetRectAndLineIntersectionFloat(rect FRect, x1, y1, x2, y2 *float32) bool {
+	return sdlGetRectAndLineIntersectionFloat(&rect, x1, y1, x2, y2)
 }

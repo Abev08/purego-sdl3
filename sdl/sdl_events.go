@@ -6,17 +6,6 @@ import (
 	"github.com/jupiterrider/purego-sdl3/internal/convert"
 )
 
-// [EventAction] is a structure specifying the type of action to request from [PeepEvents].
-//
-// [EventAction]: https://wiki.libsdl.org/SDL3/SDL_EventAction
-type EventAction uint32
-
-const (
-	AddEvent  EventAction = iota // Add events to the back of the queue.
-	PeekEvent                    // Check but don't remove events from the queue front.
-	GetEvent                     // Retrieve/remove events from the front of the queue.
-)
-
 // [EventType] is a structure specifying the types of events that can be delivered.
 //
 // [EventType]: https://wiki.libsdl.org/SDL3/SDL_EventType
@@ -34,7 +23,6 @@ const (
 	EventLocaleChanged              EventType = 0x107 // The user's locale preferences have changed.
 	EventSystemThemeChanged         EventType = 0x108 // The system theme changed.
 	EventDisplayOrientation         EventType = 0x151 // Display orientation has changed to data1.
-	EventDisplayFirst                         = EventDisplayOrientation
 	EventDisplayAdded               EventType = 0x152 // Display has been added to the system.
 	EventDisplayRemoved             EventType = 0x153 // Display has been removed from the system.
 	EventDisplayMoved               EventType = 0x154 // Display has changed position.
@@ -42,9 +30,9 @@ const (
 	EventDisplayCurrentModeChanged  EventType = 0x156 // Display has changed current mode.
 	EventDisplayContentScaleChanged EventType = 0x157 // Display has changed content scale.
 	EventDisplayUsableBoundsChanged EventType = 0x158 // Display has changed usable bounds.
+	EventDisplayFirst                         = EventDisplayOrientation
 	EventDisplayLast                          = EventDisplayUsableBoundsChanged
 	EventWindowShown                EventType = 0x202 // Window has been shown.
-	EventWindowFirst                          = EventWindowShown
 	EventWindowHidden               EventType = 0x203 // Window has been hidden.
 	EventWindowExposed              EventType = 0x204 // Window has been exposed and should be redrawn, and can be redrawn directly from event watchers for this event. data1 is 1 for live-resize expose events, 0 otherwise.
 	EventWindowMoved                EventType = 0x205 // Window has been moved to data1, data2.
@@ -69,6 +57,7 @@ const (
 	EventWindowLeaveFullscreen      EventType = 0x218 // The window has left fullscreen mode.
 	EventWindowDestroyed            EventType = 0x219 // The window with the associated ID is being or has been destroyed. If this message is being handled in an event watcher, the window handle is still valid and can still be used to retrieve any properties associated with the window. Otherwise, the handle has already been destroyed and all resources associated with it are invalid.
 	EventWindowHDRStateChanged      EventType = 0x21A // Window HDR properties have changed.
+	EventWindowFirst                          = EventWindowShown
 	EventWindowLast                           = EventWindowHDRStateChanged
 	EventKeyDown                    EventType = 0x300 // Key pressed.
 	EventKeyUp                      EventType = 0x301 // Key released.
@@ -902,75 +891,36 @@ type UserEvent struct {
 	Data2    unsafe.Pointer // User defined data pointer.
 }
 
-// [EventFilter] is a C function pointer used for callbacks that watch the event queue. Use [NewEventFilter] for creation.
+// [PumpEvents] updates the event queue and internal input device state.
 //
-// [EventFilter]: https://wiki.libsdl.org/SDL3/SDL_EventFilter
-type EventFilter uintptr
-
-// [PollEvent] polls for currently pending events.
-//
-// [PollEvent]: https://wiki.libsdl.org/SDL3/SDL_PollEvent
-func PollEvent(event *Event) bool {
-	return sdlPollEvent(event)
+// [PumpEvents]: https://wiki.libsdl.org/SDL3/SDL_PumpEvents
+func PumpEvents() {
+	sdlPumpEvents()
 }
 
-// [AddEventWatch] adds a callback to be triggered when an event is added to the event queue.
+// [EventAction] is a structure specifying the type of action to request from [PeepEvents].
 //
-// [AddEventWatch]: https://wiki.libsdl.org/SDL3/SDL_AddEventWatch
-func AddEventWatch(filter EventFilter, userdata unsafe.Pointer) bool {
-	return sdlAddEventWatch(filter, userdata)
-}
+// [EventAction]: https://wiki.libsdl.org/SDL3/SDL_EventAction
+type EventAction uint32
 
-// [EventEnabled] returns true if the event is being processed, false otherwise.
-//
-// [EventEnabled]: https://wiki.libsdl.org/SDL3/SDL_EventEnabled
-func EventEnabled(eventType EventType) bool {
-	return sdlEventEnabled(eventType)
-}
+const (
+	AddEvent  EventAction = iota // Add events to the back of the queue.
+	PeekEvent                    // Check but don't remove events from the queue front.
+	GetEvent                     // Retrieve/remove events from the front of the queue.
+)
 
-// [FilterEvents] runs a specific filter function on the current event queue, removing any events for which the filter returns false.
+// [PeepEvents] checks the event queue for messages and optionally returns them.
 //
-// [FilterEvents]: https://wiki.libsdl.org/SDL3/SDL_FilterEvents
-func FilterEvents(filter EventFilter, userdata unsafe.Pointer) {
-	sdlFilterEvents(filter, userdata)
+// Example:
+//
+//	sdl.PumpEvents()
+//	var events [2]sdl.Event
+//	sdl.PeepEvents(&events[0], 2, sdl.PeekEvent, sdl.EventFirst, sdl.EventLast)
+//
+// [PeepEvents]: https://wiki.libsdl.org/SDL3/SDL_PeepEvents
+func PeepEvents(events *Event, numevents int32, action EventAction, minType, maxType EventType) int32 {
+	return sdlPeepEvents(events, numevents, action, minType, maxType)
 }
-
-// [FlushEvent] clears events of a specific type from the event queue.
-//
-// [FlushEvent]: https://wiki.libsdl.org/SDL3/SDL_FlushEvent
-func FlushEvent(eventType EventType) {
-	sdlFlushEvent(eventType)
-}
-
-// [FlushEvents] clears events of a range of types from the event queue.
-//
-// [FlushEvents]: https://wiki.libsdl.org/SDL3/SDL_FlushEvents
-func FlushEvents(minType, maxType EventType) {
-	sdlFlushEvents(minType, maxType)
-}
-
-// [GetEventFilter] queries the current event filter.
-//
-// [GetEventFilter]: https://wiki.libsdl.org/SDL3/SDL_GetEventFilter
-func GetEventFilter(filter *EventFilter, userdata *unsafe.Pointer) bool {
-	return sdlGetEventFilter(filter, userdata)
-}
-
-// [GetWindowFromEvent] returns the associated window with an event or nil if there is none.
-//
-// [GetWindowFromEvent]: https://wiki.libsdl.org/SDL3/SDL_GetWindowFromEvent
-func GetWindowFromEvent(event *Event) *Window {
-	return sdlGetWindowFromEvent(event)
-}
-
-// [GetEventDescription] generates an English description of an event.
-//
-// Available since SDL 3.4.0.
-//
-// [GetEventDescription]: https://wiki.libsdl.org/SDL3/SDL_GetEventDescription
-// func GetEventDescription(event *Event, buf *byte, buflen int32) int32 {
-// 	return sdlGetEventDescription(event, buf, buflen)
-// }
 
 // [HasEvent] checks for the existence of a certain event type in the event queue.
 //
@@ -988,61 +938,25 @@ func HasEvents(minType, maxType EventType) bool {
 	return sdlHasEvents(minType, maxType)
 }
 
-// [PeepEvents] checks the event queue for messages and optionally returns them.
+// [FlushEvent] clears events of a specific type from the event queue.
 //
-// Example:
-//
-//	sdl.PumpEvents()
-//	var events [2]sdl.Event
-//	sdl.PeepEvents(&events[0], 2, sdl.PeekEvent, sdl.EventFirst, sdl.EventLast)
-//
-// [PeepEvents]: https://wiki.libsdl.org/SDL3/SDL_PeepEvents
-func PeepEvents(events *Event, numevents int32, action EventAction, minType, maxType EventType) int32 {
-	return sdlPeepEvents(events, numevents, action, minType, maxType)
+// [FlushEvent]: https://wiki.libsdl.org/SDL3/SDL_FlushEvent
+func FlushEvent(eventType EventType) {
+	sdlFlushEvent(eventType)
 }
 
-// [PumpEvents] updates the event queue and internal input device state.
+// [FlushEvents] clears events of a range of types from the event queue.
 //
-// [PumpEvents]: https://wiki.libsdl.org/SDL3/SDL_PumpEvents
-func PumpEvents() {
-	sdlPumpEvents()
+// [FlushEvents]: https://wiki.libsdl.org/SDL3/SDL_FlushEvents
+func FlushEvents(minType, maxType EventType) {
+	sdlFlushEvents(minType, maxType)
 }
 
-// [PushEvent] adds an event to the event queue.
+// [PollEvent] polls for currently pending events.
 //
-// [PushEvent]: https://wiki.libsdl.org/SDL3/SDL_PushEvent
-func PushEvent(event *Event) bool {
-	return sdlPushEvent(event)
-}
-
-// [RegisterEvents] allocates a set of user-defined events, and return the beginning event number for that set of events.
-//
-// [RegisterEvents]: https://wiki.libsdl.org/SDL3/SDL_RegisterEvents
-func RegisterEvents(numevents int32) uint32 {
-	return sdlRegisterEvents(numevents)
-}
-
-// [RemoveEventWatch] removes an event watch callback added with [AddEventWatch].
-//
-// This function takes the same input as [AddEventWatch] to identify and delete the corresponding callback.
-//
-// [RemoveEventWatch]: https://wiki.libsdl.org/SDL3/SDL_RemoveEventWatch
-func RemoveEventWatch(filter EventFilter, userdata unsafe.Pointer) {
-	sdlRemoveEventWatch(filter, userdata)
-}
-
-// [SetEventEnabled] sets the state of processing events by type.
-//
-// [SetEventEnabled]: https://wiki.libsdl.org/SDL3/SDL_SetEventEnabled
-func SetEventEnabled(eventType EventType, enabled bool) {
-	sdlSetEventEnabled(eventType, enabled)
-}
-
-// [SetEventFilter] sets up a filter to process all events before they are added to the internal event queue.
-//
-// [SetEventFilter]: https://wiki.libsdl.org/SDL3/SDL_SetEventFilter
-func SetEventFilter(filter EventFilter, userdata unsafe.Pointer) {
-	sdlSetEventFilter(filter, userdata)
+// [PollEvent]: https://wiki.libsdl.org/SDL3/SDL_PollEvent
+func PollEvent(event *Event) bool {
+	return sdlPollEvent(event)
 }
 
 // [WaitEvent] waits indefinitely for the next available event.
@@ -1058,3 +972,89 @@ func WaitEvent(event *Event) bool {
 func WaitEventTimeout(event *Event, timeoutMS int32) bool {
 	return sdlWaitEventTimeout(event, timeoutMS)
 }
+
+// [PushEvent] adds an event to the event queue.
+//
+// [PushEvent]: https://wiki.libsdl.org/SDL3/SDL_PushEvent
+func PushEvent(event *Event) bool {
+	return sdlPushEvent(event)
+}
+
+// [EventFilter] is a C function pointer used for callbacks that watch the event queue. Use [NewEventFilter] for creation.
+//
+// [EventFilter]: https://wiki.libsdl.org/SDL3/SDL_EventFilter
+type EventFilter uintptr
+
+// [SetEventFilter] sets up a filter to process all events before they are added to the internal event queue.
+//
+// [SetEventFilter]: https://wiki.libsdl.org/SDL3/SDL_SetEventFilter
+func SetEventFilter(filter EventFilter, userdata unsafe.Pointer) {
+	sdlSetEventFilter(filter, userdata)
+}
+
+// [GetEventFilter] queries the current event filter.
+//
+// [GetEventFilter]: https://wiki.libsdl.org/SDL3/SDL_GetEventFilter
+func GetEventFilter(filter *EventFilter, userdata *unsafe.Pointer) bool {
+	return sdlGetEventFilter(filter, userdata)
+}
+
+// [AddEventWatch] adds a callback to be triggered when an event is added to the event queue.
+//
+// [AddEventWatch]: https://wiki.libsdl.org/SDL3/SDL_AddEventWatch
+func AddEventWatch(filter EventFilter, userdata unsafe.Pointer) bool {
+	return sdlAddEventWatch(filter, userdata)
+}
+
+// [RemoveEventWatch] removes an event watch callback added with [AddEventWatch].
+//
+// This function takes the same input as [AddEventWatch] to identify and delete the corresponding callback.
+//
+// [RemoveEventWatch]: https://wiki.libsdl.org/SDL3/SDL_RemoveEventWatch
+func RemoveEventWatch(filter EventFilter, userdata unsafe.Pointer) {
+	sdlRemoveEventWatch(filter, userdata)
+}
+
+// [FilterEvents] runs a specific filter function on the current event queue, removing any events for which the filter returns false.
+//
+// [FilterEvents]: https://wiki.libsdl.org/SDL3/SDL_FilterEvents
+func FilterEvents(filter EventFilter, userdata unsafe.Pointer) {
+	sdlFilterEvents(filter, userdata)
+}
+
+// [SetEventEnabled] sets the state of processing events by type.
+//
+// [SetEventEnabled]: https://wiki.libsdl.org/SDL3/SDL_SetEventEnabled
+func SetEventEnabled(eventType EventType, enabled bool) {
+	sdlSetEventEnabled(eventType, enabled)
+}
+
+// [EventEnabled] returns true if the event is being processed, false otherwise.
+//
+// [EventEnabled]: https://wiki.libsdl.org/SDL3/SDL_EventEnabled
+func EventEnabled(eventType EventType) bool {
+	return sdlEventEnabled(eventType)
+}
+
+// [RegisterEvents] allocates a set of user-defined events, and return the beginning event number for that set of events.
+//
+// [RegisterEvents]: https://wiki.libsdl.org/SDL3/SDL_RegisterEvents
+func RegisterEvents(numevents int32) uint32 {
+	return sdlRegisterEvents(numevents)
+}
+
+// [GetWindowFromEvent] returns the associated window with an event or nil if there is none.
+//
+// [GetWindowFromEvent]: https://wiki.libsdl.org/SDL3/SDL_GetWindowFromEvent
+func GetWindowFromEvent(event *Event) *Window {
+	return sdlGetWindowFromEvent(event)
+}
+
+// [GetEventDescription] generates an English description of an event.
+//
+// Available since SDL 3.4.0.
+//
+// [GetEventDescription]: https://wiki.libsdl.org/SDL3/SDL_GetEventDescription
+// func GetEventDescription(event *Event, buf *byte, buflen int32) int32 {
+// 	return sdlGetEventDescription(event, buf, buflen)
+// }

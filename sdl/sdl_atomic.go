@@ -5,12 +5,48 @@ package sdl
 // [SpinLock]: https://wiki.libsdl.org/SDL3/SDL_SpinLock
 type SpinLock int32
 
+// func TryLockSpinlock(lock *SpinLock) bool {
+//	return sdlTryLockSpinlock(lock)
+// }
+
+// func LockSpinlock(lock *SpinLock) {
+//	sdlLockSpinlock(lock)
+// }
+
+// func UnlockSpinlock(lock *SpinLock) {
+//	sdlUnlockSpinlock(lock)
+// }
+
+// func MemoryBarrierReleaseFunction() {
+//	sdlMemoryBarrierReleaseFunction()
+// }
+
+// func MemoryBarrierAcquireFunction()  {
+//	sdlMemoryBarrierAcquireFunction()
+// }
+
 // [AtomicInt] is a structure representing an atomic integer value.
 //
 // [AtomicInt]: https://wiki.libsdl.org/SDL3/SDL_AtomicInt
 type AtomicInt struct {
 	Value int32
 }
+
+// func CompareAndSwapAtomicInt(a *AtomicInt, oldval int32, newval int32) bool {
+//	return sdlCompareAndSwapAtomicInt(a, oldval, newval)
+// }
+
+// func SetAtomicInt(a *AtomicInt, v int32) int32 {
+//	return sdlSetAtomicInt(a, v)
+// }
+
+// func GetAtomicInt(a *AtomicInt) int32 {
+//	return sdlGetAtomicInt(a)
+// }
+
+// func AddAtomicInt(a *AtomicInt, v int32) int32 {
+//	return sdlAddAtomicInt(a, v)
+// }
 
 // [AtomicU32] is a structure representing an atomic unsigned 32-bit value.
 //
@@ -19,28 +55,12 @@ type AtomicU32 struct {
 	Value uint32
 }
 
-// func AddAtomicInt(a *AtomicInt, v int32) int32 {
-//	return sdlAddAtomicInt(a, v)
-// }
-
-// func CompareAndSwapAtomicInt(a *AtomicInt, oldval int32, newval int32) bool {
-//	return sdlCompareAndSwapAtomicInt(a, oldval, newval)
-// }
-
-// func CompareAndSwapAtomicPointer(a *unsafe.Pointer, oldval unsafe.Pointer, newval unsafe.Pointer) bool {
-//	return sdlCompareAndSwapAtomicPointer(a, oldval, newval)
-// }
-
 // func CompareAndSwapAtomicU32(a *AtomicU32, oldval uint32, newval uint32) bool {
 //	return sdlCompareAndSwapAtomicU32(a, oldval, newval)
 // }
 
-// func GetAtomicInt(a *AtomicInt) int32 {
-//	return sdlGetAtomicInt(a)
-// }
-
-// func GetAtomicPointer(a *unsafe.Pointer) unsafe.Pointer {
-//	return sdlGetAtomicPointer(a)
+// func SetAtomicU32(a *AtomicU32, v uint32) uint32 {
+//	return sdlSetAtomicU32(a, v)
 // }
 
 // func GetAtomicU32(a *AtomicU32) uint32 {
@@ -56,34 +76,14 @@ type AtomicU32 struct {
 // 	return sdlAddAtomicU32(a, v)
 // }
 
-// func LockSpinlock(lock *SpinLock)  {
-//	sdlLockSpinlock(lock)
-// }
-
-// func MemoryBarrierAcquireFunction()  {
-//	sdlMemoryBarrierAcquireFunction()
-// }
-
-// func MemoryBarrierReleaseFunction()  {
-//	sdlMemoryBarrierReleaseFunction()
-// }
-
-// func SetAtomicInt(a *AtomicInt, v int32) int32 {
-//	return sdlSetAtomicInt(a, v)
+// func CompareAndSwapAtomicPointer(a *unsafe.Pointer, oldval unsafe.Pointer, newval unsafe.Pointer) bool {
+//	return sdlCompareAndSwapAtomicPointer(a, oldval, newval)
 // }
 
 // func SetAtomicPointer(a *unsafe.Pointer, v unsafe.Pointer) unsafe.Pointer {
 //	return sdlSetAtomicPointer(a, v)
 // }
 
-// func SetAtomicU32(a *AtomicU32, v uint32) uint32 {
-//	return sdlSetAtomicU32(a, v)
-// }
-
-// func TryLockSpinlock(lock *SpinLock) bool {
-//	return sdlTryLockSpinlock(lock)
-// }
-
-// func UnlockSpinlock(lock *SpinLock)  {
-//	sdlUnlockSpinlock(lock)
+// func GetAtomicPointer(a *unsafe.Pointer) unsafe.Pointer {
+//	return sdlGetAtomicPointer(a)
 // }

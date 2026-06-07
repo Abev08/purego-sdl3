@@ -2,6 +2,21 @@ package sdl
 
 import "fmt"
 
+// [SetError] sets the SDL error message for the current thread.
+//
+// [SetError]: https://wiki.libsdl.org/SDL3/SDL_SetError
+func SetError(format string, a ...any) bool {
+	return sdlSetError(fmt.Sprintf(format, a...))
+}
+
+// func SetErrorV(fmt string, ap va_list) bool {
+//	return sdlSetErrorV(fmt, ap)
+// }
+
+// func OutOfMemory() bool {
+//	return sdlOutOfMemory()
+// }
+
 // [GetError] retrieves a message about the last error that occurred on the current thread.
 //
 // [GetError]: https://wiki.libsdl.org/SDL3/SDL_GetError
@@ -16,20 +31,12 @@ func ClearError() bool {
 	return sdlClearError()
 }
 
-// func OutOfMemory() bool {
-//	return sdlOutOfMemory()
-// }
-
-// [SetError] sets the SDL error message for the current thread.
+// [Unsupported] sets the SDL error message, standardizes error reporting on unsupported operations.
 //
-// [SetError]: https://wiki.libsdl.org/SDL3/SDL_SetError
-func SetError(format string, a ...any) bool {
-	return sdlSetError(fmt.Sprintf(format, a...))
+// [Unsupported]: https://wiki.libsdl.org/SDL3/SDL_Unsupported
+func Unsupported() {
+	SetError("That operation is not supported")
 }
-
-// func SetErrorV(fmt string, ap va_list) bool {
-//	return sdlSetErrorV(fmt, ap)
-// }
 
 // [InvalidParamError] sets the SDL error message, standardizes error reporting on unsupported operations.
 //

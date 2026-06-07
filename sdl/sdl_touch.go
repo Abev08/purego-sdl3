@@ -1,5 +1,15 @@
 package sdl
 
+// [TouchID] is a unique ID for a touch device.
+//
+// [TouchID]: https://wiki.libsdl.org/SDL3/SDL_TouchID
+type TouchID uint64
+
+// [FingerID] is a unique ID for a single finger on a touch device.
+//
+// [FingerID]: https://wiki.libsdl.org/SDL3/SDL_FingerID
+type FingerID uint64
+
 // [TouchDeviceType] is an enum that describes the type of a touch device.
 //
 // [TouchDeviceType]: https://wiki.libsdl.org/SDL3/SDL_TouchDeviceType
@@ -12,16 +22,6 @@ const (
 	TouchDeviceIndirectRelative                 // Trackpad with screen cursor-relative coordinates.
 )
 
-// [TouchID] is a unique ID for a touch device.
-//
-// [TouchID]: https://wiki.libsdl.org/SDL3/SDL_TouchID
-type TouchID uint64
-
-// [FingerID] is a unique ID for a single finger on a touch device.
-//
-// [FingerID]: https://wiki.libsdl.org/SDL3/SDL_FingerID
-type FingerID uint64
-
 // [Finger] is a structure storing data about a single finger in a multitouch event.
 //
 // [Finger]: https://wiki.libsdl.org/SDL3/SDL_Finger
@@ -32,12 +32,12 @@ type Finger struct {
 	Pressure float32  // The quantity of pressure applied, normalized (0...1).
 }
 
-// func GetTouchDeviceName(touchID TouchID) string {
-//	return sdlGetTouchDeviceName(touchID)
-// }
-
 // func GetTouchDevices(count *int32) *TouchID {
 //	return sdlGetTouchDevices(count)
+// }
+
+// func GetTouchDeviceName(touchID TouchID) string {
+//	return sdlGetTouchDeviceName(touchID)
 // }
 
 // func GetTouchDeviceType(touchID TouchID) TouchDeviceType {

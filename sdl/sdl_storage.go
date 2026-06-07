@@ -23,12 +23,40 @@ type StorageInterface struct {
 // [Storage]: https://wiki.libsdl.org/SDL3/SDL_Storage
 type Storage struct{}
 
+// func OpenTitleStorage(override string, props PropertiesID) *Storage {
+//	return sdlOpenTitleStorage(override, props)
+// }
+
+// func OpenUserStorage(org string, app string, props PropertiesID) *Storage {
+//	return sdlOpenUserStorage(org, app, props)
+// }
+
+// func OpenFileStorage(path string) *Storage {
+//	return sdlOpenFileStorage(path)
+// }
+
+// func OpenStorage(iface *StorageInterface, userdata unsafe.Pointer) *Storage {
+//	return sdlOpenStorage(iface, userdata)
+// }
+
 // func CloseStorage(storage *Storage) bool {
 //	return sdlCloseStorage(storage)
 // }
 
-// func CopyStorageFile(storage *Storage, oldpath string, newpath string) bool {
-//	return sdlCopyStorageFile(storage, oldpath, newpath)
+// func StorageReady(storage *Storage) bool {
+//	return sdlStorageReady(storage)
+// }
+
+// func GetStorageFileSize(storage *Storage, path string, length *uint64) bool {
+//	return sdlGetStorageFileSize(storage, path, length)
+// }
+
+// func ReadStorageFile(storage *Storage, path string, destination unsafe.Pointer, length uint64) bool {
+//	return sdlReadStorageFile(storage, path, destination, length)
+// }
+
+// func WriteStorageFile(storage *Storage, path string, source unsafe.Pointer, length uint64) bool {
+//	return sdlWriteStorageFile(storage, path, source, length)
 // }
 
 // func CreateStorageDirectory(storage *Storage, path string) bool {
@@ -39,8 +67,16 @@ type Storage struct{}
 //	return sdlEnumerateStorageDirectory(storage, path, callback, userdata)
 // }
 
-// func GetStorageFileSize(storage *Storage, path string, length *uint64) bool {
-//	return sdlGetStorageFileSize(storage, path, length)
+// func RemoveStoragePath(storage *Storage, path string) bool {
+//	return sdlRemoveStoragePath(storage, path)
+// }
+
+// func RenameStoragePath(storage *Storage, oldpath string, newpath string) bool {
+//	return sdlRenameStoragePath(storage, oldpath, newpath)
+// }
+
+// func CopyStorageFile(storage *Storage, oldpath string, newpath string) bool {
+//	return sdlCopyStorageFile(storage, oldpath, newpath)
 // }
 
 // func GetStoragePathInfo(storage *Storage, path string, info *PathInfo) bool {
@@ -53,40 +89,4 @@ type Storage struct{}
 
 // func GlobStorageDirectory(storage *Storage, path string, pattern string, flags GlobFlags, count *int32) **byte {
 //	return sdlGlobStorageDirectory(storage, path, pattern, flags, count)
-// }
-
-// func OpenFileStorage(path string) *Storage {
-//	return sdlOpenFileStorage(path)
-// }
-
-// func OpenStorage(iface *StorageInterface, userdata unsafe.Pointer) *Storage {
-//	return sdlOpenStorage(iface, userdata)
-// }
-
-// func OpenTitleStorage(override string, props PropertiesID) *Storage {
-//	return sdlOpenTitleStorage(override, props)
-// }
-
-// func OpenUserStorage(org string, app string, props PropertiesID) *Storage {
-//	return sdlOpenUserStorage(org, app, props)
-// }
-
-// func ReadStorageFile(storage *Storage, path string, destination unsafe.Pointer, length uint64) bool {
-//	return sdlReadStorageFile(storage, path, destination, length)
-// }
-
-// func RemoveStoragePath(storage *Storage, path string) bool {
-//	return sdlRemoveStoragePath(storage, path)
-// }
-
-// func RenameStoragePath(storage *Storage, oldpath string, newpath string) bool {
-//	return sdlRenameStoragePath(storage, oldpath, newpath)
-// }
-
-// func StorageReady(storage *Storage) bool {
-//	return sdlStorageReady(storage)
-// }
-
-// func WriteStorageFile(storage *Storage, path string, source unsafe.Pointer, length uint64) bool {
-//	return sdlWriteStorageFile(storage, path, source, length)
 // }

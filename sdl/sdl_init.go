@@ -1,14 +1,13 @@
 package sdl
 
-// [AppResult] defines the return values for optional main callbacks.
-//
-// [AppResult]: https://wiki.libsdl.org/SDL3/SDL_AppResult
-type AppResult uint32
-
 const (
-	AppContinue AppResult = iota // Value that requests that the app continue from the main callbacks.
-	AppSuccess                   // Value that requests termination with success from the main callbacks.
-	AppFailure                   // Value that requests termination with error from the main callbacks.
+	PropAppMetadataNameString       = "SDL.app.metadata.name"
+	PropAppMetadataVersionString    = "SDL.app.metadata.version"
+	PropAppMetadataIdentifierString = "SDL.app.metadata.identifier"
+	PropAppMetadataCreatorString    = "SDL.app.metadata.creator"
+	PropAppMetadataCopyrightString  = "SDL.app.metadata.copyright"
+	PropAppMetadataUrlString        = "SDL.app.metadata.url"
+	PropAppMetadataTypeString       = "SDL.app.metadata.type"
 )
 
 // [InitFlags] defines the initialization flags for [Init] and/or [InitSubSystem].
@@ -27,6 +26,17 @@ const (
 	InitCamera   InitFlags = 0x00010000 // [INIT_CAMERA] implies [INIT_EVENTS].
 )
 
+// [AppResult] defines the return values for optional main callbacks.
+//
+// [AppResult]: https://wiki.libsdl.org/SDL3/SDL_AppResult
+type AppResult uint32
+
+const (
+	AppContinue AppResult = iota // Value that requests that the app continue from the main callbacks.
+	AppSuccess                   // Value that requests termination with success from the main callbacks.
+	AppFailure                   // Value that requests termination with error from the main callbacks.
+)
+
 // [Init] initializes the SDL library.
 //
 // [Init]: https://wiki.libsdl.org/SDL3/SDL_Init
@@ -43,13 +53,6 @@ func InitSubSystem(flags InitFlags) bool {
 	return sdlInit(flags)
 }
 
-// [Quit] cleans up all initialized subsystems.
-//
-// [Quit]: https://wiki.libsdl.org/SDL3/SDL_Quit
-func Quit() {
-	sdlQuit()
-}
-
 // [QuitSubSystem] shuts down specific SDL subsystems.
 //
 // You still need to call [Quit] even if you close all open subsystems with this function.
@@ -59,11 +62,15 @@ func QuitSubSystem(flags InitFlags) {
 	sdlQuitSubSystem(flags)
 }
 
-// [GetAppMetadataProperty] gets metadata about your app.
+// func WasInit(flags InitFlags) InitFlags {
+//	return sdlWasInit(flags)
+// }
+
+// [Quit] cleans up all initialized subsystems.
 //
-// [GetAppMetadataProperty]: https://wiki.libsdl.org/SDL3/SDL_GetAppMetadataProperty
-func GetAppMetadataProperty(name string) string {
-	return sdlGetAppMetadataProperty(name)
+// [Quit]: https://wiki.libsdl.org/SDL3/SDL_Quit
+func Quit() {
+	sdlQuit()
 }
 
 // [IsMainThread] returns whether this is the main thread.
@@ -85,6 +92,9 @@ func IsMainThread() bool {
 //	return sdlSetAppMetadataProperty(name, value)
 // }
 
-// func WasInit(flags InitFlags) InitFlags {
-//	return sdlWasInit(flags)
-// }
+// [GetAppMetadataProperty] gets metadata about your app.
+//
+// [GetAppMetadataProperty]: https://wiki.libsdl.org/SDL3/SDL_GetAppMetadataProperty
+func GetAppMetadataProperty(name string) string {
+	return sdlGetAppMetadataProperty(name)
+}

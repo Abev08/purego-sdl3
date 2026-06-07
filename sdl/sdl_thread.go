@@ -1,5 +1,12 @@
 package sdl
 
+const (
+	PropThreadCreateEntryFunctionPointer = "SDL.thread.create.entry_function"
+	PropThreadCreateNameString           = "SDL.thread.create.name"
+	PropThreadCreateUserdataPointer      = "SDL.thread.create.userdata"
+	PropThreadCreateStacksizeNumber      = "SDL.thread.create.stacksize"
+)
+
 // [Thread] is the SDL thread object.
 //
 // [Thread]: https://wiki.libsdl.org/SDL3/SDL_Thread
@@ -44,10 +51,6 @@ const (
 // [ThreadFunction]: https://wiki.libsdl.org/SDL3/SDL_ThreadFunction
 type ThreadFunction uintptr
 
-// func CleanupTLS()  {
-//	sdlCleanupTLS()
-// }
-
 // func CreateThreadRuntime(fn ThreadFunction, name string, data unsafe.Pointer, pfnBeginThread FunctionPointer, pfnEndThread FunctionPointer) *Thread {
 //	return sdlCreateThreadRuntime(fn, name, data, pfnBeginThread, pfnEndThread)
 // }
@@ -56,8 +59,8 @@ type ThreadFunction uintptr
 //	return sdlCreateThreadWithPropertiesRuntime(props, pfnBeginThread, pfnEndThread)
 // }
 
-// func DetachThread(thread *Thread)  {
-//	sdlDetachThread(thread)
+// func GetThreadName(thread *Thread) string {
+//	return sdlGetThreadName(thread)
 // }
 
 // func GetCurrentThreadID() ThreadID {
@@ -68,26 +71,30 @@ type ThreadFunction uintptr
 //	return sdlGetThreadID(thread)
 // }
 
-// func GetThreadName(thread *Thread) string {
-//	return sdlGetThreadName(thread)
+// func SetCurrentThreadPriority(priority ThreadPriority) bool {
+//	return sdlSetCurrentThreadPriority(priority)
+// }
+
+// func WaitThread(thread *Thread, status *int32)  {
+//	sdlWaitThread(thread, status)
 // }
 
 // func GetThreadState(thread *Thread) ThreadState {
 //	return sdlGetThreadState(thread)
 // }
 
-// func GetTLS(id *TLSID) unsafe.Pointer {
-//	return sdlGetTLS(id)
+// func DetachThread(thread *Thread)  {
+//	sdlDetachThread(thread)
 // }
 
-// func SetCurrentThreadPriority(priority ThreadPriority) bool {
-//	return sdlSetCurrentThreadPriority(priority)
+// func GetTLS(id *TLSID) unsafe.Pointer {
+//	return sdlGetTLS(id)
 // }
 
 // func SetTLS(id *TLSID, value unsafe.Pointer, destructor TLSDestructorCallback) bool {
 //	return sdlSetTLS(id, value, destructor)
 // }
 
-// func WaitThread(thread *Thread, status *int32)  {
-//	sdlWaitThread(thread, status)
+// func CleanupTLS()  {
+//	sdlCleanupTLS()
 // }

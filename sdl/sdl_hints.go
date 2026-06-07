@@ -4,17 +4,6 @@ import (
 	"unsafe"
 )
 
-// [HintPriority] is an enumeration of hint priorities.
-//
-// [HintPriority]: https://wiki.libsdl.org/SDL3/SDL_HintPriority
-type HintPriority uint32
-
-const (
-	HintDefault HintPriority = iota
-	HintNormal
-	HintOverride
-)
-
 const (
 	HintAllowAltTabWhileGrabbed            = "SDL_ALLOW_ALT_TAB_WHILE_GRABBED"
 	HintAndroidAllowRecreateActivity       = "SDL_ANDROID_ALLOW_RECREATE_ACTIVITY"
@@ -86,6 +75,7 @@ const (
 	HintJoystickBlacklistDevices           = "SDL_JOYSTICK_BLACKLIST_DEVICES"
 	HintJoystickBlacklistDevicesExcluded   = "SDL_JOYSTICK_BLACKLIST_DEVICES_EXCLUDED"
 	HintJoystickDevice                     = "SDL_JOYSTICK_DEVICE"
+	HintJoystickDrumDevices                = "SDL_JOYSTICK_DRUM_DEVICES" // Available since SDL 3.4.4.
 	HintJoystickEnhancedReports            = "SDL_JOYSTICK_ENHANCED_REPORTS"
 	HintJoystickFlightStickDevices         = "SDL_JOYSTICK_FLIGHTSTICK_DEVICES"
 	HintJoystickFlightStickDevicesExcluded = "SDL_JOYSTICK_FLIGHTSTICK_DEVICES_EXCLUDED"
@@ -93,6 +83,7 @@ const (
 	HintJoystickGameInputRaw               = "SDL_JOYSTICK_GAMEINPUT_RAW" // Available since SDL 3.4.4.
 	HintJoystickGameCubeDevices            = "SDL_JOYSTICK_GAMECUBE_DEVICES"
 	HintJoystickGameCubeDevicesExcluded    = "SDL_JOYSTICK_GAMECUBE_DEVICES_EXCLUDED"
+	HintJoystickGuitarDevices              = "SDL_JOYSTICK_GUITAR_DEVICES" // Available since SDL 3.4.4.
 	HintJoystickHidApi                     = "SDL_JOYSTICK_HIDAPI"
 	HintJoystickHidApiCombineJoyCons       = "SDL_JOYSTICK_HIDAPI_COMBINE_JOY_CONS"
 	HintJoystickHidApiGameCube             = "SDL_JOYSTICK_HIDAPI_GAMECUBE"
@@ -235,6 +226,7 @@ const (
 	HintVideoWaylandPreferLibdecor         = "SDL_VIDEO_WAYLAND_PREFER_LIBDECOR"
 	HintVideoWaylandScaleToDisplay         = "SDL_VIDEO_WAYLAND_SCALE_TO_DISPLAY"
 	HintVideoWinD3DCompiler                = "SDL_VIDEO_WIN_D3DCOMPILER"
+	HintVideoX11EnableXSyncExt             = "SDL_VIDEO_X11_ENABLE_XSYNC_EXT" // Available since SDL 3.4.10.
 	HintVideoX11ExternalWindowInput        = "SDL_VIDEO_X11_EXTERNAL_WINDOW_INPUT"
 	HintVideoX11NetWmBypassCompositor      = "SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR"
 	HintVideoX11NetWmPing                  = "SDL_VIDEO_X11_NET_WM_PING"
@@ -281,44 +273,29 @@ const (
 	HintPenTouchEvents                     = "SDL_PEN_TOUCH_EVENTS"
 )
 
-// [HintCallback] is a callback used to send notifications of hint value changes.
+// [HintPriority] is an enumeration of hint priorities.
 //
-// [HintCallback]: https://wiki.libsdl.org/SDL3/SDL_HintCallback
-type HintCallback uintptr
+// [HintPriority]: https://wiki.libsdl.org/SDL3/SDL_HintPriority
+type HintPriority uint32
+
+const (
+	HintDefault HintPriority = iota
+	HintNormal
+	HintOverride
+)
+
+// [SetHintWithPriority] sets a hint with a specific priority.
+//
+// [SetHintWithPriority]: https://wiki.libsdl.org/SDL3/SDL_SetHintWithPriority
+func SetHintWithPriority(name string, value string, priority HintPriority) bool {
+	return sdlSetHintWithPriority(name, value, priority)
+}
 
 // [SetHint] sets a hint with normal priority.
 //
 // [SetHint]: https://wiki.libsdl.org/SDL3/SDL_SetHint
 func SetHint(name, value string) bool {
 	return sdlSetHint(name, value)
-}
-
-// [AddHintCallback] adds a function to watch a particular hint.
-//
-// [AddHintCallback]: https://wiki.libsdl.org/SDL3/SDL_AddHintCallback
-func AddHintCallback(name string, callback HintCallback, userdata unsafe.Pointer) bool {
-	return sdlAddHintCallback(name, callback, userdata)
-}
-
-// [GetHint] gets the value of a hint.
-//
-// [GetHint]: https://wiki.libsdl.org/SDL3/SDL_GetHint
-func GetHint(name string) string {
-	return sdlGetHint(name)
-}
-
-// [GetHintBoolean] gets the boolean value of a hint variable.
-//
-// [GetHintBoolean]: https://wiki.libsdl.org/SDL3/SDL_GetHintBoolean
-func GetHintBoolean(name string, defaultValue bool) bool {
-	return sdlGetHintBoolean(name, defaultValue)
-}
-
-// [RemoveHintCallback] removes a function watching a particular hint.
-//
-// [RemoveHintCallback]: https://wiki.libsdl.org/SDL3/SDL_RemoveHintCallback
-func RemoveHintCallback(name string, callback HintCallback, userdata unsafe.Pointer) {
-	sdlRemoveHintCallback(name, callback, userdata)
 }
 
 // [ResetHint] resets a hint to the default value.
@@ -335,9 +312,35 @@ func ResetHints() {
 	sdlResetHints()
 }
 
-// [SetHintWithPriority] sets a hint with a specific priority.
+// [GetHint] gets the value of a hint.
 //
-// [SetHintWithPriority]: https://wiki.libsdl.org/SDL3/SDL_SetHintWithPriority
-func SetHintWithPriority(name string, value string, priority HintPriority) bool {
-	return sdlSetHintWithPriority(name, value, priority)
+// [GetHint]: https://wiki.libsdl.org/SDL3/SDL_GetHint
+func GetHint(name string) string {
+	return sdlGetHint(name)
+}
+
+// [GetHintBoolean] gets the boolean value of a hint variable.
+//
+// [GetHintBoolean]: https://wiki.libsdl.org/SDL3/SDL_GetHintBoolean
+func GetHintBoolean(name string, defaultValue bool) bool {
+	return sdlGetHintBoolean(name, defaultValue)
+}
+
+// [HintCallback] is a callback used to send notifications of hint value changes.
+//
+// [HintCallback]: https://wiki.libsdl.org/SDL3/SDL_HintCallback
+type HintCallback uintptr
+
+// [AddHintCallback] adds a function to watch a particular hint.
+//
+// [AddHintCallback]: https://wiki.libsdl.org/SDL3/SDL_AddHintCallback
+func AddHintCallback(name string, callback HintCallback, userdata unsafe.Pointer) bool {
+	return sdlAddHintCallback(name, callback, userdata)
+}
+
+// [RemoveHintCallback] removes a function watching a particular hint.
+//
+// [RemoveHintCallback]: https://wiki.libsdl.org/SDL3/SDL_RemoveHintCallback
+func RemoveHintCallback(name string, callback HintCallback, userdata unsafe.Pointer) {
+	sdlRemoveHintCallback(name, callback, userdata)
 }

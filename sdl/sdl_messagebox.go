@@ -6,20 +6,6 @@ import (
 	"github.com/jupiterrider/purego-sdl3/internal/convert"
 )
 
-// [MessageBoxColorType] is an enumeration of indices inside the colors array of [MessageBoxColorScheme].
-//
-// [MessageBoxColorType]: https://wiki.libsdl.org/SDL3/SDL_MessageBoxColorType
-type MessageBoxColorType uint32
-
-const (
-	MessageBoxColorBackground MessageBoxColorType = iota
-	MessageBoxColorText
-	MessageBoxColorButtonBorder
-	MessageBoxColorButtonBackground
-	MessageBoxColorButtonSelected
-	MessageBoxColorCount
-)
-
 // [MessageBoxFlags] defines the message box flags.
 //
 // [MessageBoxFlags]: https://wiki.libsdl.org/SDL3/SDL_MessageBoxFlags
@@ -68,6 +54,20 @@ func (m *MessageBoxButtonData) SetText(s string) {
 type MessageBoxColor struct {
 	R, G, B uint8
 }
+
+// [MessageBoxColorType] is an enumeration of indices inside the colors array of [MessageBoxColorScheme].
+//
+// [MessageBoxColorType]: https://wiki.libsdl.org/SDL3/SDL_MessageBoxColorType
+type MessageBoxColorType uint32
+
+const (
+	MessageBoxColorBackground MessageBoxColorType = iota
+	MessageBoxColorText
+	MessageBoxColorButtonBorder
+	MessageBoxColorButtonBackground
+	MessageBoxColorButtonSelected
+	MessageBoxColorCount
+)
 
 // [MessageBoxColorScheme] is a set of colors to use for message box dialogs.
 //

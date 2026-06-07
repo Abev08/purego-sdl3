@@ -6,21 +6,45 @@ import (
 	"github.com/jupiterrider/purego-sdl3/internal/convert"
 )
 
-// [EnumerationResult] defines the possible results from an enumeration callback.
+// [GetBasePath] gets the directory where the application was run from.
 //
-// [EnumerationResult]: https://wiki.libsdl.org/SDL3/SDL_EnumerationResult
-type EnumerationResult uint32
+// [GetBasePath]: https://wiki.libsdl.org/SDL3/SDL_GetBasePath
+func GetBasePath() string {
+	return sdlGetBasePath()
+}
+
+// [GetPrefPath] gets the user-and-app-specific path where files can be written.
+//
+// [GetPrefPath]: https://wiki.libsdl.org/SDL3/SDL_GetPrefPath
+func GetPrefPath(org string, app string) string {
+	ret := sdlGetPrefPath(convert.ToBytePtrNullable(org), convert.ToBytePtrNullable(app))
+	defer Free(unsafe.Pointer(ret))
+	return convert.ToString(ret)
+}
+
+// [Folder] is a structure specifying the type of the OS-provided default folder for a specific purposes.
+//
+// [Folder]: https://wiki.libsdl.org/SDL3/SDL_Folder
+type Folder uint32
 
 const (
-	EnumContinue EnumerationResult = iota // Value that requests that enumeration continue.
-	EnumSuccess                           // Value that requests that enumeration stop, successfully.
-	EnumFailure                           // Value that requests that enumeration stop, as a failure.
+	FolderHome        Folder = iota // The folder which contains all of the current user's data, preferences, and documents. It usually contains most of the other folders. If a requested folder does not exist, the home folder can be considered a safe fallback to store a user's documents.
+	FolderDesktop                   // The folder of files that are displayed on the desktop. Note that the existence of a desktop folder does not guarantee that the system does show icons on its desktop; certain GNU/Linux distros with a graphical environment may not have desktop icons.
+	FolderDocuments                 // User document files, possibly application-specific. This is a good place to save a user's projects.
+	FolderDownloads                 // Standard folder for user files downloaded from the internet.
+	FolderMusic                     // Music files that can be played using a standard music player (mp3, ogg...).
+	FolderPictures                  // Image files that can be displayed using a standard viewer (png, jpg...).
+	FolderPublicShare               // Files that are meant to be shared with other users on the same computer.
+	FolderSavedGames                // Save files for games.
+	FolderScreenshots               // Application screenshots.
+	FolderTemplates                 // Template files to be used when the user requests the desktop environment to create a new file in a certain folder, such as "New Text File.txt". Any file in the Templates folder can be used as a starting point for a new file.
+	FolderVideos                    // Video files that can be played using a standard video player (mp4, webm...).
+	FolderCount                     // Total number of types in this enum, not a folder type by itself.
 )
 
-// [EnumerateDirectoryCallback] is a callback for directory enumeration.
-//
-// [EnumerateDirectoryCallback]: https://wiki.libsdl.org/SDL3/SDL_EnumerateDirectoryCallback
-type EnumerateDirectoryCallback uintptr
+// func GetUserFolder(folder Folder) string {
+//	return sdlGetUserFolder(folder)
+// }
 
 // [PathType] defines the types of filesystem entries.
 //
@@ -52,73 +76,28 @@ type GlobFlags uint32
 
 const GlobCaseinsensitive GlobFlags = 1 << 0
 
-// [Folder] is a structure specifying the type of the OS-provided default folder for a specific purposes.
-//
-// [Folder]: https://wiki.libsdl.org/SDL3/SDL_Folder
-type Folder uint32
-
-const (
-	FolderHome        Folder = iota // The folder which contains all of the current user's data, preferences, and documents. It usually contains most of the other folders. If a requested folder does not exist, the home folder can be considered a safe fallback to store a user's documents.
-	FolderDesktop                   // The folder of files that are displayed on the desktop. Note that the existence of a desktop folder does not guarantee that the system does show icons on its desktop; certain GNU/Linux distros with a graphical environment may not have desktop icons.
-	FolderDocuments                 // User document files, possibly application-specific. This is a good place to save a user's projects.
-	FolderDownloads                 // Standard folder for user files downloaded from the internet.
-	FolderMusic                     // Music files that can be played using a standard music player (mp3, ogg...).
-	FolderPictures                  // Image files that can be displayed using a standard viewer (png, jpg...).
-	FolderPublicShare               // Files that are meant to be shared with other users on the same computer.
-	FolderSavedGames                // Save files for games.
-	FolderScreenshots               // Application screenshots.
-	FolderTemplates                 // Template files to be used when the user requests the desktop environment to create a new file in a certain folder, such as "New Text File.txt". Any file in the Templates folder can be used as a starting point for a new file.
-	FolderVideos                    // Video files that can be played using a standard video player (mp4, webm...).
-	FolderCount                     // Total number of types in this enum, not a folder type by itself.
-)
-
-// func CopyFile(oldpath string, newpath string) bool {
-//	return sdlCopyFile(oldpath, newpath)
-// }
-
 // func CreateDirectory(path string) bool {
 //	return sdlCreateDirectory(path)
 // }
 
+// [EnumerationResult] defines the possible results from an enumeration callback.
+//
+// [EnumerationResult]: https://wiki.libsdl.org/SDL3/SDL_EnumerationResult
+type EnumerationResult uint32
+
+const (
+	EnumContinue EnumerationResult = iota // Value that requests that enumeration continue.
+	EnumSuccess                           // Value that requests that enumeration stop, successfully.
+	EnumFailure                           // Value that requests that enumeration stop, as a failure.
+)
+
+// [EnumerateDirectoryCallback] is a callback for directory enumeration.
+//
+// [EnumerateDirectoryCallback]: https://wiki.libsdl.org/SDL3/SDL_EnumerateDirectoryCallback
+type EnumerateDirectoryCallback uintptr
+
 // func EnumerateDirectory(path string, callback EnumerateDirectoryCallback, userdata unsafe.Pointer) bool {
 //	return sdlEnumerateDirectory(path, callback, userdata)
-// }
-
-// [GetBasePath] gets the directory where the application was run from.
-//
-// [GetBasePath]: https://wiki.libsdl.org/SDL3/SDL_GetBasePath
-func GetBasePath() string {
-	return sdlGetBasePath()
-}
-
-// [GetCurrentDirectory] gets what the system believes is the "current working directory".
-//
-// [GetCurrentDirectory]: https://wiki.libsdl.org/SDL3/SDL_GetCurrentDirectory
-func GetCurrentDirectory() string {
-	ret := sdlGetCurrentDirectory()
-	defer Free(unsafe.Pointer(ret))
-	return convert.ToString(ret)
-}
-
-// func GetPathInfo(path string, info *PathInfo) bool {
-//	return sdlGetPathInfo(path, info)
-// }
-
-// [GetPrefPath] gets the user-and-app-specific path where files can be written.
-//
-// [GetPrefPath]: https://wiki.libsdl.org/SDL3/SDL_GetPrefPath
-func GetPrefPath(org string, app string) string {
-	ret := sdlGetPrefPath(convert.ToBytePtrNullable(org), convert.ToBytePtrNullable(app))
-	defer Free(unsafe.Pointer(ret))
-	return convert.ToString(ret)
-}
-
-// func GetUserFolder(folder Folder) string {
-//	return sdlGetUserFolder(folder)
-// }
-
-// func GlobDirectory(path string, pattern string, flags GlobFlags, count *int32) **byte {
-//	return sdlGlobDirectory(path, pattern, flags, count)
 // }
 
 // func RemovePath(path string) bool {
@@ -128,3 +107,24 @@ func GetPrefPath(org string, app string) string {
 // func RenamePath(oldpath string, newpath string) bool {
 //	return sdlRenamePath(oldpath, newpath)
 // }
+
+// func CopyFile(oldpath string, newpath string) bool {
+//	return sdlCopyFile(oldpath, newpath)
+// }
+
+// func GetPathInfo(path string, info *PathInfo) bool {
+//	return sdlGetPathInfo(path, info)
+// }
+
+// func GlobDirectory(path string, pattern string, flags GlobFlags, count *int32) **byte {
+//	return sdlGlobDirectory(path, pattern, flags, count)
+// }
+
+// [GetCurrentDirectory] gets what the system believes is the "current working directory".
+//
+// [GetCurrentDirectory]: https://wiki.libsdl.org/SDL3/SDL_GetCurrentDirectory
+func GetCurrentDirectory() string {
+	ret := sdlGetCurrentDirectory()
+	defer Free(unsafe.Pointer(ret))
+	return convert.ToString(ret)
+}

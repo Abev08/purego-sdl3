@@ -14,6 +14,11 @@
         canvas: document.getElementById('canvas')
       });
 
+      // List all of the available SDL functions
+      // console.log("SDL available functions: ", Object.keys(sdlModule).filter(k => k.startsWith("_SDL")));
+      // console.log("SDL_IMG available functions: ", Object.keys(sdlModule).filter(k => k.startsWith("_IMG")));
+      // console.log("SDL_TTF available functions: ", Object.keys(sdlModule).filter(k => k.startsWith("_TTF")));
+
       const dummyFPoint = sdlModule._malloc(8);
       const dummyFPoint2 = sdlModule._malloc(8);
       const dummyFPoint3 = sdlModule._malloc(8);
@@ -247,7 +252,10 @@
             default:
               const funcName = prop.startsWith('_') ? prop : '_' + prop;
               const func = sdlModule[funcName];
-              if (typeof func !== 'function') { return () => 0; }
+              if (typeof func !== 'function') {
+                console.error("SDL3 binding, couldn't find function:", prop);
+                return () => 0;
+              }
               return func.bind(sdlModule);
           }
         }

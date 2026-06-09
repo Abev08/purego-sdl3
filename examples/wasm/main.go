@@ -9,7 +9,9 @@ import (
 	"time"
 	"unsafe"
 
+	"github.com/jupiterrider/purego-sdl3/img"
 	"github.com/jupiterrider/purego-sdl3/sdl"
+	"github.com/jupiterrider/purego-sdl3/ttf"
 )
 
 const WASM_TARGET_FPS float64 = 60
@@ -36,6 +38,10 @@ func main() {
 	major, minor, patch := sdl.GetVersion()
 	fmt.Printf("SDL3 version: %d.%d.%d\n", major, minor, patch)
 	fmt.Println("SDL3 revision:", sdl.GetRevision())
+	major, minor, patch = img.Version()
+	fmt.Printf("SDL3 Image version: %d.%d.%d\n", major, minor, patch)
+	major, minor, patch = ttf.Version()
+	fmt.Printf("SDL3 TTF version: %d.%d.%d\n", major, minor, patch)
 
 	defer sdl.Quit()
 	if !sdl.Init(sdl.InitVideo | sdl.InitAudio) {
@@ -88,7 +94,7 @@ func main() {
 	if gopherStream == nil {
 		panic(sdl.GetError())
 	}
-	gopherSurface := sdl.LoadBMPIO(gopherStream, true)
+	gopherSurface := img.LoadIO(gopherStream, true)
 	if gopherSurface == nil {
 		panic(sdl.GetError())
 	}

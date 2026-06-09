@@ -11,7 +11,9 @@ import (
 )
 
 var bridge js.Value
-var structToSDLPointer = make(map[unsafe.Pointer]int) // Used to translate structs into SDL pointers, not used with opaque structs
+var StructToSDLPointer = make(map[unsafe.Pointer]int) // Internal. WASM. Used to translate structs into SDL pointers, not used with opaque structs
+// TODO: StructToSDLPointer needs to be public so it can be shared between sdl, ttf and img packages, but this also grants user access to it. Maybe there is other way to do it?
+// Maybe this should be done in js part as it's only required for WASM?
 
 func init() {
 	runtime.LockOSThread()
@@ -185,7 +187,7 @@ func init() {
 	// purego.RegisterLibFunc(&sdlCreateSystemCursor, lib, "SDL_CreateSystemCursor")
 	// purego.RegisterLibFunc(&sdlCreateTexture, lib, "SDL_CreateTexture")
 	sdlCreateTextureFromSurface = func(renderer *Renderer, surface *Surface) *Texture {
-		res := bridge.Call("SDL_CreateTextureFromSurface", unsafe.Pointer(renderer), structToSDLPointer[unsafe.Pointer(surface)]).Int()
+		res := bridge.Call("SDL_CreateTextureFromSurface", unsafe.Pointer(renderer), StructToSDLPointer[unsafe.Pointer(surface)]).Int()
 		if res == 0 {
 			return nil
 		}
@@ -193,7 +195,7 @@ func init() {
 		texBytes := unsafe.Slice((*byte)(unsafe.Pointer(&tex)), unsafe.Sizeof(Texture{}))
 		memoryView := bridge.Call("copyBytes", res, unsafe.Sizeof(Texture{}))
 		js.CopyBytesToGo(texBytes, memoryView)
-		structToSDLPointer[unsafe.Pointer(&tex)] = res
+		StructToSDLPointer[unsafe.Pointer(&tex)] = res
 		return &tex
 	}
 	// purego.RegisterLibFunc(&sdlCreateTextureWithProperties, lib, "SDL_CreateTextureWithProperties")
@@ -242,8 +244,8 @@ func init() {
 	sdlDestroyRenderer = func(renderer *Renderer) { bridge.Call("SDL_DestroyRenderer", unsafe.Pointer(renderer)) }
 	// // purego.RegisterLibFunc(&sdlDestroyRWLock, lib, "SDL_DestroyRWLock")
 	// // purego.RegisterLibFunc(&sdlDestroySemaphore, lib, "SDL_DestroySemaphore")
-	sdlDestroySurface = func(surface *Surface) { bridge.Call("SDL_DestroySurface", structToSDLPointer[unsafe.Pointer(surface)]) }
-	sdlDestroyTexture = func(texture *Texture) { bridge.Call("SDL_DestroyTexture", structToSDLPointer[unsafe.Pointer(texture)]) }
+	sdlDestroySurface = func(surface *Surface) { bridge.Call("SDL_DestroySurface", StructToSDLPointer[unsafe.Pointer(surface)]) }
+	sdlDestroyTexture = func(texture *Texture) { bridge.Call("SDL_DestroyTexture", StructToSDLPointer[unsafe.Pointer(texture)]) }
 	// // purego.RegisterLibFunc(&sdlDestroyTray, lib, "SDL_DestroyTray")
 	sdlDestroyWindow = func(window *Window) { bridge.Call("SDL_DestroyWindow", unsafe.Pointer(window)) }
 	// purego.RegisterLibFunc(&sdlDestroyWindowSurface, lib, "SDL_DestroyWindowSurface")
@@ -821,7 +823,7 @@ func init() {
 		surBytes := unsafe.Slice((*byte)(unsafe.Pointer(&sur)), unsafe.Sizeof(Surface{}))
 		memoryView := bridge.Call("copyBytes", res, unsafe.Sizeof(Surface{}))
 		js.CopyBytesToGo(surBytes, memoryView)
-		structToSDLPointer[unsafe.Pointer(&sur)] = res
+		StructToSDLPointer[unsafe.Pointer(&sur)] = res
 		return &sur
 	}
 	sdlLoadBMPIO = func(src *IOStream, closeio bool) *Surface {
@@ -833,7 +835,7 @@ func init() {
 		surBytes := unsafe.Slice((*byte)(unsafe.Pointer(&sur)), unsafe.Sizeof(Surface{}))
 		memoryView := bridge.Call("copyBytes", res, unsafe.Sizeof(Surface{}))
 		js.CopyBytesToGo(surBytes, memoryView)
-		structToSDLPointer[unsafe.Pointer(&sur)] = res
+		StructToSDLPointer[unsafe.Pointer(&sur)] = res
 		return &sur
 	}
 	// purego.RegisterLibFunc(&sdlLoadFile, lib, "SDL_LoadFile")
@@ -859,7 +861,7 @@ func init() {
 		if audioLen != nil {
 			*audioLen = uint32(res.Index(3).Int())
 		}
-		structToSDLPointer[unsafe.Pointer(spec)] = res.Index(1).Int()
+		StructToSDLPointer[unsafe.Pointer(spec)] = res.Index(1).Int()
 		return res.Index(0).Int() != 0
 	}
 	// // purego.RegisterLibFunc(&sdlLockAudioStream, lib, "SDL_LockAudioStream")
@@ -921,7 +923,7 @@ func init() {
 	// // purego.RegisterLibFunc(&sdlOnApplicationWillTerminate, lib, "SDL_OnApplicationWillTerminate")
 	// // purego.RegisterLibFunc(&sdlOpenAudioDevice, lib, "SDL_OpenAudioDevice")
 	sdlOpenAudioDeviceStream = func(devid AudioDeviceID, spec *AudioSpec, callback AudioStreamCallback, userdata unsafe.Pointer) *AudioStream {
-		res := bridge.Call("SDL_OpenAudioDeviceStream", uint32(devid), structToSDLPointer[unsafe.Pointer(spec)], unsafe.Pointer(callback), userdata).Int()
+		res := bridge.Call("SDL_OpenAudioDeviceStream", uint32(devid), StructToSDLPointer[unsafe.Pointer(spec)], unsafe.Pointer(callback), userdata).Int()
 		if res == 0 {
 			return nil
 		}
@@ -1069,7 +1071,7 @@ func init() {
 		copy(tmp, v)
 		copy(tmp[len(v):], i)
 		js.CopyBytesToJS(memoryBufferView, tmp) // Copy the bytes over
-		return bridge.Call("SDL_RenderGeometry", unsafe.Pointer(renderer), structToSDLPointer[unsafe.Pointer(texture)], numVertices, numIndices, len(v)).Int() != 0
+		return bridge.Call("SDL_RenderGeometry", unsafe.Pointer(renderer), StructToSDLPointer[unsafe.Pointer(texture)], numVertices, numIndices, len(v)).Int() != 0
 	}
 	// sdlRenderGeometryRawPtr := shared.Get(lib, "SDL_RenderGeometryRaw")
 	// sdlRenderGeometryRaw = func(renderer *Renderer, texture *Texture, xy []FPoint, color []FColor, uv []FPoint, indices []int32) bool {
@@ -1165,7 +1167,7 @@ func init() {
 		if dstrect != nil {
 			drX, drY, drW, drH = dstrect.X, dstrect.Y, dstrect.W, dstrect.H
 		}
-		return bridge.Call("SDL_RenderTexture", unsafe.Pointer(renderer), structToSDLPointer[unsafe.Pointer(texture)],
+		return bridge.Call("SDL_RenderTexture", unsafe.Pointer(renderer), StructToSDLPointer[unsafe.Pointer(texture)],
 			srX, srY, srW, srH,
 			drX, drY, drW, drH,
 		).Int() != 0
@@ -1179,7 +1181,7 @@ func init() {
 		if dstrect != nil {
 			drX, drY, drW, drH = dstrect.X, dstrect.Y, dstrect.W, dstrect.H
 		}
-		return bridge.Call("SDL_RenderTexture9Grid", unsafe.Pointer(renderer), structToSDLPointer[unsafe.Pointer(texture)],
+		return bridge.Call("SDL_RenderTexture9Grid", unsafe.Pointer(renderer), StructToSDLPointer[unsafe.Pointer(texture)],
 			srX, srY, srW, srH,
 			leftWidth, rightWidth, topHeight, bottomHeight, scale,
 			drX, drY, drW, drH,
@@ -1200,7 +1202,7 @@ func init() {
 		if down != nil {
 			p3X, p3Y = down.X, down.Y
 		}
-		return bridge.Call("SDL_RenderTextureAffine", unsafe.Pointer(renderer), structToSDLPointer[unsafe.Pointer(texture)],
+		return bridge.Call("SDL_RenderTextureAffine", unsafe.Pointer(renderer), StructToSDLPointer[unsafe.Pointer(texture)],
 			srX, srY, srW, srH,
 			p1X, p1Y, p2X, p2Y, p3X, p3Y).Int() != 0
 	}
@@ -1217,7 +1219,7 @@ func init() {
 		if center != nil {
 			pX, pY = center.X, center.Y
 		}
-		return bridge.Call("SDL_RenderTextureRotated", unsafe.Pointer(renderer), structToSDLPointer[unsafe.Pointer(texture)],
+		return bridge.Call("SDL_RenderTextureRotated", unsafe.Pointer(renderer), StructToSDLPointer[unsafe.Pointer(texture)],
 			srX, srY, srW, srH,
 			drX, drY, drW, drH,
 			angle,
@@ -1233,7 +1235,7 @@ func init() {
 		if dstrect != nil {
 			drX, drY, drW, drH = dstrect.X, dstrect.Y, dstrect.W, dstrect.H
 		}
-		return bridge.Call("SDL_RenderTextureTiled", unsafe.Pointer(renderer), structToSDLPointer[unsafe.Pointer(texture)],
+		return bridge.Call("SDL_RenderTextureTiled", unsafe.Pointer(renderer), StructToSDLPointer[unsafe.Pointer(texture)],
 			srX, srY, srW, srH,
 			scale,
 			drX, drY, drW, drH).Int() != 0
@@ -1387,7 +1389,7 @@ func init() {
 	// }
 	// purego.RegisterLibFunc(&sdlSetTextureColorModFloat, lib, "SDL_SetTextureColorModFloat")
 	sdlSetTextureScaleMode = func(texture *Texture, scaleMode ScaleMode) bool {
-		return bridge.Call("SDL_SetTextureScaleMode", structToSDLPointer[unsafe.Pointer(texture)], int32(scaleMode)).Int() != 0
+		return bridge.Call("SDL_SetTextureScaleMode", StructToSDLPointer[unsafe.Pointer(texture)], int32(scaleMode)).Int() != 0
 	}
 	// // purego.RegisterLibFunc(&sdlSetTLS, lib, "SDL_SetTLS")
 	// // purego.RegisterLibFunc(&sdlSetTrayEntryCallback, lib, "SDL_SetTrayEntryCallback")

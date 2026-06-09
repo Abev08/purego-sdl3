@@ -1,4 +1,4 @@
-# Go + SDL3 to WASM (Experimental)
+# Go + SDL3 to WASM
 
 This example demonstrates how to compile **Go + SDL3** into WebAssembly (WASM).  
 The build process is currently designed for Linux. Windows users may need to adjust specific shell commands.

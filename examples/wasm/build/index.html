@@ -19,6 +19,7 @@
       // console.log("SDL_IMG available functions: ", Object.keys(sdlModule).filter(k => k.startsWith("_IMG")));
       // console.log("SDL_TTF available functions: ", Object.keys(sdlModule).filter(k => k.startsWith("_TTF")));
 
+      const colorPtr = sdlModule._malloc(4);
       const dummyFPoint = sdlModule._malloc(8);
       const dummyFPoint2 = sdlModule._malloc(8);
       const dummyFPoint3 = sdlModule._malloc(8);
@@ -144,6 +145,7 @@
               return res;
             };
             case "SDL_IOFromConstMem": return (size) => { return sdlModule._SDL_IOFromConstMem(memoryBuffer, size); };
+            case "SDL_IOFromMem": return (size) => { return sdlModule._SDL_IOFromMem(memoryBuffer, size); };
             case "SDL_RenderTexture": return (renderer, texture,
               srcrectX, srcrectY, srcrectW, srcrectH,
               dstrectX, dstrectY, dstrectW, dstrectH) => {
@@ -247,6 +249,47 @@
                 p3 = dummyFPoint3;
               }
               return sdlModule._SDL_RenderTextureAffine(renderer, texture, r1, p1, p2, p3);
+            };
+
+            case "TTF_GetFontFamilyName": return (font) => { return sdlModule.UTF8ToString(sdlModule._TTF_GetFontFamilyName(font)); };
+            case "TTF_GetFontDPI": return (font) => {
+              const vdpiPtr = sdlModule._malloc(4);
+              const res = sdlModule._TTF_GetFontDPI(font, colorPtr, vdpiPtr);
+              const hdpi = sdlModule.getValue(colorPtr, "i32"); // ColorPtr is reused for hdpi
+              const vdpi = sdlModule.getValue(vdpiPtr, "i32");
+              sdlModule._free(vdpiPtr); // Free memory allocated for vdpi pointer
+              return [res, hdpi, vdpi];
+            };
+            case "TTF_RenderText_Solid": return (font, text, length, fg) => {
+              sdlModule.HEAPU8.set([fg & 0xFF, (fg >> 8) & 0xFF, (fg >> 16) & 0xFF, (fg >> 24) & 0xFF], colorPtr);
+              const textPtr = sdlModule.allocateUTF8(text);
+              const res = sdlModule._TTF_RenderText_Solid(font, textPtr, length, colorPtr);
+              sdlModule._free(textPtr); // Free memory allocated by the string
+              return res;
+            };
+            case "TTF_RenderText_Blended": return (font, text, length, fg) => {
+              sdlModule.HEAPU8.set([fg & 0xFF, (fg >> 8) & 0xFF, (fg >> 16) & 0xFF, (fg >> 24) & 0xFF], colorPtr);
+              const textPtr = sdlModule.allocateUTF8(text);
+              const res = sdlModule._TTF_RenderText_Blended(font, textPtr, length, colorPtr);
+              sdlModule._free(textPtr); // Free memory allocated by the string
+              return res;
+            };
+            case "TTF_RenderText_Blended_Wrapped": return (font, text, length, fg, wrapWidth) => {
+              sdlModule.HEAPU8.set([fg & 0xFF, (fg >> 8) & 0xFF, (fg >> 16) & 0xFF, (fg >> 24) & 0xFF], colorPtr);
+              const textPtr = sdlModule.allocateUTF8(text);
+              const res = sdlModule._TTF_RenderText_Blended_Wrapped(font, textPtr, length, colorPtr, wrapWidth);
+              sdlModule._free(textPtr); // Free memory allocated by the string
+              return res;
+            };
+            case "TTF_RenderGlyph_Blended": return (font, ch, fg) => {
+              sdlModule.HEAPU8.set([fg & 0xFF, (fg >> 8) & 0xFF, (fg >> 16) & 0xFF, (fg >> 24) & 0xFF], colorPtr);
+              return sdlModule._TTF_RenderGlyph_Blended(font, ch, colorPtr);
+            };
+            case "TTF_CreateText": return (engine, font, text, length) => {
+              const textPtr = sdlModule.allocateUTF8(text);
+              const res = sdlModule._TTF_CreateText(engine, font, textPtr, length);
+              sdlModule._free(textPtr); // Free memory allocated by the string
+              return res;
             };
 
             default:

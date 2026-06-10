@@ -1,10 +1,12 @@
 package main
 
 import (
-	_ "embed"
 	"fmt"
+	"io"
 	"math"
 	"math/rand/v2"
+	"net/http"
+	"os"
 	"runtime"
 	"time"
 	"unsafe"
@@ -14,19 +16,12 @@ import (
 	"github.com/jupiterrider/purego-sdl3/ttf"
 )
 
+// Asset files are read directly when running on Windows/Linux.
+// When running on WASM the local http server should host them, symbolic link to assets directory in build dir is enough.
+
 const WASM_TARGET_FPS float64 = 60
 
 var WASM_FRAME_TIME time.Duration = time.Microsecond * time.Duration(math.Floor((1000.0/WASM_TARGET_FPS)*1000.0))
-
-// For now the image gets embedded to allow texture creation on WASM, maybe there is other way?
-//
-//go:embed assets/gopher-happy.bmp
-var gopherHappy []byte
-
-// For now the audio sample gets embedded so that it can be used on WASM, maybe there is other way?
-//
-//go:embed assets/tone.wav
-var tone []byte
 
 func main() {
 	fmt.Println("Running on:", runtime.GOOS, runtime.GOARCH)
@@ -46,6 +41,11 @@ func main() {
 	defer sdl.Quit()
 	if !sdl.Init(sdl.InitVideo | sdl.InitAudio) {
 		panic("SDL3 initialization failed, err: " + sdl.GetError())
+	}
+
+	defer ttf.Quit()
+	if !ttf.Init() {
+		panic("SDL3_TTF initialization failed, err: " + sdl.GetError())
 	}
 
 	fmt.Print("Available renderers: ")
@@ -90,7 +90,7 @@ func main() {
 	}
 
 	// Loading texture
-	gopherStream := sdl.IOFromConstMem(gopherHappy)
+	gopherStream := sdl.IOFromConstMem(readFile("assets/gopher-happy.bmp"))
 	if gopherStream == nil {
 		panic(sdl.GetError())
 	}
@@ -107,7 +107,7 @@ func main() {
 	sdl.SetTextureScaleMode(gopherTexture, sdl.ScaleModeNearest)
 
 	// Loading audio sample
-	toneStream := sdl.IOFromConstMem(tone)
+	toneStream := sdl.IOFromConstMem(readFile("assets/tone.wav"))
 	toneSample := AudioSample{}
 	if !sdl.LoadWAVIO(toneStream, true, &toneSample.Spec, &toneSample.Data, &toneSample.Length) {
 		panic(sdl.GetError())
@@ -119,6 +119,65 @@ func main() {
 	}
 	defer sdl.DestroyAudioStream(toneSample.Stream)
 	sdl.SetAudioStreamGain(toneSample.Stream, 0.2) // Reduce the volume
+
+	// TTF stuff, creating few text textures, TextEngine, Text objects, etc
+	fontStream := sdl.IOFromMem(readFile("assets/OpenSans-Regular.ttf"))
+	font := ttf.OpenFontIO(fontStream, true, 32)
+	if font == nil {
+		panic(sdl.GetError())
+	}
+	defer ttf.CloseFont(font)
+	var fontVDPI, fontHDPI int32
+	ttf.GetFontDPI(font, &fontVDPI, &fontHDPI)
+	fmt.Printf("Loaded font, height: %d, ascent: %d, descent: %d, line skip: %d, direction: %d, outline: %d, hinting: %d, kerning: %v, generation: %d, family name: %s, vertical DPI: %d, horizontal DPI: %d\n",
+		ttf.GetFontHeight(font), ttf.GetFontAscent(font), ttf.GetFontDescent(font), ttf.GetFontLineSkip(font), ttf.GetFontDirection(font),
+		ttf.GetFontOutline(font), ttf.GetFontHinting(font), ttf.GetFontKerning(font), ttf.GetFontGeneration(font), ttf.GetFontFamilyName(font),
+		fontVDPI, fontHDPI)
+
+	text := "Hello from SDL3 TTF"
+	textSurface := ttf.RenderTextBlended(font, text, uint64(len(text)), sdl.Color{R: 255, G: 0, B: 0, A: 0})
+	if textSurface == nil {
+		panic(sdl.GetError())
+	}
+	textTexture := sdl.CreateTextureFromSurface(renderer, textSurface)
+	if textTexture == nil {
+		panic(sdl.GetError())
+	}
+	defer sdl.DestroyTexture(textTexture)
+	sdl.DestroySurface(textSurface) // Surface is no longer needed
+	text = "SDL3 Image\nalso works"
+	text2Surface := ttf.RenderTextBlendedWrapped(font, text, uint64(len(text)), sdl.Color{R: 255, G: 255, B: 0, A: 0}, 0)
+	if text2Surface == nil {
+		panic(sdl.GetError())
+	}
+	text2Texture := sdl.CreateTextureFromSurface(renderer, text2Surface)
+	if text2Texture == nil {
+		panic(sdl.GetError())
+	}
+	defer sdl.DestroyTexture(text2Texture)
+	sdl.DestroySurface(text2Surface) // Surface is no longer needed
+	runeSurface := ttf.RenderGlyphBlended(font, 'A', sdl.Color{R: 255, G: 0, B: 255, A: 0})
+	if runeSurface == nil {
+		panic(sdl.GetError())
+	}
+	runeTexture := sdl.CreateTextureFromSurface(renderer, runeSurface)
+	if runeTexture == nil {
+		panic(sdl.GetError())
+	}
+	defer sdl.DestroyTexture(runeTexture)
+	sdl.DestroySurface(runeSurface) // Surface is no longer needed
+	engine := ttf.CreateRendererTextEngine(renderer)
+	if engine == nil {
+		panic(sdl.GetError())
+	}
+	defer ttf.DestroyRendererTextEngine(engine)
+	text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed tincidunt enim eget."
+	engineText := ttf.CreateText(engine, font, text, uint64(len(text)))
+	if engineText == nil {
+		panic(sdl.GetError())
+	}
+	defer ttf.DestroyText(engineText)
+	engineTextColor := sdl.Color{R: 85, G: 170, B: 255, A: 255}
 
 	// FPS counter variables
 	perfFreq, frameStart, frameCount := float32(sdl.GetPerformanceFrequency()), sdl.GetPerformanceCounter(), 0
@@ -287,6 +346,14 @@ func main() {
 		// Mouse position text
 		sdl.RenderDebugTextFormat(renderer, 10, 30, "Mouse position: {x: %.0f, y: %.0f}", mousePos.X, mousePos.Y)
 
+		// Text texture created using SDL3 TTF
+		sdl.RenderTexture(renderer, textTexture, nil, &sdl.FRect{X: 850, Y: 160, W: float32(textTexture.W), H: float32(textTexture.H)})
+		sdl.RenderTexture(renderer, text2Texture, nil, &sdl.FRect{X: 910, Y: 230, W: float32(text2Texture.W), H: float32(text2Texture.H)})
+		sdl.RenderTexture(renderer, runeTexture, nil, &sdl.FRect{X: 860, Y: 120, W: float32(runeTexture.W), H: float32(runeTexture.H)})
+		engineTextColor.R, engineTextColor.G, engineTextColor.B = (engineTextColor.R+1)%255, (engineTextColor.G+1)%255, (engineTextColor.B+1)%255
+		ttf.SetTextColor(engineText, engineTextColor.R, engineTextColor.G, engineTextColor.B, engineTextColor.A)
+		ttf.DrawRendererText(engineText, 20, 560)
+
 		// FPS counter
 		frameEnd := sdl.GetPerformanceCounter()
 		frameCount++
@@ -336,4 +403,25 @@ func (as *AudioSample) Update() {
 		as.finished = true
 		as.finishedPlayingCounter = 0
 	}
+}
+
+func readFile(path string) []byte {
+	var data []byte
+	var err error
+	if runtime.GOOS == "js" && runtime.GOARCH == "wasm" {
+		// When running on WASM request local http server for the file
+		resp, err := http.DefaultClient.Get(path)
+		if err != nil {
+			panic(err)
+		}
+		defer resp.Body.Close()
+		data, err = io.ReadAll(resp.Body)
+	} else {
+		// When not running on WASM read the file yourself
+		data, err = os.ReadFile(path)
+	}
+	if err != nil {
+		panic(err)
+	}
+	return data
 }

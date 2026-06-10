@@ -73,7 +73,7 @@ func OpenFont(file string, ptsize float32) *Font {
 	return ttfOpenFont(file, ptsize)
 }
 
-// [OpenFontIO] creates a font from an SDL_IOStream, using a specified point size.
+// [OpenFontIO] creates a font from an [sdl.IOStream], using a specified point size.
 //
 // [OpenFontIO]: https://wiki.libsdl.org/SDL3_ttf/TTF_OpenFontIO
 func OpenFontIO(src *sdl.IOStream, closeio bool, ptsize float32) *Font {
@@ -618,7 +618,7 @@ type Text struct {
 	text     *byte     // A copy of the UTF-8 string that this text object represents, useful for layout, debugging and retrieving substring text. This is updated when the text object is modified and will be freed automatically when the object is destroyed.
 	NumLines int32     // The number of lines in the text, 0 if it's empty.
 	Refcount int32     // Application reference count, used when freeing surface.
-	Internal *TextData // Private.
+	internal *TextData // Private.
 }
 
 // Text gets a copy of the UTF-8 string that this text object represents, useful for layout, debugging and retrieving substring text. This is updated when the text object is modified and will be freed automatically when the object is destroyed.

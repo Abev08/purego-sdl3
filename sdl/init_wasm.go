@@ -781,7 +781,14 @@ func init() {
 	}
 	// // purego.RegisterLibFunc(&sdlIOFromDynamicMem, lib, "SDL_IOFromDynamicMem")
 	// purego.RegisterLibFunc(&sdlIOFromFile, lib, "SDL_IOFromFile")
-	// purego.RegisterLibFunc(&sdlIOFromMem, lib, "SDL_IOFromMem")
+	sdlIOFromMem = func(mem []byte, size int) *IOStream {
+		js.CopyBytesToJS(memoryBufferView, mem) // Copy the bytes over
+		res := bridge.Call("SDL_IOFromMem", size).Int()
+		if res == 0 {
+			return nil
+		}
+		return (*IOStream)(unsafe.Pointer(uintptr(res)))
+	}
 	// // purego.RegisterLibFunc(&sdlIOprintf, lib, "SDL_IOprintf")
 	// // purego.RegisterLibFunc(&sdlIOvprintf, lib, "SDL_IOvprintf")
 	// // purego.RegisterLibFunc(&sdlisalnum, lib, "SDL_isalnum")

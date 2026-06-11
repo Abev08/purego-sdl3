@@ -24,24 +24,24 @@ func init() {
 	_, _ = memoryBufferPtr, memoryBufferView
 
 	// purego.RegisterLibFunc(&imgFreeAnimation, lib, "IMG_FreeAnimation")
-	// purego.RegisterLibFunc(&imgIsAVIF, lib, "IMG_isAVIF")
-	// purego.RegisterLibFunc(&imgIsBMP, lib, "IMG_isBMP")
-	// purego.RegisterLibFunc(&imgIsCUR, lib, "IMG_isCUR")
-	// purego.RegisterLibFunc(&imgIsGIF, lib, "IMG_isGIF")
-	// purego.RegisterLibFunc(&imgIsICO, lib, "IMG_isICO")
-	// purego.RegisterLibFunc(&imgIsJPG, lib, "IMG_isJPG")
-	// purego.RegisterLibFunc(&imgIsJXL, lib, "IMG_isJXL")
-	// purego.RegisterLibFunc(&imgIsLBM, lib, "IMG_isLBM")
-	// purego.RegisterLibFunc(&imgIsPCX, lib, "IMG_isPCX")
-	// purego.RegisterLibFunc(&imgIsPNG, lib, "IMG_isPNG")
-	// purego.RegisterLibFunc(&imgIsPNM, lib, "IMG_isPNM")
-	// purego.RegisterLibFunc(&imgIsQOI, lib, "IMG_isQOI")
-	// purego.RegisterLibFunc(&imgIsSVG, lib, "IMG_isSVG")
-	// purego.RegisterLibFunc(&imgIsTIF, lib, "IMG_isTIF")
-	// purego.RegisterLibFunc(&imgIsWEBP, lib, "IMG_isWEBP")
-	// purego.RegisterLibFunc(&imgIsXCF, lib, "IMG_isXCF")
-	// purego.RegisterLibFunc(&imgIsXPM, lib, "IMG_isXPM")
-	// purego.RegisterLibFunc(&imgIsXV, lib, "IMG_isXV")
+	imgIsAVIF = func(src *sdl.IOStream) bool { return bridge.Call("IMG_isAVIF", unsafe.Pointer(src)).Int() != 0 }
+	imgIsBMP = func(src *sdl.IOStream) bool { return bridge.Call("IMG_isBMP", unsafe.Pointer(src)).Int() != 0 }
+	imgIsCUR = func(src *sdl.IOStream) bool { return bridge.Call("IMG_isCUR", unsafe.Pointer(src)).Int() != 0 }
+	imgIsGIF = func(src *sdl.IOStream) bool { return bridge.Call("IMG_isGIF", unsafe.Pointer(src)).Int() != 0 }
+	imgIsICO = func(src *sdl.IOStream) bool { return bridge.Call("IMG_isICO", unsafe.Pointer(src)).Int() != 0 }
+	imgIsJPG = func(src *sdl.IOStream) bool { return bridge.Call("IMG_isJPG", unsafe.Pointer(src)).Int() != 0 }
+	imgIsJXL = func(src *sdl.IOStream) bool { return bridge.Call("IMG_isJXL", unsafe.Pointer(src)).Int() != 0 }
+	imgIsLBM = func(src *sdl.IOStream) bool { return bridge.Call("IMG_isLBM", unsafe.Pointer(src)).Int() != 0 }
+	imgIsPCX = func(src *sdl.IOStream) bool { return bridge.Call("IMG_isPCX", unsafe.Pointer(src)).Int() != 0 }
+	imgIsPNG = func(src *sdl.IOStream) bool { return bridge.Call("IMG_isPNG", unsafe.Pointer(src)).Int() != 0 }
+	imgIsPNM = func(src *sdl.IOStream) bool { return bridge.Call("IMG_isPNM", unsafe.Pointer(src)).Int() != 0 }
+	imgIsQOI = func(src *sdl.IOStream) bool { return bridge.Call("IMG_isQOI", unsafe.Pointer(src)).Int() != 0 }
+	imgIsSVG = func(src *sdl.IOStream) bool { return bridge.Call("IMG_isSVG", unsafe.Pointer(src)).Int() != 0 }
+	imgIsTIF = func(src *sdl.IOStream) bool { return bridge.Call("IMG_isTIF", unsafe.Pointer(src)).Int() != 0 }
+	imgIsWEBP = func(src *sdl.IOStream) bool { return bridge.Call("IMG_isWEBP", unsafe.Pointer(src)).Int() != 0 }
+	imgIsXCF = func(src *sdl.IOStream) bool { return bridge.Call("IMG_isXCF", unsafe.Pointer(src)).Int() != 0 }
+	imgIsXPM = func(src *sdl.IOStream) bool { return bridge.Call("IMG_isXPM", unsafe.Pointer(src)).Int() != 0 }
+	imgIsXV = func(src *sdl.IOStream) bool { return bridge.Call("IMG_isXV", unsafe.Pointer(src)).Int() != 0 }
 	// purego.RegisterLibFunc(&imgLoad, lib, "IMG_Load")
 	imgLoadIO = func(src *sdl.IOStream, closeio bool) *sdl.Surface {
 		res := bridge.Call("IMG_Load_IO", unsafe.Pointer(src), closeio).Int()
@@ -74,7 +74,18 @@ func init() {
 	// purego.RegisterLibFunc(&imgLoadSizedSVGIO, lib, "IMG_LoadSizedSVG_IO")
 	// purego.RegisterLibFunc(&imgLoadSVGIO, lib, "IMG_LoadSVG_IO")
 	// purego.RegisterLibFunc(&imgLoadTexture, lib, "IMG_LoadTexture")
-	// purego.RegisterLibFunc(&imgLoadTextureIO, lib, "IMG_LoadTexture_IO")
+	imgLoadTextureIO = func(renderer *sdl.Renderer, src *sdl.IOStream, closeio bool) *sdl.Texture {
+		res := bridge.Call("IMG_LoadTexture_IO", unsafe.Pointer(renderer), unsafe.Pointer(src), closeio).Int()
+		if res == 0 {
+			return nil
+		}
+		tex := sdl.Texture{}
+		texBytes := unsafe.Slice((*byte)(unsafe.Pointer(&tex)), unsafe.Sizeof(sdl.Texture{}))
+		memoryView := bridge.Call("copyBytes", res, unsafe.Sizeof(sdl.Texture{}))
+		js.CopyBytesToGo(texBytes, memoryView)
+		sdl.StructToSDLPointer[unsafe.Pointer(&tex)] = res
+		return &tex
+	}
 	// purego.RegisterLibFunc(&imgLoadTextureTypedIO, lib, "IMG_LoadTextureTyped_IO")
 	// purego.RegisterLibFunc(&imgLoadTGAIO, lib, "IMG_LoadTGA_IO")
 	// purego.RegisterLibFunc(&imgLoadTIFIO, lib, "IMG_LoadTIF_IO")

@@ -37,6 +37,10 @@ func main() {
 	fmt.Printf("SDL3 Image version: %d.%d.%d\n", major, minor, patch)
 	major, minor, patch = ttf.Version()
 	fmt.Printf("SDL3 TTF version: %d.%d.%d\n", major, minor, patch)
+	major, minor, patch = ttf.GetFreeTypeVersion()
+	fmt.Printf("FreeType version: %d.%d.%d\n", major, minor, patch)
+	major, minor, patch = ttf.GetHarfBuzzVersion()
+	fmt.Printf("HarfBuzz version: %d.%d.%d\n", major, minor, patch)
 
 	defer sdl.Quit()
 	if !sdl.Init(sdl.InitVideo | sdl.InitAudio) {
@@ -90,16 +94,18 @@ func main() {
 	}
 
 	// Loading texture
-	gopherStream := sdl.IOFromConstMem(readFile("assets/gopher-happy.bmp"))
-	if gopherStream == nil {
-		panic(sdl.GetError())
-	}
-	gopherSurface := img.LoadIO(gopherStream, true)
-	if gopherSurface == nil {
-		panic(sdl.GetError())
-	}
-	defer sdl.DestroySurface(gopherSurface)
-	gopherTexture := sdl.CreateTextureFromSurface(renderer, gopherSurface)
+	// gopherStream := sdl.IOFromConstMem(readFile("assets/gopher-happy.bmp"))
+	// if gopherStream == nil {
+	// 	panic(sdl.GetError())
+	// }
+	// gopherSurface := img.LoadIO(gopherStream, true)
+	// if gopherSurface == nil {
+	// 	panic(sdl.GetError())
+	// }
+	// defer sdl.DestroySurface(gopherSurface)
+	// gopherTexture := sdl.CreateTextureFromSurface(renderer, gopherSurface)
+	// Instead of loading sprite into surface and then into texture the img.LoadTextureIO() can be used
+	gopherTexture := img.LoadTextureIO(renderer, sdl.IOFromConstMem(readFile("assets/gopher-happy.bmp")), true)
 	if gopherTexture == nil {
 		panic(gopherTexture)
 	}
@@ -127,12 +133,13 @@ func main() {
 		panic(sdl.GetError())
 	}
 	defer ttf.CloseFont(font)
+
 	var fontVDPI, fontHDPI int32
 	ttf.GetFontDPI(font, &fontVDPI, &fontHDPI)
-	fmt.Printf("Loaded font, height: %d, ascent: %d, descent: %d, line skip: %d, direction: %d, outline: %d, hinting: %d, kerning: %v, generation: %d, family name: %s, vertical DPI: %d, horizontal DPI: %d\n",
-		ttf.GetFontHeight(font), ttf.GetFontAscent(font), ttf.GetFontDescent(font), ttf.GetFontLineSkip(font), ttf.GetFontDirection(font),
+	fmt.Printf("Loaded font, size: %v, height: %d, ascent: %d, descent: %d, line skip: %d, direction: %d, outline: %d, hinting: %d, kerning: %v, generation: %d, family name: %s, vertical DPI: %d, horizontal DPI: %d, style: %v, style name: %s, wrap alignment: %v\n",
+		ttf.GetFontSize(font), ttf.GetFontHeight(font), ttf.GetFontAscent(font), ttf.GetFontDescent(font), ttf.GetFontLineSkip(font), ttf.GetFontDirection(font),
 		ttf.GetFontOutline(font), ttf.GetFontHinting(font), ttf.GetFontKerning(font), ttf.GetFontGeneration(font), ttf.GetFontFamilyName(font),
-		fontVDPI, fontHDPI)
+		fontVDPI, fontHDPI, ttf.GetFontStyle(font), ttf.GetFontStyleName(font), ttf.GetFontWrapAlignment(font))
 
 	text := "Hello from SDL3 TTF"
 	textSurface := ttf.RenderTextBlended(font, text, uint64(len(text)), sdl.Color{R: 255, G: 0, B: 0, A: 0})
@@ -166,18 +173,31 @@ func main() {
 	}
 	defer sdl.DestroyTexture(runeTexture)
 	sdl.DestroySurface(runeSurface) // Surface is no longer needed
+	fmt.Println("Font has 'A' glyph rendered:", ttf.FontHasGlyph(font, 'A'))
+	glyphMetrics := [5]int32{}
+	ttf.GetGlyphMetrics(font, 'A', &glyphMetrics[0], &glyphMetrics[1], &glyphMetrics[2], &glyphMetrics[3], &glyphMetrics[4])
+	fmt.Println("Glyph 'A' metrics:", glyphMetrics)
 	engine := ttf.CreateRendererTextEngine(renderer)
 	if engine == nil {
 		panic(sdl.GetError())
 	}
 	defer ttf.DestroyRendererTextEngine(engine)
-	text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed tincidunt enim eget."
+	text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
 	engineText := ttf.CreateText(engine, font, text, uint64(len(text)))
 	if engineText == nil {
 		panic(sdl.GetError())
 	}
 	defer ttf.DestroyText(engineText)
 	engineTextColor := sdl.Color{R: 85, G: 170, B: 255, A: 255}
+	text = " Sed tincidunt enim eget."
+	ttf.AppendTextString(engineText, text, uint64(len(text)))
+	var w, h int32
+	ttf.GetStringSize(font, text, uint64(len(text)), &w, &h)
+	fmt.Printf("Text '%s' has width: %v, height: %v\n", text, w, h)
+	ttf.GetStringSizeWrapped(font, text, uint64(len(text)), 250, &w, &h)
+	fmt.Printf("Text '%s' wrapped to 250px has width: %v, height: %v\n", text, w, h)
+	ttf.GetTextSize(engineText, &w, &h)
+	fmt.Printf("Text of the ttf.Text object has width: %v, height: %v\n", w, h)
 
 	// FPS counter variables
 	perfFreq, frameStart, frameCount := float32(sdl.GetPerformanceFrequency()), sdl.GetPerformanceCounter(), 0

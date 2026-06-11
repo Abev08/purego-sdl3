@@ -251,7 +251,18 @@
               return sdlModule._SDL_RenderTextureAffine(renderer, texture, r1, p1, p2, p3);
             };
 
-            case "TTF_GetFontFamilyName": return (font) => { return sdlModule.UTF8ToString(sdlModule._TTF_GetFontFamilyName(font)); };
+            case "TTF_AppendTextString": return (text, str, length) => {
+              const textPtr = sdlModule.allocateUTF8(str);
+              const res = sdlModule._TTF_AppendTextString(text, textPtr, length);
+              sdlModule._free(textPtr); // Free memory allocated by the string
+              return res;
+            };
+            case "TTF_CreateText": return (engine, font, text, length) => {
+              const textPtr = sdlModule.allocateUTF8(text);
+              const res = sdlModule._TTF_CreateText(engine, font, textPtr, length);
+              sdlModule._free(textPtr); // Free memory allocated by the string
+              return res;
+            };
             case "TTF_GetFontDPI": return (font) => {
               const vdpiPtr = sdlModule._malloc(4);
               const res = sdlModule._TTF_GetFontDPI(font, colorPtr, vdpiPtr);
@@ -260,12 +271,44 @@
               sdlModule._free(vdpiPtr); // Free memory allocated for vdpi pointer
               return [res, hdpi, vdpi];
             };
-            case "TTF_RenderText_Solid": return (font, text, length, fg) => {
-              sdlModule.HEAPU8.set([fg & 0xFF, (fg >> 8) & 0xFF, (fg >> 16) & 0xFF, (fg >> 24) & 0xFF], colorPtr);
+            case "TTF_GetFontFamilyName": return (font) => { return sdlModule.UTF8ToString(sdlModule._TTF_GetFontFamilyName(font)); };
+            case "TTF_GetFontStyleName": return (font) => { return sdlModule.UTF8ToString(sdlModule._TTF_GetFontStyleName(font)); };
+            case "TTF_GetFreeTypeVersion": return () => {
+              sdlModule._TTF_GetFreeTypeVersion(colorPtr, dummyFPoint >> 2, dummyFPoint);
+              return [sdlModule.getValue(colorPtr, "i32"), sdlModule.getValue(dummyFPoint, "i32"), sdlModule.getValue(dummyFPoint >> 2, "i32")];
+            };
+            case "TTF_GetGlyphMetrics": return (font, ch) => {
+              const res = sdlModule._TTF_GetGlyphMetrics(font, ch, colorPtr, dummyFRect, dummyFRect >> 2, dummyFRect >> 4, dummyFRect >> 8);
+              return [res, sdlModule.getValue(colorPtr, "i32"), sdlModule.getValue(dummyFRect, "i32"), sdlModule.getValue(dummyFRect >> 2, "i32"),
+                sdlModule.getValue(dummyFRect >> 4, "i32"), sdlModule.getValue(dummyFRect >> 8, "i32")];
+            };
+            case "TTF_GetHarfBuzzVersion": return () => {
+              sdlModule._TTF_GetHarfBuzzVersion(colorPtr, dummyFPoint, dummyFPoint >> 2);
+              return [sdlModule.getValue(colorPtr, "i32"), sdlModule.getValue(dummyFPoint, "i32"), sdlModule.getValue(dummyFPoint >> 2, "i32")];
+            };
+            case "TTF_GetStringSize": return (font, text, length) => {
               const textPtr = sdlModule.allocateUTF8(text);
-              const res = sdlModule._TTF_RenderText_Solid(font, textPtr, length, colorPtr);
+              const res = sdlModule._TTF_GetStringSize(font, textPtr, length, dummyFPoint, dummyFPoint >> 2);
               sdlModule._free(textPtr); // Free memory allocated by the string
-              return res;
+              return [res, sdlModule.getValue(dummyFPoint, "i32"), sdlModule.getValue(dummyFPoint >> 2, "i32")];
+            };
+            case "TTF_GetStringSizeWrapped": return (font, text, length, wrapWidth) => {
+              const textPtr = sdlModule.allocateUTF8(text);
+              const res = sdlModule._TTF_GetStringSizeWrapped(font, textPtr, length, wrapWidth, dummyFPoint, dummyFPoint >> 2);
+              sdlModule._free(textPtr); // Free memory allocated by the string
+              return [res, sdlModule.getValue(dummyFPoint, "i32"), sdlModule.getValue(dummyFPoint >> 2, "i32")];
+            };
+            case "TTF_GetTextSize": return (text) => {
+              const res = sdlModule._TTF_GetTextSize(text, dummyFPoint, dummyFPoint >> 2);
+              return [res, sdlModule.getValue(dummyFPoint, "i32"), sdlModule.getValue(dummyFPoint >> 2, "i32")];
+            };
+            case "TTF_RenderGlyph_Blended": return (font, ch, fg) => {
+              sdlModule.HEAPU8.set([fg & 0xFF, (fg >> 8) & 0xFF, (fg >> 16) & 0xFF, (fg >> 24) & 0xFF], colorPtr);
+              return sdlModule._TTF_RenderGlyph_Blended(font, ch, colorPtr);
+            };
+            case "TTF_RenderGlyph_Solid": return (font, ch, fg) => {
+              sdlModule.HEAPU8.set([fg & 0xFF, (fg >> 8) & 0xFF, (fg >> 16) & 0xFF, (fg >> 24) & 0xFF], colorPtr);
+              return sdlModule._TTF_RenderGlyph_Solid(font, ch, colorPtr);
             };
             case "TTF_RenderText_Blended": return (font, text, length, fg) => {
               sdlModule.HEAPU8.set([fg & 0xFF, (fg >> 8) & 0xFF, (fg >> 16) & 0xFF, (fg >> 24) & 0xFF], colorPtr);
@@ -281,13 +324,16 @@
               sdlModule._free(textPtr); // Free memory allocated by the string
               return res;
             };
-            case "TTF_RenderGlyph_Blended": return (font, ch, fg) => {
+            case "TTF_RenderText_Solid": return (font, text, length, fg) => {
               sdlModule.HEAPU8.set([fg & 0xFF, (fg >> 8) & 0xFF, (fg >> 16) & 0xFF, (fg >> 24) & 0xFF], colorPtr);
-              return sdlModule._TTF_RenderGlyph_Blended(font, ch, colorPtr);
-            };
-            case "TTF_CreateText": return (engine, font, text, length) => {
               const textPtr = sdlModule.allocateUTF8(text);
-              const res = sdlModule._TTF_CreateText(engine, font, textPtr, length);
+              const res = sdlModule._TTF_RenderText_Solid(font, textPtr, length, colorPtr);
+              sdlModule._free(textPtr); // Free memory allocated by the string
+              return res;
+            };
+            case "TTF_SetTextString": return (text, str, length) => {
+              const textPtr = sdlModule.allocateUTF8(str);
+              const res = sdlModule._TTF_SetTextString(text, textPtr, length);
               sdlModule._free(textPtr); // Free memory allocated by the string
               return res;
             };

@@ -24,7 +24,9 @@ func init() {
 	_, _ = memoryBufferPtr, memoryBufferView
 
 	// purego.RegisterLibFunc(&ttfAddFallbackFont, lib, "TTF_AddFallbackFont")
-	// purego.RegisterLibFunc(&ttfAppendTextString, lib, "TTF_AppendTextString")
+	ttfAppendTextString = func(text *Text, str string, length uint64) bool {
+		return bridge.Call("TTF_AppendTextString", sdl.StructToSDLPointer[unsafe.Pointer(text)], str, length).Int() != 0
+	}
 	// purego.RegisterLibFunc(&ttfClearFallbackFonts, lib, "TTF_ClearFallbackFonts")
 	ttfCloseFont = func(font *Font) { bridge.Call("TTF_CloseFont", unsafe.Pointer(font)) }
 	// purego.RegisterLibFunc(&ttfCopyFont, lib, "TTF_CopyFont")
@@ -44,20 +46,27 @@ func init() {
 		if res == 0 {
 			return nil
 		}
-		return (*Text)(unsafe.Pointer(uintptr(res)))
+		_text := Text{}
+		textBytes := unsafe.Slice((*byte)(unsafe.Pointer(&_text)), unsafe.Sizeof(Text{}))
+		memoryView := bridge.Call("copyBytes", res, unsafe.Sizeof(Text{}))
+		js.CopyBytesToGo(textBytes, memoryView)
+		sdl.StructToSDLPointer[unsafe.Pointer(&_text)] = res
+		return &_text
 	}
 	// purego.RegisterLibFunc(&ttfDeleteTextString, lib, "TTF_DeleteTextString")
 	// purego.RegisterLibFunc(&ttfDestroyGPUTextEngine, lib, "TTF_DestroyGPUTextEngine")
 	ttfDestroyRendererTextEngine = func(engine *TextEngine) { bridge.Call("TTF_DestroyRendererTextEngine", unsafe.Pointer(engine)) }
 	// purego.RegisterLibFunc(&ttfDestroySurfaceTextEngine, lib, "TTF_DestroySurfaceTextEngine")
-	ttfDestroyText = func(text *Text) { bridge.Call("TTF_DestroyText", unsafe.Pointer(text)) }
+	ttfDestroyText = func(text *Text) { bridge.Call("TTF_DestroyText", sdl.StructToSDLPointer[unsafe.Pointer(text)]) }
 	ttfDrawRendererText = func(text *Text, x float32, y float32) bool {
-		return bridge.Call("TTF_DrawRendererText", unsafe.Pointer(text), x, y).Int() != 0
+		return bridge.Call("TTF_DrawRendererText", sdl.StructToSDLPointer[unsafe.Pointer(text)], x, y).Int() != 0
 	}
 	// purego.RegisterLibFunc(&ttfDrawSurfaceText, lib, "TTF_DrawSurfaceText")
-	// purego.RegisterLibFunc(&ttfFontHasGlyph, lib, "TTF_FontHasGlyph")
-	// purego.RegisterLibFunc(&ttfFontIsFixedWidth, lib, "TTF_FontIsFixedWidth")
-	// purego.RegisterLibFunc(&ttfFontIsScalable, lib, "TTF_FontIsScalable")
+	ttfFontHasGlyph = func(font *Font, ch rune) bool {
+		return bridge.Call("TTF_FontHasGlyph", unsafe.Pointer(font), uint32(ch)).Int() != 0
+	}
+	ttfFontIsFixedWidth = func(font *Font) bool { return bridge.Call("TTF_FontIsFixedWidth", unsafe.Pointer(font)).Int() != 0 }
+	ttfFontIsScalable = func(font *Font) bool { return bridge.Call("TTF_FontIsScalable", unsafe.Pointer(font)).Int() != 0 }
 	ttfGetFontAscent = func(font *Font) int32 { return int32(bridge.Call("TTF_GetFontAscent", unsafe.Pointer(font)).Int()) }
 	ttfGetFontDescent = func(font *Font) int32 { return int32(bridge.Call("TTF_GetFontDescent", unsafe.Pointer(font)).Int()) }
 	ttfGetFontDirection = func(font *Font) Direction {
@@ -86,34 +95,129 @@ func init() {
 	ttfGetFontOutline = func(font *Font) int32 { return int32(bridge.Call("TTF_GetFontOutline", unsafe.Pointer(font)).Int()) }
 	// purego.RegisterLibFunc(&ttfGetFontProperties, lib, "TTF_GetFontProperties")
 	// purego.RegisterLibFunc(&ttfGetFontScript, lib, "TTF_GetFontScript")
-	// purego.RegisterLibFunc(&ttfGetFontSDF, lib, "TTF_GetFontSDF")
-	// purego.RegisterLibFunc(&ttfGetFontSize, lib, "TTF_GetFontSize")
-	// purego.RegisterLibFunc(&ttfGetFontStyle, lib, "TTF_GetFontStyle")
-	// purego.RegisterLibFunc(&ttfGetFontStyleName, lib, "TTF_GetFontStyleName")
-	// purego.RegisterLibFunc(&ttfGetFontWrapAlignment, lib, "TTF_GetFontWrapAlignment")
-	// purego.RegisterLibFunc(&ttfGetFreeTypeVersion, lib, "TTF_GetFreeTypeVersion")
+	ttfGetFontSDF = func(font *Font) bool { return bridge.Call("TTF_GetFontSDF", unsafe.Pointer(font)).Int() != 0 }
+	ttfGetFontSize = func(font *Font) float32 { return float32(bridge.Call("TTF_GetFontSize", unsafe.Pointer(font)).Float()) }
+	ttfGetFontStyle = func(font *Font) FontStyleFlags {
+		return FontStyleFlags(bridge.Call("TTF_GetFontStyle", unsafe.Pointer(font)).Int())
+	}
+	ttfGetFontStyleName = func(font *Font) string { return bridge.Call("TTF_GetFontStyleName", unsafe.Pointer(font)).String() }
+	ttfGetFontWrapAlignment = func(font *Font) HorizontalAlignment {
+		return HorizontalAlignment(bridge.Call("TTF_GetFontWrapAlignment", unsafe.Pointer(font)).Int())
+	}
+	ttfGetFreeTypeVersion = func(major, minor, patch *int32) {
+		res := bridge.Call("TTF_GetFreeTypeVersion")
+		if major != nil {
+			*major = int32(res.Index(0).Int())
+		}
+		if minor != nil {
+			*minor = int32(res.Index(1).Int())
+		}
+		if patch != nil {
+			*patch = int32(res.Index(2).Int())
+		}
+	}
 	// purego.RegisterLibFunc(&ttfGetGlyphImage, lib, "TTF_GetGlyphImage")
 	// purego.RegisterLibFunc(&ttfGetGlyphImageForIndex, lib, "TTF_GetGlyphImageForIndex")
 	// purego.RegisterLibFunc(&ttfGetGlyphKerning, lib, "TTF_GetGlyphKerning")
-	// purego.RegisterLibFunc(&ttfGetGlyphMetrics, lib, "TTF_GetGlyphMetrics")
+	ttfGetGlyphMetrics = func(font *Font, ch rune, minx, maxx, miny, maxy, advance *int32) bool {
+		res := bridge.Call("TTF_GetGlyphMetrics", unsafe.Pointer(font), uint32(ch))
+		if res.Index(0).Int() == 0 {
+			return false
+		}
+		if minx != nil {
+			*minx = int32(res.Index(1).Int())
+		}
+		if maxx != nil {
+			*maxx = int32(res.Index(2).Int())
+		}
+		if miny != nil {
+			*miny = int32(res.Index(3).Int())
+		}
+		if maxy != nil {
+			*maxy = int32(res.Index(4).Int())
+		}
+		if advance != nil {
+			*advance = int32(res.Index(5).Int())
+		}
+		return true
+	}
 	// purego.RegisterLibFunc(&ttfGetGlyphScript, lib, "TTF_GetGlyphScript")
 	// purego.RegisterLibFunc(&ttfGetGPUTextDrawData, lib, "TTF_GetGPUTextDrawData")
 	// purego.RegisterLibFunc(&ttfGetGPUTextEngineWinding, lib, "TTF_GetGPUTextEngineWinding")
-	// purego.RegisterLibFunc(&ttfGetHarfBuzzVersion, lib, "TTF_GetHarfBuzzVersion")
+	ttfGetHarfBuzzVersion = func(major, minor, patch *int32) {
+		res := bridge.Call("TTF_GetHarfBuzzVersion")
+		if major != nil {
+			*major = int32(res.Index(0).Int())
+		}
+		if minor != nil {
+			*minor = int32(res.Index(1).Int())
+		}
+		if patch != nil {
+			*patch = int32(res.Index(2).Int())
+		}
+	}
 	// purego.RegisterLibFunc(&ttfGetNextTextSubString, lib, "TTF_GetNextTextSubString")
 	// purego.RegisterLibFunc(&ttfGetNumFontFaces, lib, "TTF_GetNumFontFaces")
 	// purego.RegisterLibFunc(&ttfGetPreviousTextSubString, lib, "TTF_GetPreviousTextSubString")
-	// purego.RegisterLibFunc(&ttfGetStringSize, lib, "TTF_GetStringSize")
-	// purego.RegisterLibFunc(&ttfGetStringSizeWrapped, lib, "TTF_GetStringSizeWrapped")
+	ttfGetStringSize = func(font *Font, text string, length uint64, w, h *int32) bool {
+		res := bridge.Call("TTF_GetStringSize", unsafe.Pointer(font), text, length)
+		if res.Index(0).Int() == 0 {
+			return false
+		}
+		if w != nil {
+			*w = int32(res.Index(1).Int())
+		}
+		if h != nil {
+			*h = int32(res.Index(2).Int())
+		}
+		return true
+	}
+	ttfGetStringSizeWrapped = func(font *Font, text string, length uint64, wrapWidth int32, w, h *int32) bool {
+		res := bridge.Call("TTF_GetStringSizeWrapped", unsafe.Pointer(font), text, length, wrapWidth)
+		if res.Index(0).Int() == 0 {
+			return false
+		}
+		if w != nil {
+			*w = int32(res.Index(1).Int())
+		}
+		if h != nil {
+			*h = int32(res.Index(2).Int())
+		}
+		return true
+	}
 	// purego.RegisterLibFunc(&ttfGetTextColor, lib, "TTF_GetTextColor")
 	// purego.RegisterLibFunc(&ttfGetTextColorFloat, lib, "TTF_GetTextColorFloat")
 	// purego.RegisterLibFunc(&ttfGetTextDirection, lib, "TTF_GetTextDirection")
-	// purego.RegisterLibFunc(&ttfGetTextEngine, lib, "TTF_GetTextEngine")
-	// purego.RegisterLibFunc(&ttfGetTextFont, lib, "TTF_GetTextFont")
+	ttfGetTextEngine = func(text *Text) *TextEngine {
+		res := bridge.Call("TTF_GetTextEngine", sdl.StructToSDLPointer[unsafe.Pointer(text)]).Int()
+		if res == 0 {
+			return nil
+		}
+		return (*TextEngine)(unsafe.Pointer(uintptr(res)))
+	}
+	ttfGetTextFont = func(text *Text) *Font {
+		res := bridge.Call("TTF_GetTextFont", sdl.StructToSDLPointer[unsafe.Pointer(text)]).Int()
+		if res == 0 {
+			return nil
+		}
+		return (*Font)(unsafe.Pointer(uintptr(res)))
+	}
 	// purego.RegisterLibFunc(&ttfGetTextPosition, lib, "TTF_GetTextPosition")
 	// purego.RegisterLibFunc(&ttfGetTextProperties, lib, "TTF_GetTextProperties")
 	// purego.RegisterLibFunc(&ttfGetTextScript, lib, "TTF_GetTextScript")
-	// purego.RegisterLibFunc(&ttfGetTextSize, lib, "TTF_GetTextSize")
+	ttfGetTextSize = func(text *Text, w, h *int32) bool {
+		res := bridge.Call("TTF_GetTextSize", sdl.StructToSDLPointer[unsafe.Pointer(text)])
+		if res.Index(0).Int() == 0 {
+			return false
+		}
+		if w != nil {
+			*w = int32(res.Index(1).Int())
+		}
+		if h != nil {
+			*h = int32(res.Index(2).Int())
+		}
+		return true
+	}
 	// purego.RegisterLibFunc(&ttfGetTextSubString, lib, "TTF_GetTextSubString")
 	// purego.RegisterLibFunc(&ttfGetTextSubStringForLine, lib, "TTF_GetTextSubStringForLine")
 	// purego.RegisterLibFunc(&ttfGetTextSubStringForPoint, lib, "TTF_GetTextSubStringForPoint")
@@ -147,7 +251,18 @@ func init() {
 	}
 	// purego.RegisterLibFunc(&ttfRenderGlyphLCD, lib, "TTF_RenderGlyph_LCD")
 	// purego.RegisterLibFunc(&ttfRenderGlyphShaded, lib, "TTF_RenderGlyph_Shaded")
-	// purego.RegisterLibFunc(&ttfRenderGlyphSolid, lib, "TTF_RenderGlyph_Solid")
+	ttfRenderGlyphSolid = func(font *Font, ch rune, fg uintptr) *sdl.Surface {
+		res := bridge.Call("TTF_RenderGlyph_Solid", unsafe.Pointer(font), uint32(ch), fg).Int()
+		if res == 0 {
+			return nil
+		}
+		sur := sdl.Surface{}
+		surBytes := unsafe.Slice((*byte)(unsafe.Pointer(&sur)), unsafe.Sizeof(sdl.Surface{}))
+		memoryView := bridge.Call("copyBytes", res, unsafe.Sizeof(sdl.Surface{}))
+		js.CopyBytesToGo(surBytes, memoryView)
+		sdl.StructToSDLPointer[unsafe.Pointer(&sur)] = res
+		return &sur
+	}
 	ttfRenderTextBlended = func(font *Font, text string, length uint64, fg uintptr) *sdl.Surface {
 		res := bridge.Call("TTF_RenderText_Blended", unsafe.Pointer(font), text, length, fg).Int()
 		if res == 0 {
@@ -189,35 +304,51 @@ func init() {
 		return &sur
 	}
 	// purego.RegisterLibFunc(&ttfRenderTextSolidWrapped, lib, "TTF_RenderText_Solid_Wrapped")
-	// purego.RegisterLibFunc(&ttfSetFontDirection, lib, "TTF_SetFontDirection")
-	// purego.RegisterLibFunc(&ttfSetFontHinting, lib, "TTF_SetFontHinting")
-	// purego.RegisterLibFunc(&ttfSetFontKerning, lib, "TTF_SetFontKerning")
+	ttfSetFontDirection = func(font *Font, direction Direction) bool {
+		return bridge.Call("TTF_SetFontDirection", unsafe.Pointer(font), uint32(direction)).Int() != 0
+	}
+	ttfSetFontHinting = func(font *Font, hinting HintingFlags) {
+		bridge.Call("TTF_SetFontHinting", unsafe.Pointer(font), int32(hinting))
+	}
+	ttfSetFontKerning = func(font *Font, enabled bool) { bridge.Call("TTF_SetFontKerning", unsafe.Pointer(font), enabled) }
 	// purego.RegisterLibFunc(&ttfSetFontLanguage, lib, "TTF_SetFontLanguage")
-	// purego.RegisterLibFunc(&ttfSetFontLineSkip, lib, "TTF_SetFontLineSkip")
-	// purego.RegisterLibFunc(&ttfSetFontOutline, lib, "TTF_SetFontOutline")
+	ttfSetFontLineSkip = func(font *Font, lineskip int32) { bridge.Call("TTF_SetFontLineSkip", unsafe.Pointer(font), lineskip) }
+	ttfSetFontOutline = func(font *Font, outline int32) bool {
+		return bridge.Call("TTF_SetFontOutline", unsafe.Pointer(font), outline).Int() != 0
+	}
 	// purego.RegisterLibFunc(&ttfSetFontScript, lib, "TTF_SetFontScript")
-	// purego.RegisterLibFunc(&ttfSetFontSDF, lib, "TTF_SetFontSDF")
+	ttfSetFontSDF = func(font *Font, enabled bool) bool {
+		return bridge.Call("TTF_SetFontSDF", unsafe.Pointer(font), enabled).Int() != 0
+	}
 	// purego.RegisterLibFunc(&ttfSetFontSize, lib, "TTF_SetFontSize")
 	// purego.RegisterLibFunc(&ttfSetFontSizeDPI, lib, "TTF_SetFontSizeDPI")
 	// purego.RegisterLibFunc(&ttfSetFontStyle, lib, "TTF_SetFontStyle")
 	// purego.RegisterLibFunc(&ttfSetFontWrapAlignment, lib, "TTF_SetFontWrapAlignment")
 	// purego.RegisterLibFunc(&ttfSetGPUTextEngineWinding, lib, "TTF_SetGPUTextEngineWinding")
 	ttfSetTextColor = func(text *Text, r uint8, g uint8, b uint8, a uint8) bool {
-		return bridge.Call("TTF_SetTextColor", unsafe.Pointer(text), r, g, b, a).Int() != 0
+		return bridge.Call("TTF_SetTextColor", sdl.StructToSDLPointer[unsafe.Pointer(text)], r, g, b, a).Int() != 0
 	}
-	// purego.RegisterLibFunc(&ttfSetTextColorFloat, lib, "TTF_SetTextColorFloat")
-	// purego.RegisterLibFunc(&ttfSetTextDirection, lib, "TTF_SetTextDirection")
+	ttfSetTextColorFloat = func(text *Text, r, g, b, a float32) bool {
+		return bridge.Call("TTF_SetTextColorFloat", sdl.StructToSDLPointer[unsafe.Pointer(text)], r, g, b, a).Int() != 0
+	}
+	ttfSetTextDirection = func(text *Text, direction Direction) bool {
+		return bridge.Call("TTF_SetTextDirection", sdl.StructToSDLPointer[unsafe.Pointer(text)], uint32(direction)).Int() != 0
+	}
 	// purego.RegisterLibFunc(&ttfSetTextEngine, lib, "TTF_SetTextEngine")
 	// purego.RegisterLibFunc(&ttfSetTextFont, lib, "TTF_SetTextFont")
 	// purego.RegisterLibFunc(&ttfSetTextPosition, lib, "TTF_SetTextPosition")
 	// purego.RegisterLibFunc(&ttfSetTextScript, lib, "TTF_SetTextScript")
-	// purego.RegisterLibFunc(&ttfSetTextString, lib, "TTF_SetTextString")
+	ttfSetTextString = func(text *Text, str string, length uint64) bool {
+		return bridge.Call("TTF_SetTextString", sdl.StructToSDLPointer[unsafe.Pointer(text)], str, length).Int() != 0
+	}
 	// purego.RegisterLibFunc(&ttfSetTextWrapWhitespaceVisible, lib, "TTF_SetTextWrapWhitespaceVisible")
 	// purego.RegisterLibFunc(&ttfSetTextWrapWidth, lib, "TTF_SetTextWrapWidth")
 	// purego.RegisterLibFunc(&ttfStringToTag, lib, "TTF_StringToTag")
 	// purego.RegisterLibFunc(&ttfTagToString, lib, "TTF_TagToString")
 	// purego.RegisterLibFunc(&ttfTextWrapWhitespaceVisible, lib, "TTF_TextWrapWhitespaceVisible")
-	// purego.RegisterLibFunc(&ttfUpdateText, lib, "TTF_UpdateText")
+	ttfUpdateText = func(text *Text) bool {
+		return bridge.Call("TTF_UpdateText", sdl.StructToSDLPointer[unsafe.Pointer(text)]).Int() != 0
+	}
 	ttfVersion = func() int32 { return int32(bridge.Call("TTF_Version").Int()) }
 	// purego.RegisterLibFunc(&ttfWasInit, lib, "TTF_WasInit")
 

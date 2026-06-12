@@ -146,7 +146,13 @@ func init() {
 	// // purego.RegisterLibFunc(&sdlCreateEnvironment, lib, "SDL_CreateEnvironment")
 	// purego.RegisterLibFunc(&sdlCreateGPUBuffer, lib, "SDL_CreateGPUBuffer")
 	// // purego.RegisterLibFunc(&sdlCreateGPUComputePipeline, lib, "SDL_CreateGPUComputePipeline")
-	// purego.RegisterLibFunc(&sdlCreateGPUDevice, lib, "SDL_CreateGPUDevice")
+	sdlCreateGPUDevice = func(formatFlags GPUShaderFormat, debugMode bool, name *byte) *GPUDevice {
+		res := bridge.Call("SDL_CreateGPUDevice", uint32(formatFlags), debugMode, convert.ToString(name)).Int()
+		if res == 0 {
+			return nil
+		}
+		return (*GPUDevice)(unsafe.Pointer(uintptr(res)))
+	}
 	// // purego.RegisterLibFunc(&sdlCreateGPUDeviceWithProperties, lib, "SDL_CreateGPUDeviceWithProperties")
 	// purego.RegisterLibFunc(&sdlCreateGPUGraphicsPipeline, lib, "SDL_CreateGPUGraphicsPipeline")
 	// purego.RegisterLibFunc(&sdlCreateGPUSampler, lib, "SDL_CreateGPUSampler")
@@ -235,7 +241,7 @@ func init() {
 	// // purego.RegisterLibFunc(&sdlDestroyCondition, lib, "SDL_DestroyCondition")
 	// purego.RegisterLibFunc(&sdlDestroyCursor, lib, "SDL_DestroyCursor")
 	// // purego.RegisterLibFunc(&sdlDestroyEnvironment, lib, "SDL_DestroyEnvironment")
-	// purego.RegisterLibFunc(&sdlDestroyGPUDevice, lib, "SDL_DestroyGPUDevice")
+	sdlDestroyGPUDevice = func(device *GPUDevice) { bridge.Call("SDL_DestroyGPUDevice", unsafe.Pointer(device)) }
 	// // purego.RegisterLibFunc(&sdlDestroyHapticEffect, lib, "SDL_DestroyHapticEffect")
 	// // purego.RegisterLibFunc(&sdlDestroyMutex, lib, "SDL_DestroyMutex")
 	// purego.RegisterLibFunc(&sdlDestroyPalette, lib, "SDL_DestroyPalette")

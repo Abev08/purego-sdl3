@@ -40,6 +40,12 @@
             };
             case "getValue": return (ptr, type) => { return sdlModule.getValue(ptr, type); };
 
+            case "SDL_CreateGPUDevice": return (formatFlags, debugMode, name) => {
+              const namePtr = sdlModule.allocateUTF8(name);
+              const res = sdlModule._SDL_CreateGPUDevice(formatFlags, debugMode, namePtr);
+              sdlModule._free(namePtr); // Free memory allocated by the string
+              return res;
+            };
             case "SDL_GetRevision": return () => { return sdlModule.UTF8ToString(sdlModule._SDL_GetRevision()); };
             case "SDL_GetError": return () => { return sdlModule.UTF8ToString(sdlModule._SDL_GetError()); };
             case "SDL_GetWindowTitle": return (window) => { return sdlModule.UTF8ToString(sdlModule._SDL_GetWindowTitle(window)); };

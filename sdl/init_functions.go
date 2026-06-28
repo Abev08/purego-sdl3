@@ -202,9 +202,9 @@ var (
 	// sdlEGL_SetAttributeCallbacks             func(EGLAttribArrayCallback, EGLIntArrayCallback, EGLIntArrayCallback, unsafe.Pointer)
 	sdlEnableScreenSaver func() bool
 	// sdlEndGPUComputePass                     func(*GPUComputePass)
-	sdlEndGPUCopyPass   func(*GPUCopyPass)
-	sdlEndGPURenderPass func(*GPURenderPass)
-	// sdlEnterAppMainCallbacks                 func(int32, **byte, AppInit_func, AppIterate_func, AppEvent_func, AppQuit_func) int32
+	sdlEndGPUCopyPass        func(*GPUCopyPass)
+	sdlEndGPURenderPass      func(*GPURenderPass)
+	sdlEnterAppMainCallbacks func(int32, **byte, AppInitFunc, AppIterateFunc, AppEventFunc, AppQuitFunc) int32
 	// sdlEnumerateDirectory                    func(string, EnumerateDirectoryCallback, unsafe.Pointer) bool
 	sdlEnumerateProperties func(PropertiesID, EnumeratePropertiesCallback, unsafe.Pointer) bool
 	// sdlEnumerateStorageDirectory             func(*Storage, string, EnumerateDirectoryCallback, unsafe.Pointer) bool
@@ -926,7 +926,7 @@ var (
 	// sdlRumbleGamepadTriggers                 func(*Gamepad, uint16, uint16, uint32) bool
 	sdlRumbleJoystick         func(*Joystick, uint16, uint16, uint32) bool
 	sdlRumbleJoystickTriggers func(*Joystick, uint16, uint16, uint32) bool
-	// sdlRunApp                                func(int32, **byte, main_func, unsafe.Pointer) int32
+	sdlRunApp                 func(int32, **byte, MainFunc, unsafe.Pointer) int32
 	// sdlRunHapticEffect                       func(*Haptic, int32, uint32) bool
 	// sdlRunOnMainThread                       func(MainThreadCallback, unsafe.Pointer, bool) bool
 	sdlSaveBMP   func(*Surface, string) bool

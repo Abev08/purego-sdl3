@@ -387,7 +387,8 @@ func main() {
 
 		sdl.RenderPresent(renderer)
 
-		// On Wasm the main loop has to be somehow slowed down?
+		// On Wasm the main loop has to be somehow slowed down.
+		// Instead of slowing it down with time.Sleep() you can use SDL callbacks - look at "wasm-callbacks" example.
 		frameExecutionTime := time.Since(frameExecutionStart)
 		if runningOnWasm {
 			if sleepDur := WASM_FRAME_TIME - frameExecutionTime - time.Millisecond; sleepDur > 0 {

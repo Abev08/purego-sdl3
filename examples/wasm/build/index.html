@@ -39,6 +39,7 @@
               return new Uint8Array(view);
             };
             case "getValue": return (ptr, type) => { return sdlModule.getValue(ptr, type); };
+            case "setValue": return (ptr, value, type) => { return sdlModule.setValue(ptr, value, type); };
 
             case "SDL_CreateGPUDevice": return (formatFlags, debugMode, name) => {
               const namePtr = sdlModule.allocateUTF8(name);
@@ -255,6 +256,17 @@
                 p3 = dummyFPoint3;
               }
               return sdlModule._SDL_RenderTextureAffine(renderer, texture, r1, p1, p2, p3);
+            };
+            case "SDL_RunApp": return (_argc, _argv, mainFunction, reserved) => {
+              const mainFunctionPtr = sdlModule.addFunction(function (argc, argvPtr) { return mainFunction(argc, argvPtr); }, "iii");
+              return sdlModule._SDL_RunApp(_argc, _argv, mainFunctionPtr, reserved);
+            };
+            case "SDL_EnterAppMainCallbacks": return (argc, argv, _initFuncPtr, _iterateFuncPtr, _eventFuncPtr, _quitFuncPtr) => {
+              const initFuncPtr = sdlModule.addFunction(function (appStatePtr, argc, argvPtr) { return _initFuncPtr(appStatePtr, argc, argvPtr); }, "iiii");
+              const iterateFuncPtr = sdlModule.addFunction(function (appStatePtr) { return _iterateFuncPtr(appStatePtr); }, "ii");
+              const eventFuncPtr = sdlModule.addFunction(function (appStatePtr, eventPtr) { return _eventFuncPtr(appStatePtr, eventPtr); }, "iii");
+              const quitFuncPtr = sdlModule.addFunction(function (appStatePtr, result) { _quitFuncPtr(appStatePtr, result); }, "vii");
+              return sdlModule._SDL_EnterAppMainCallbacks(argc, argv, initFuncPtr, iterateFuncPtr, eventFuncPtr, quitFuncPtr);
             };
 
             case "TTF_AppendTextString": return (text, str, length) => {

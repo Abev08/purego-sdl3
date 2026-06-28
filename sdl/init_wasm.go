@@ -276,7 +276,48 @@ func init() {
 	// // purego.RegisterLibFunc(&sdlEndGPUComputePass, lib, "SDL_EndGPUComputePass")
 	// purego.RegisterLibFunc(&sdlEndGPUCopyPass, lib, "SDL_EndGPUCopyPass")
 	// purego.RegisterLibFunc(&sdlEndGPURenderPass, lib, "SDL_EndGPURenderPass")
-	// // purego.RegisterLibFunc(&sdlEnterAppMainCallbacks, lib, "SDL_EnterAppMainCallbacks")
+	sdlEnterAppMainCallbacks = func(argc int32, argv **byte, appInit AppInitFunc, appIter AppIterateFunc, appEvent AppEventFunc, appQuit AppQuitFunc) int32 {
+		initFuncPtr := js.FuncOf(func(this js.Value, args []js.Value) any {
+			var appState unsafe.Pointer
+			res := appInit(&appState, 0, nil)
+			if appState != nil && len(args) > 0 {
+				bridge.Call("setValue", args[0], appState, "i32")
+			}
+			return int32(res)
+		})
+		iterateFuncPtr := js.FuncOf(func(this js.Value, args []js.Value) any {
+			var appState unsafe.Pointer
+			if len(args) > 0 {
+				appState = unsafe.Pointer(uintptr(args[0].Int()))
+			}
+			return int32(appIter(appState))
+		})
+		eventFuncPtr := js.FuncOf(func(this js.Value, args []js.Value) any {
+			var appState unsafe.Pointer
+			if len(args) > 0 {
+				appState = unsafe.Pointer(uintptr(args[0].Int()))
+			}
+			var event Event
+			if len(args) > 1 {
+				ptr := args[1].Int()
+				js.CopyBytesToGo(event[:], bridge.Call("copyBytes", ptr, 128))
+			}
+			return int32(appEvent(appState, &event))
+		})
+		quitFuncPtr := js.FuncOf(func(this js.Value, args []js.Value) any {
+			var appState unsafe.Pointer
+			if len(args) > 0 {
+				appState = unsafe.Pointer(uintptr(args[0].Int()))
+			}
+			result := int32(-1)
+			if len(args) > 1 {
+				result = int32(args[1].Int())
+			}
+			appQuit(appState, result)
+			return nil
+		})
+		return int32(bridge.Call("SDL_EnterAppMainCallbacks", argc, nil, initFuncPtr, iterateFuncPtr, eventFuncPtr, quitFuncPtr).Int())
+	}
 	// // purego.RegisterLibFunc(&sdlEnumerateDirectory, lib, "SDL_EnumerateDirectory")
 	// purego.RegisterLibFunc(&sdlEnumerateProperties, lib, "SDL_EnumerateProperties")
 	// // purego.RegisterLibFunc(&sdlEnumerateStorageDirectory, lib, "SDL_EnumerateStorageDirectory")
@@ -966,7 +1007,7 @@ func init() {
 	sdlPollEvent = func(event *Event) bool {
 		res := bridge.Call("SDL_PollEvent", unsafe.Pointer(event))
 		if event != nil {
-			js.CopyBytesToGo(unsafe.Slice((*byte)(unsafe.Pointer(event)), 128), res.Index(1))
+			js.CopyBytesToGo(event[:], res.Index(1))
 		}
 		return res.Index(0).Int() != 0
 	}
@@ -1272,7 +1313,12 @@ func init() {
 	// // purego.RegisterLibFunc(&sdlRumbleGamepadTriggers, lib, "SDL_RumbleGamepadTriggers")
 	// purego.RegisterLibFunc(&sdlRumbleJoystick, lib, "SDL_RumbleJoystick")
 	// purego.RegisterLibFunc(&sdlRumbleJoystickTriggers, lib, "SDL_RumbleJoystickTriggers")
-	// // purego.RegisterLibFunc(&sdlRunApp, lib, "SDL_RunApp")
+	sdlRunApp = func(argc int32, argv **byte, mainFunction MainFunc, reserved unsafe.Pointer) int32 {
+		mainFuncPtr := js.FuncOf(func(this js.Value, args []js.Value) any {
+			return mainFunction(argc, argv)
+		})
+		return int32(bridge.Call("SDL_RunApp", argc, nil, mainFuncPtr, reserved).Int())
+	}
 	// // purego.RegisterLibFunc(&sdlRunHapticEffect, lib, "SDL_RunHapticEffect")
 	// // purego.RegisterLibFunc(&sdlRunOnMainThread, lib, "SDL_RunOnMainThread")
 	// purego.RegisterLibFunc(&sdlSaveBMP, lib, "SDL_SaveBMP")

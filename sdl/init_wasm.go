@@ -1,0 +1,1788 @@
+//go:build js && wasm
+
+package sdl
+
+import (
+	"runtime"
+	"syscall/js"
+	"unsafe"
+
+	"github.com/jupiterrider/purego-sdl3/internal/convert"
+)
+
+var bridge js.Value
+var StructToSDLPointer = make(map[unsafe.Pointer]int) // Internal. WASM. Used to translate structs into SDL pointers, not used with opaque structs
+// TODO: StructToSDLPointer needs to be public so it can be shared between sdl, ttf and img packages, but this also grants user access to it. Maybe there is other way to do it?
+// Maybe this should be done in js part as it's only required for WASM?
+
+func init() {
+	runtime.LockOSThread()
+
+	bridge = js.Global().Get("sdlBridge")
+	if bridge.IsUndefined() {
+		panic("sdlBridge not initialized")
+	}
+	memoryBufferPtr := bridge.Call("getMemoryBufferPtr").Int() // JS memory buffer
+	memoryBufferView := bridge.Call("getMemoryBufferView")     // Uint8Array of JS memory buffer
+	_, _ = memoryBufferPtr, memoryBufferView
+
+	// // purego.RegisterLibFunc(&sdlabs, lib, "SDL_abs")
+	// // purego.RegisterLibFunc(&sdlacos, lib, "SDL_acos")
+	// // purego.RegisterLibFunc(&sdlacosf, lib, "SDL_acosf")
+	// purego.RegisterLibFunc(&sdlAcquireCameraFrame, lib, "SDL_AcquireCameraFrame")
+	// purego.RegisterLibFunc(&sdlAcquireGPUCommandBuffer, lib, "SDL_AcquireGPUCommandBuffer")
+	// purego.RegisterLibFunc(&sdlAcquireGPUSwapchainTexture, lib, "SDL_AcquireGPUSwapchainTexture")
+	// // purego.RegisterLibFunc(&sdlAddAtomicInt, lib, "SDL_AddAtomicInt")
+	// purego.RegisterLibFunc(&sdlAddEventWatch, lib, "SDL_AddEventWatch")
+	// // purego.RegisterLibFunc(&sdlAddGamepadMapping, lib, "SDL_AddGamepadMapping")
+	// // purego.RegisterLibFunc(&sdlAddGamepadMappingsFromFile, lib, "SDL_AddGamepadMappingsFromFile")
+	// // purego.RegisterLibFunc(&sdlAddGamepadMappingsFromIO, lib, "SDL_AddGamepadMappingsFromIO")
+	// purego.RegisterLibFunc(&sdlAddHintCallback, lib, "SDL_AddHintCallback")
+	// purego.RegisterLibFunc(&sdlAddSurfaceAlternateImage, lib, "SDL_AddSurfaceAlternateImage")
+	// // purego.RegisterLibFunc(&sdlAddTimer, lib, "SDL_AddTimer")
+	// // purego.RegisterLibFunc(&sdlAddTimerNS, lib, "SDL_AddTimerNS")
+	// purego.RegisterLibFunc(&sdlAddVulkanRenderSemaphores, lib, "SDL_AddVulkanRenderSemaphores")
+	// // purego.RegisterLibFunc(&sdlaligned_alloc, lib, "SDL_aligned_alloc")
+	// // purego.RegisterLibFunc(&sdlaligned_free, lib, "SDL_aligned_free")
+	// // purego.RegisterLibFunc(&sdlasin, lib, "SDL_asin")
+	// // purego.RegisterLibFunc(&sdlasinf, lib, "SDL_asinf")
+	// // purego.RegisterLibFunc(&sdlasprintf, lib, "SDL_asprintf")
+	// // purego.RegisterLibFunc(&sdlAsyncIOFromFile, lib, "SDL_AsyncIOFromFile")
+	// // purego.RegisterLibFunc(&sdlatan, lib, "SDL_atan")
+	// // purego.RegisterLibFunc(&sdlatan2, lib, "SDL_atan2")
+	// // purego.RegisterLibFunc(&sdlatan2f, lib, "SDL_atan2f")
+	// // purego.RegisterLibFunc(&sdlatanf, lib, "SDL_atanf")
+	// // purego.RegisterLibFunc(&sdlatof, lib, "SDL_atof")
+	// // purego.RegisterLibFunc(&sdlatoi, lib, "SDL_atoi")
+	// // purego.RegisterLibFunc(&sdlAttachVirtualJoystick, lib, "SDL_AttachVirtualJoystick")
+	// // purego.RegisterLibFunc(&sdlAudioDevicePaused, lib, "SDL_AudioDevicePaused")
+	// sdlAudioStreamDevicePausedPtr := shared.Get(lib, "SDL_AudioStreamDevicePaused")
+	// sdlAudioStreamDevicePaused = func(stream *AudioStream) bool {
+	// 	ret, _, _ := purego.SyscallN(sdlAudioStreamDevicePausedPtr, uintptr(unsafe.Pointer(stream)))
+	// 	return byte(ret) != 0
+	// }
+	// // purego.RegisterLibFunc(&sdlBeginGPUComputePass, lib, "SDL_BeginGPUComputePass")
+	// purego.RegisterLibFunc(&sdlBeginGPUCopyPass, lib, "SDL_BeginGPUCopyPass")
+	// purego.RegisterLibFunc(&sdlBeginGPURenderPass, lib, "SDL_BeginGPURenderPass")
+	// // purego.RegisterLibFunc(&sdlBindAudioStream, lib, "SDL_BindAudioStream")
+	// // purego.RegisterLibFunc(&sdlBindAudioStreams, lib, "SDL_BindAudioStreams")
+	// // purego.RegisterLibFunc(&sdlBindGPUComputePipeline, lib, "SDL_BindGPUComputePipeline")
+	// // purego.RegisterLibFunc(&sdlBindGPUComputeSamplers, lib, "SDL_BindGPUComputeSamplers")
+	// // purego.RegisterLibFunc(&sdlBindGPUComputeStorageBuffers, lib, "SDL_BindGPUComputeStorageBuffers")
+	// // purego.RegisterLibFunc(&sdlBindGPUComputeStorageTextures, lib, "SDL_BindGPUComputeStorageTextures")
+	// purego.RegisterLibFunc(&sdlBindGPUFragmentSamplers, lib, "SDL_BindGPUFragmentSamplers")
+	// purego.RegisterLibFunc(&sdlBindGPUFragmentStorageBuffers, lib, "SDL_BindGPUFragmentStorageBuffers")
+	// // purego.RegisterLibFunc(&sdlBindGPUFragmentStorageTextures, lib, "SDL_BindGPUFragmentStorageTextures")
+	// purego.RegisterLibFunc(&sdlBindGPUGraphicsPipeline, lib, "SDL_BindGPUGraphicsPipeline")
+	// purego.RegisterLibFunc(&sdlBindGPUIndexBuffer, lib, "SDL_BindGPUIndexBuffer")
+	// purego.RegisterLibFunc(&sdlBindGPUVertexBuffers, lib, "SDL_BindGPUVertexBuffers")
+	// // purego.RegisterLibFunc(&sdlBindGPUVertexSamplers, lib, "SDL_BindGPUVertexSamplers")
+	// purego.RegisterLibFunc(&sdlBindGPUVertexStorageBuffers, lib, "SDL_BindGPUVertexStorageBuffers")
+	// // purego.RegisterLibFunc(&sdlBindGPUVertexStorageTextures, lib, "SDL_BindGPUVertexStorageTextures")
+	// // purego.RegisterLibFunc(&sdlBlitGPUTexture, lib, "SDL_BlitGPUTexture")
+	// purego.RegisterLibFunc(&sdlBlitSurface, lib, "SDL_BlitSurface")
+	// // purego.RegisterLibFunc(&sdlBlitSurface9Grid, lib, "SDL_BlitSurface9Grid")
+	// // purego.RegisterLibFunc(&sdlBlitSurfaceScaled, lib, "SDL_BlitSurfaceScaled")
+	// // purego.RegisterLibFunc(&sdlBlitSurfaceTiled, lib, "SDL_BlitSurfaceTiled")
+	// // purego.RegisterLibFunc(&sdlBlitSurfaceTiledWithScale, lib, "SDL_BlitSurfaceTiledWithScale")
+	// // purego.RegisterLibFunc(&sdlBlitSurfaceUnchecked, lib, "SDL_BlitSurfaceUnchecked")
+	// // purego.RegisterLibFunc(&sdlBlitSurfaceUncheckedScaled, lib, "SDL_BlitSurfaceUncheckedScaled")
+	// // purego.RegisterLibFunc(&sdlBroadcastCondition, lib, "SDL_BroadcastCondition")
+	// // purego.RegisterLibFunc(&sdlbsearch, lib, "SDL_bsearch")
+	// // purego.RegisterLibFunc(&sdlbsearch_r, lib, "SDL_bsearch_r")
+	// // purego.RegisterLibFunc(&sdlCalculateGPUTextureFormatSize, lib, "SDL_CalculateGPUTextureFormatSize")
+	// // purego.RegisterLibFunc(&sdlcalloc, lib, "SDL_calloc")
+	// // purego.RegisterLibFunc(&sdlCancelGPUCommandBuffer, lib, "SDL_CancelGPUCommandBuffer")
+	// purego.RegisterLibFunc(&sdlCaptureMouse, lib, "SDL_CaptureMouse")
+	// // purego.RegisterLibFunc(&sdlceil, lib, "SDL_ceil")
+	// // purego.RegisterLibFunc(&sdlceilf, lib, "SDL_ceilf")
+	// purego.RegisterLibFunc(&sdlClaimWindowForGPUDevice, lib, "SDL_ClaimWindowForGPUDevice")
+	// // purego.RegisterLibFunc(&sdlCleanupTLS, lib, "SDL_CleanupTLS")
+	sdlClearAudioStream = func(stream *AudioStream) bool {
+		return bridge.Call("SDL_ClearAudioStream", unsafe.Pointer(stream)).Int() != 0
+	}
+	// // purego.RegisterLibFunc(&sdlClearClipboardData, lib, "SDL_ClearClipboardData")
+	// purego.RegisterLibFunc(&sdlClearComposition, lib, "SDL_ClearComposition")
+	// purego.RegisterLibFunc(&sdlClearError, lib, "SDL_ClearError")
+	// purego.RegisterLibFunc(&sdlClearProperty, lib, "SDL_ClearProperty")
+	// // purego.RegisterLibFunc(&sdlClearSurface, lib, "SDL_ClearSurface")
+	// // purego.RegisterLibFunc(&sdlClickTrayEntry, lib, "SDL_ClickTrayEntry")
+	// // purego.RegisterLibFunc(&sdlCloseAsyncIO, lib, "SDL_CloseAsyncIO")
+	// // purego.RegisterLibFunc(&sdlCloseAudioDevice, lib, "SDL_CloseAudioDevice")
+	// purego.RegisterLibFunc(&sdlCloseCamera, lib, "SDL_CloseCamera")
+	// purego.RegisterLibFunc(&sdlCloseGamepad, lib, "SDL_CloseGamepad")
+	// // purego.RegisterLibFunc(&sdlCloseHaptic, lib, "SDL_CloseHaptic")
+	// purego.RegisterLibFunc(&sdlCloseIO, lib, "SDL_CloseIO")
+	// purego.RegisterLibFunc(&sdlCloseJoystick, lib, "SDL_CloseJoystick")
+	// // purego.RegisterLibFunc(&sdlCloseSensor, lib, "SDL_CloseSensor")
+	// // purego.RegisterLibFunc(&sdlCloseStorage, lib, "SDL_CloseStorage")
+	// // purego.RegisterLibFunc(&sdlCompareAndSwapAtomicInt, lib, "SDL_CompareAndSwapAtomicInt")
+	// // purego.RegisterLibFunc(&sdlCompareAndSwapAtomicPointer, lib, "SDL_CompareAndSwapAtomicPointer")
+	// // purego.RegisterLibFunc(&sdlCompareAndSwapAtomicU32, lib, "SDL_CompareAndSwapAtomicU32")
+	// // purego.RegisterLibFunc(&sdlComposeCustomBlendMode, lib, "SDL_ComposeCustomBlendMode")
+	// // purego.RegisterLibFunc(&sdlConvertAudioSamples, lib, "SDL_ConvertAudioSamples")
+	// purego.RegisterLibFunc(&sdlConvertEventToRenderCoordinates, lib, "SDL_ConvertEventToRenderCoordinates")
+	// purego.RegisterLibFunc(&sdlConvertPixels, lib, "SDL_ConvertPixels")
+	// purego.RegisterLibFunc(&sdlConvertPixelsAndColorspace, lib, "SDL_ConvertPixelsAndColorspace")
+	// purego.RegisterLibFunc(&sdlConvertSurface, lib, "SDL_ConvertSurface")
+	// purego.RegisterLibFunc(&sdlConvertSurfaceAndColorspace, lib, "SDL_ConvertSurfaceAndColorspace")
+	// // purego.RegisterLibFunc(&sdlCopyFile, lib, "SDL_CopyFile")
+	// // purego.RegisterLibFunc(&sdlCopyGPUBufferToBuffer, lib, "SDL_CopyGPUBufferToBuffer")
+	// // purego.RegisterLibFunc(&sdlCopyGPUTextureToTexture, lib, "SDL_CopyGPUTextureToTexture")
+	// purego.RegisterLibFunc(&sdlCopyProperties, lib, "SDL_CopyProperties")
+	// // purego.RegisterLibFunc(&sdlcopysign, lib, "SDL_copysign")
+	// // purego.RegisterLibFunc(&sdlcopysignf, lib, "SDL_copysignf")
+	// // purego.RegisterLibFunc(&sdlCopyStorageFile, lib, "SDL_CopyStorageFile")
+	// // purego.RegisterLibFunc(&sdlcos, lib, "SDL_cos")
+	// // purego.RegisterLibFunc(&sdlcosf, lib, "SDL_cosf")
+	// // purego.RegisterLibFunc(&sdlcrc16, lib, "SDL_crc16")
+	// // purego.RegisterLibFunc(&sdlcrc32, lib, "SDL_crc32")
+	// // purego.RegisterLibFunc(&sdlCreateAsyncIOQueue, lib, "SDL_CreateAsyncIOQueue")
+	// // purego.RegisterLibFunc(&sdlCreateAudioStream, lib, "SDL_CreateAudioStream")
+	// purego.RegisterLibFunc(&sdlCreateColorCursor, lib, "SDL_CreateColorCursor")
+	// // purego.RegisterLibFunc(&sdlCreateCondition, lib, "SDL_CreateCondition")
+	// purego.RegisterLibFunc(&sdlCreateCursor, lib, "SDL_CreateCursor")
+	// // purego.RegisterLibFunc(&sdlCreateDirectory, lib, "SDL_CreateDirectory")
+	// // purego.RegisterLibFunc(&sdlCreateEnvironment, lib, "SDL_CreateEnvironment")
+	// purego.RegisterLibFunc(&sdlCreateGPUBuffer, lib, "SDL_CreateGPUBuffer")
+	// // purego.RegisterLibFunc(&sdlCreateGPUComputePipeline, lib, "SDL_CreateGPUComputePipeline")
+	sdlCreateGPUDevice = func(formatFlags GPUShaderFormat, debugMode bool, name *byte) *GPUDevice {
+		res := bridge.Call("SDL_CreateGPUDevice", uint32(formatFlags), debugMode, convert.ToString(name)).Int()
+		if res == 0 {
+			return nil
+		}
+		return (*GPUDevice)(unsafe.Pointer(uintptr(res)))
+	}
+	// // purego.RegisterLibFunc(&sdlCreateGPUDeviceWithProperties, lib, "SDL_CreateGPUDeviceWithProperties")
+	// purego.RegisterLibFunc(&sdlCreateGPUGraphicsPipeline, lib, "SDL_CreateGPUGraphicsPipeline")
+	// purego.RegisterLibFunc(&sdlCreateGPUSampler, lib, "SDL_CreateGPUSampler")
+	// purego.RegisterLibFunc(&sdlCreateGPUShader, lib, "SDL_CreateGPUShader")
+	// purego.RegisterLibFunc(&sdlCreateGPUTexture, lib, "SDL_CreateGPUTexture")
+	// purego.RegisterLibFunc(&sdlCreateGPUTransferBuffer, lib, "SDL_CreateGPUTransferBuffer")
+	// // purego.RegisterLibFunc(&sdlCreateHapticEffect, lib, "SDL_CreateHapticEffect")
+	// // purego.RegisterLibFunc(&sdlCreateMutex, lib, "SDL_CreateMutex")
+	// purego.RegisterLibFunc(&sdlCreatePalette, lib, "SDL_CreatePalette")
+	// // purego.RegisterLibFunc(&sdlCreatePopupWindow, lib, "SDL_CreatePopupWindow")
+	// // purego.RegisterLibFunc(&sdlCreateProcess, lib, "SDL_CreateProcess")
+	// // purego.RegisterLibFunc(&sdlCreateProcessWithProperties, lib, "SDL_CreateProcessWithProperties")
+	// purego.RegisterLibFunc(&sdlCreateProperties, lib, "SDL_CreateProperties")
+	sdlCreateProperties = func() PropertiesID {
+		return PropertiesID(bridge.Call("SDL_CreateProperties").Int())
+	}
+	sdlCreateRenderer = func(window *Window, name *byte) *Renderer {
+		res := bridge.Call("SDL_CreateRenderer", unsafe.Pointer(window), convert.ToString(name)).Int()
+		if res == 0 {
+			return nil
+		}
+		return (*Renderer)(unsafe.Pointer(uintptr(res)))
+	}
+	sdlCreateRendererWithProperties = func(props PropertiesID) *Renderer {
+		res := bridge.Call("SDL_CreateRendererWithProperties", uint32(props)).Int()
+		if res == 0 {
+			return nil
+		}
+		return (*Renderer)(unsafe.Pointer(uintptr(res)))
+	}
+	// // purego.RegisterLibFunc(&sdlCreateRWLock, lib, "SDL_CreateRWLock")
+	// // purego.RegisterLibFunc(&sdlCreateSemaphore, lib, "SDL_CreateSemaphore")
+	// purego.RegisterLibFunc(&sdlCreateSoftwareRenderer, lib, "SDL_CreateSoftwareRenderer")
+	// // purego.RegisterLibFunc(&sdlCreateStorageDirectory, lib, "SDL_CreateStorageDirectory")
+	// purego.RegisterLibFunc(&sdlCreateSurface, lib, "SDL_CreateSurface")
+	// purego.RegisterLibFunc(&sdlCreateSurfaceFrom, lib, "SDL_CreateSurfaceFrom")
+	// purego.RegisterLibFunc(&sdlCreateSurfacePalette, lib, "SDL_CreateSurfacePalette")
+	// purego.RegisterLibFunc(&sdlCreateSystemCursor, lib, "SDL_CreateSystemCursor")
+	// purego.RegisterLibFunc(&sdlCreateTexture, lib, "SDL_CreateTexture")
+	sdlCreateTextureFromSurface = func(renderer *Renderer, surface *Surface) *Texture {
+		res := bridge.Call("SDL_CreateTextureFromSurface", unsafe.Pointer(renderer), StructToSDLPointer[unsafe.Pointer(surface)]).Int()
+		if res == 0 {
+			return nil
+		}
+		tex := Texture{}
+		texBytes := unsafe.Slice((*byte)(unsafe.Pointer(&tex)), unsafe.Sizeof(Texture{}))
+		memoryView := bridge.Call("copyBytes", res, unsafe.Sizeof(Texture{}))
+		js.CopyBytesToGo(texBytes, memoryView)
+		StructToSDLPointer[unsafe.Pointer(&tex)] = res
+		return &tex
+	}
+	// purego.RegisterLibFunc(&sdlCreateTextureWithProperties, lib, "SDL_CreateTextureWithProperties")
+	// // purego.RegisterLibFunc(&sdlCreateThreadRuntime, lib, "SDL_CreateThreadRuntime")
+	// // purego.RegisterLibFunc(&sdlCreateThreadWithPropertiesRuntime, lib, "SDL_CreateThreadWithPropertiesRuntime")
+	// // purego.RegisterLibFunc(&sdlCreateTray, lib, "SDL_CreateTray")
+	// // purego.RegisterLibFunc(&sdlCreateTrayMenu, lib, "SDL_CreateTrayMenu")
+	// // purego.RegisterLibFunc(&sdlCreateTraySubmenu, lib, "SDL_CreateTraySubmenu")
+	sdlCreateWindow = func(title string, width, height int32, flags WindowFlags) *Window {
+		res := bridge.Call("SDL_CreateWindow", title, width, height, uint32(flags)).Int()
+		if res == 0 {
+			return nil
+		}
+		return (*Window)(unsafe.Pointer(uintptr(res)))
+	}
+	sdlCreateWindowAndRenderer = func(title string, width, height int32, flags WindowFlags, window **Window, renderer **Renderer) bool {
+		res := bridge.Call("SDL_CreateWindowAndRenderer", title, width, height, uint32(flags), 0, 0)
+		result := res.Index(0).Int()
+		if result != 0 {
+			if window != nil {
+				*window = (*Window)(unsafe.Pointer(uintptr(res.Index(1).Int())))
+			}
+			if renderer != nil {
+				*renderer = (*Renderer)(unsafe.Pointer(uintptr(res.Index(2).Int())))
+			}
+		}
+		return result != 0
+	}
+	// purego.RegisterLibFunc(&sdlCreateWindowWithProperties, lib, "SDL_CreateWindowWithProperties")
+	// purego.RegisterLibFunc(&sdlCursorVisible, lib, "SDL_CursorVisible")
+	// // purego.RegisterLibFunc(&sdlDateTimeToTime, lib, "SDL_DateTimeToTime")
+	// // purego.RegisterLibFunc(&sdlDelay, lib, "SDL_Delay")
+	// purego.RegisterLibFunc(&sdlDelayNS, lib, "SDL_DelayNS")
+	// // purego.RegisterLibFunc(&sdlDelayPrecise, lib, "SDL_DelayPrecise")
+	// // purego.RegisterLibFunc(&sdlDestroyAsyncIOQueue, lib, "SDL_DestroyAsyncIOQueue")
+	sdlDestroyAudioStream = func(stream *AudioStream) { bridge.Call("SDL_DestroyAudioStream", unsafe.Pointer(stream)) }
+	// // purego.RegisterLibFunc(&sdlDestroyCondition, lib, "SDL_DestroyCondition")
+	// purego.RegisterLibFunc(&sdlDestroyCursor, lib, "SDL_DestroyCursor")
+	// // purego.RegisterLibFunc(&sdlDestroyEnvironment, lib, "SDL_DestroyEnvironment")
+	sdlDestroyGPUDevice = func(device *GPUDevice) { bridge.Call("SDL_DestroyGPUDevice", unsafe.Pointer(device)) }
+	// // purego.RegisterLibFunc(&sdlDestroyHapticEffect, lib, "SDL_DestroyHapticEffect")
+	// // purego.RegisterLibFunc(&sdlDestroyMutex, lib, "SDL_DestroyMutex")
+	// purego.RegisterLibFunc(&sdlDestroyPalette, lib, "SDL_DestroyPalette")
+	// // purego.RegisterLibFunc(&sdlDestroyProcess, lib, "SDL_DestroyProcess")
+	// purego.RegisterLibFunc(&sdlDestroyProperties, lib, "SDL_DestroyProperties")
+	sdlDestroyRenderer = func(renderer *Renderer) { bridge.Call("SDL_DestroyRenderer", unsafe.Pointer(renderer)) }
+	// // purego.RegisterLibFunc(&sdlDestroyRWLock, lib, "SDL_DestroyRWLock")
+	// // purego.RegisterLibFunc(&sdlDestroySemaphore, lib, "SDL_DestroySemaphore")
+	sdlDestroySurface = func(surface *Surface) { bridge.Call("SDL_DestroySurface", StructToSDLPointer[unsafe.Pointer(surface)]) }
+	sdlDestroyTexture = func(texture *Texture) { bridge.Call("SDL_DestroyTexture", StructToSDLPointer[unsafe.Pointer(texture)]) }
+	// // purego.RegisterLibFunc(&sdlDestroyTray, lib, "SDL_DestroyTray")
+	sdlDestroyWindow = func(window *Window) { bridge.Call("SDL_DestroyWindow", unsafe.Pointer(window)) }
+	// purego.RegisterLibFunc(&sdlDestroyWindowSurface, lib, "SDL_DestroyWindowSurface")
+	// // purego.RegisterLibFunc(&sdlDetachThread, lib, "SDL_DetachThread")
+	// // purego.RegisterLibFunc(&sdlDetachVirtualJoystick, lib, "SDL_DetachVirtualJoystick")
+	// purego.RegisterLibFunc(&sdlDisableScreenSaver, lib, "SDL_DisableScreenSaver")
+	// // purego.RegisterLibFunc(&sdlDispatchGPUCompute, lib, "SDL_DispatchGPUCompute")
+	// // purego.RegisterLibFunc(&sdlDispatchGPUComputeIndirect, lib, "SDL_DispatchGPUComputeIndirect")
+	// // purego.RegisterLibFunc(&sdlDownloadFromGPUBuffer, lib, "SDL_DownloadFromGPUBuffer")
+	// // purego.RegisterLibFunc(&sdlDownloadFromGPUTexture, lib, "SDL_DownloadFromGPUTexture")
+	// purego.RegisterLibFunc(&sdlDrawGPUIndexedPrimitives, lib, "SDL_DrawGPUIndexedPrimitives")
+	// // purego.RegisterLibFunc(&sdlDrawGPUIndexedPrimitivesIndirect, lib, "SDL_DrawGPUIndexedPrimitivesIndirect")
+	// purego.RegisterLibFunc(&sdlDrawGPUPrimitives, lib, "SDL_DrawGPUPrimitives")
+	// // purego.RegisterLibFunc(&sdlDrawGPUPrimitivesIndirect, lib, "SDL_DrawGPUPrimitivesIndirect")
+	// purego.RegisterLibFunc(&sdlDuplicateSurface, lib, "SDL_DuplicateSurface")
+	// // purego.RegisterLibFunc(&sdlEGL_GetCurrentConfig, lib, "SDL_EGL_GetCurrentConfig")
+	// // purego.RegisterLibFunc(&sdlEGL_GetCurrentDisplay, lib, "SDL_EGL_GetCurrentDisplay")
+	// // purego.RegisterLibFunc(&sdlEGL_GetProcAddress, lib, "SDL_EGL_GetProcAddress")
+	// // purego.RegisterLibFunc(&sdlEGL_GetWindowSurface, lib, "SDL_EGL_GetWindowSurface")
+	// // purego.RegisterLibFunc(&sdlEGL_SetAttributeCallbacks, lib, "SDL_EGL_SetAttributeCallbacks")
+	// purego.RegisterLibFunc(&sdlEnableScreenSaver, lib, "SDL_EnableScreenSaver")
+	// // purego.RegisterLibFunc(&sdlEndGPUComputePass, lib, "SDL_EndGPUComputePass")
+	// purego.RegisterLibFunc(&sdlEndGPUCopyPass, lib, "SDL_EndGPUCopyPass")
+	// purego.RegisterLibFunc(&sdlEndGPURenderPass, lib, "SDL_EndGPURenderPass")
+	sdlEnterAppMainCallbacks = func(argc int32, argv **byte, appInit AppInitFunc, appIter AppIterateFunc, appEvent AppEventFunc, appQuit AppQuitFunc) int32 {
+		initFuncPtr := js.FuncOf(func(this js.Value, args []js.Value) any {
+			var appState unsafe.Pointer
+			res := appInit(&appState, 0, nil)
+			if appState != nil && len(args) > 0 {
+				bridge.Call("setValue", args[0], appState, "i32")
+			}
+			return int32(res)
+		})
+		iterateFuncPtr := js.FuncOf(func(this js.Value, args []js.Value) any {
+			var appState unsafe.Pointer
+			if len(args) > 0 {
+				appState = unsafe.Pointer(uintptr(args[0].Int()))
+			}
+			return int32(appIter(appState))
+		})
+		eventFuncPtr := js.FuncOf(func(this js.Value, args []js.Value) any {
+			var appState unsafe.Pointer
+			if len(args) > 0 {
+				appState = unsafe.Pointer(uintptr(args[0].Int()))
+			}
+			var event Event
+			if len(args) > 1 {
+				ptr := args[1].Int()
+				js.CopyBytesToGo(event[:], bridge.Call("copyBytes", ptr, 128))
+			}
+			return int32(appEvent(appState, &event))
+		})
+		quitFuncPtr := js.FuncOf(func(this js.Value, args []js.Value) any {
+			var appState unsafe.Pointer
+			if len(args) > 0 {
+				appState = unsafe.Pointer(uintptr(args[0].Int()))
+			}
+			result := int32(-1)
+			if len(args) > 1 {
+				result = int32(args[1].Int())
+			}
+			appQuit(appState, result)
+			return nil
+		})
+		return int32(bridge.Call("SDL_EnterAppMainCallbacks", argc, nil, initFuncPtr, iterateFuncPtr, eventFuncPtr, quitFuncPtr).Int())
+	}
+	// // purego.RegisterLibFunc(&sdlEnumerateDirectory, lib, "SDL_EnumerateDirectory")
+	// purego.RegisterLibFunc(&sdlEnumerateProperties, lib, "SDL_EnumerateProperties")
+	// // purego.RegisterLibFunc(&sdlEnumerateStorageDirectory, lib, "SDL_EnumerateStorageDirectory")
+	// purego.RegisterLibFunc(&sdlEventEnabled, lib, "SDL_EventEnabled")
+	// // purego.RegisterLibFunc(&sdlexp, lib, "SDL_exp")
+	// // purego.RegisterLibFunc(&sdlexpf, lib, "SDL_expf")
+	// // purego.RegisterLibFunc(&sdlfabs, lib, "SDL_fabs")
+	// // purego.RegisterLibFunc(&sdlfabsf, lib, "SDL_fabsf")
+	// purego.RegisterLibFunc(&sdlFillSurfaceRect, lib, "SDL_FillSurfaceRect")
+	// // purego.RegisterLibFunc(&sdlFillSurfaceRects, lib, "SDL_FillSurfaceRects")
+	// purego.RegisterLibFunc(&sdlFilterEvents, lib, "SDL_FilterEvents")
+	// purego.RegisterLibFunc(&sdlFlashWindow, lib, "SDL_FlashWindow")
+	// purego.RegisterLibFunc(&sdlFlipSurface, lib, "SDL_FlipSurface")
+	// // purego.RegisterLibFunc(&sdlfloor, lib, "SDL_floor")
+	// // purego.RegisterLibFunc(&sdlfloorf, lib, "SDL_floorf")
+	// sdlFlushAudioStreamPtr := shared.Get(lib, "SDL_FlushAudioStream")
+	// sdlFlushAudioStream = func(stream *AudioStream) bool {
+	// 	ret, _, _ := purego.SyscallN(sdlFlushAudioStreamPtr, uintptr(unsafe.Pointer(stream)))
+	// 	return byte(ret) != 0
+	// }
+	// purego.RegisterLibFunc(&sdlFlushEvent, lib, "SDL_FlushEvent")
+	// purego.RegisterLibFunc(&sdlFlushEvents, lib, "SDL_FlushEvents")
+	// // purego.RegisterLibFunc(&sdlFlushIO, lib, "SDL_FlushIO")
+	// sdlFlushRendererPtr := shared.Get(lib, "SDL_FlushRenderer")
+	// sdlFlushRenderer = func(renderer *Renderer) bool {
+	// 	ret, _, _ := purego.SyscallN(sdlFlushRendererPtr, uintptr(unsafe.Pointer(renderer)))
+	// 	return byte(ret) != 0
+	// }
+	// // purego.RegisterLibFunc(&sdlfmod, lib, "SDL_fmod")
+	// // purego.RegisterLibFunc(&sdlfmodf, lib, "SDL_fmodf")
+	sdlfree = func(mem unsafe.Pointer) { bridge.Call("SDL_free", mem) }
+	// // purego.RegisterLibFunc(&sdlGamepadConnected, lib, "SDL_GamepadConnected")
+	// // purego.RegisterLibFunc(&sdlGamepadEventsEnabled, lib, "SDL_GamepadEventsEnabled")
+	// // purego.RegisterLibFunc(&sdlGamepadHasAxis, lib, "SDL_GamepadHasAxis")
+	// // purego.RegisterLibFunc(&sdlGamepadHasButton, lib, "SDL_GamepadHasButton")
+	// // purego.RegisterLibFunc(&sdlGamepadHasSensor, lib, "SDL_GamepadHasSensor")
+	// // purego.RegisterLibFunc(&sdlGamepadSensorEnabled, lib, "SDL_GamepadSensorEnabled")
+	// // purego.RegisterLibFunc(&sdlGDKSuspendComplete, lib, "SDL_GDKSuspendComplete")
+	// // purego.RegisterLibFunc(&sdlGenerateMipmapsForGPUTexture, lib, "SDL_GenerateMipmapsForGPUTexture")
+	// purego.RegisterLibFunc(&sdlGetAppMetadataProperty, lib, "SDL_GetAppMetadataProperty")
+	// // purego.RegisterLibFunc(&sdlGetAssertionHandler, lib, "SDL_GetAssertionHandler")
+	// // purego.RegisterLibFunc(&sdlGetAssertionReport, lib, "SDL_GetAssertionReport")
+	// // purego.RegisterLibFunc(&sdlGetAsyncIOResult, lib, "SDL_GetAsyncIOResult")
+	// // purego.RegisterLibFunc(&sdlGetAsyncIOSize, lib, "SDL_GetAsyncIOSize")
+	// // purego.RegisterLibFunc(&sdlGetAtomicInt, lib, "SDL_GetAtomicInt")
+	// // purego.RegisterLibFunc(&sdlGetAtomicPointer, lib, "SDL_GetAtomicPointer")
+	// // purego.RegisterLibFunc(&sdlGetAtomicU32, lib, "SDL_GetAtomicU32")
+	// // purego.RegisterLibFunc(&sdlGetAudioDeviceChannelMap, lib, "SDL_GetAudioDeviceChannelMap")
+	// // purego.RegisterLibFunc(&sdlGetAudioDeviceFormat, lib, "SDL_GetAudioDeviceFormat")
+	// // purego.RegisterLibFunc(&sdlGetAudioDeviceGain, lib, "SDL_GetAudioDeviceGain")
+	// // purego.RegisterLibFunc(&sdlGetAudioDeviceName, lib, "SDL_GetAudioDeviceName")
+	// purego.RegisterLibFunc(&sdlGetAudioDriver, lib, "SDL_GetAudioDriver")
+	// // purego.RegisterLibFunc(&sdlGetAudioFormatName, lib, "SDL_GetAudioFormatName")
+	// // purego.RegisterLibFunc(&sdlGetAudioPlaybackDevices, lib, "SDL_GetAudioPlaybackDevices")
+	// // purego.RegisterLibFunc(&sdlGetAudioRecordingDevices, lib, "SDL_GetAudioRecordingDevices")
+	// // purego.RegisterLibFunc(&sdlGetAudioStreamAvailable, lib, "SDL_GetAudioStreamAvailable")
+	// // purego.RegisterLibFunc(&sdlGetAudioStreamData, lib, "SDL_GetAudioStreamData")
+	// purego.RegisterLibFunc(&sdlGetAudioStreamDevice, lib, "SDL_GetAudioStreamDevice")
+	// purego.RegisterLibFunc(&sdlGetAudioStreamFormat, lib, "SDL_GetAudioStreamFormat")
+	// purego.RegisterLibFunc(&sdlGetAudioStreamFrequencyRatio, lib, "SDL_GetAudioStreamFrequencyRatio")
+	// purego.RegisterLibFunc(&sdlGetAudioStreamGain, lib, "SDL_GetAudioStreamGain")
+	// // purego.RegisterLibFunc(&sdlGetAudioStreamInputChannelMap, lib, "SDL_GetAudioStreamInputChannelMap")
+	// // purego.RegisterLibFunc(&sdlGetAudioStreamOutputChannelMap, lib, "SDL_GetAudioStreamOutputChannelMap")
+	// // purego.RegisterLibFunc(&sdlGetAudioStreamProperties, lib, "SDL_GetAudioStreamProperties")
+	sdlGetAudioStreamQueued = func(stream *AudioStream) int32 {
+		return int32(bridge.Call("SDL_GetAudioStreamQueued", unsafe.Pointer(stream)).Int())
+	}
+	// purego.RegisterLibFunc(&sdlGetBasePath, lib, "SDL_GetBasePath")
+	// purego.RegisterLibFunc(&sdlGetBooleanProperty, lib, "SDL_GetBooleanProperty")
+	// purego.RegisterLibFunc(&sdlGetCameraDriver, lib, "SDL_GetCameraDriver")
+	// purego.RegisterLibFunc(&sdlGetCameraFormat, lib, "SDL_GetCameraFormat")
+	// purego.RegisterLibFunc(&sdlGetCameraID, lib, "SDL_GetCameraID")
+	// purego.RegisterLibFunc(&sdlGetCameraName, lib, "SDL_GetCameraName")
+	// purego.RegisterLibFunc(&sdlGetCameraPermissionState, lib, "SDL_GetCameraPermissionState")
+	// purego.RegisterLibFunc(&sdlGetCameraPosition, lib, "SDL_GetCameraPosition")
+	// purego.RegisterLibFunc(&sdlGetCameraProperties, lib, "SDL_GetCameraProperties")
+	// purego.RegisterLibFunc(&sdlGetCameras, lib, "SDL_GetCameras")
+	// purego.RegisterLibFunc(&sdlGetCameraSupportedFormats, lib, "SDL_GetCameraSupportedFormats")
+	// // purego.RegisterLibFunc(&sdlGetClipboardData, lib, "SDL_GetClipboardData")
+	// // purego.RegisterLibFunc(&sdlGetClipboardMimeTypes, lib, "SDL_GetClipboardMimeTypes")
+	// purego.RegisterLibFunc(&sdlGetClipboardText, lib, "SDL_GetClipboardText")
+	// purego.RegisterLibFunc(&sdlGetClosestFullscreenDisplayMode, lib, "SDL_GetClosestFullscreenDisplayMode")
+	// purego.RegisterLibFunc(&sdlGetCPUCacheLineSize, lib, "SDL_GetCPUCacheLineSize")
+	// purego.RegisterLibFunc(&sdlGetCurrentAudioDriver, lib, "SDL_GetCurrentAudioDriver")
+	// purego.RegisterLibFunc(&sdlGetCurrentCameraDriver, lib, "SDL_GetCurrentCameraDriver")
+	// purego.RegisterLibFunc(&sdlGetCurrentDirectory, lib, "SDL_GetCurrentDirectory")
+	// purego.RegisterLibFunc(&sdlGetCurrentDisplayMode, lib, "SDL_GetCurrentDisplayMode")
+	// purego.RegisterLibFunc(&sdlGetCurrentDisplayOrientation, lib, "SDL_GetCurrentDisplayOrientation")
+	// purego.RegisterLibFunc(&sdlGetCurrentRenderOutputSize, lib, "SDL_GetCurrentRenderOutputSize")
+	// // purego.RegisterLibFunc(&sdlGetCurrentThreadID, lib, "SDL_GetCurrentThreadID")
+	// // purego.RegisterLibFunc(&sdlGetCurrentTime, lib, "SDL_GetCurrentTime")
+	// purego.RegisterLibFunc(&sdlGetCurrentVideoDriver, lib, "SDL_GetCurrentVideoDriver")
+	// purego.RegisterLibFunc(&sdlGetCursor, lib, "SDL_GetCursor")
+	// // purego.RegisterLibFunc(&sdlGetDateTimeLocalePreferences, lib, "SDL_GetDateTimeLocalePreferences")
+	// // purego.RegisterLibFunc(&sdlGetDayOfWeek, lib, "SDL_GetDayOfWeek")
+	// // purego.RegisterLibFunc(&sdlGetDayOfYear, lib, "SDL_GetDayOfYear")
+	// // purego.RegisterLibFunc(&sdlGetDaysInMonth, lib, "SDL_GetDaysInMonth")
+	// // purego.RegisterLibFunc(&sdlGetDefaultAssertionHandler, lib, "SDL_GetDefaultAssertionHandler")
+	// purego.RegisterLibFunc(&sdlGetDefaultCursor, lib, "SDL_GetDefaultCursor")
+	// // purego.RegisterLibFunc(&sdlGetDefaultLogOutputFunction, lib, "SDL_GetDefaultLogOutputFunction")
+	// purego.RegisterLibFunc(&sdlGetDesktopDisplayMode, lib, "SDL_GetDesktopDisplayMode")
+	// purego.RegisterLibFunc(&sdlGetDisplayBounds, lib, "SDL_GetDisplayBounds")
+	// purego.RegisterLibFunc(&sdlGetDisplayContentScale, lib, "SDL_GetDisplayContentScale")
+	// purego.RegisterLibFunc(&sdlGetDisplayForPoint, lib, "SDL_GetDisplayForPoint")
+	// purego.RegisterLibFunc(&sdlGetDisplayForRect, lib, "SDL_GetDisplayForRect")
+	// purego.RegisterLibFunc(&sdlGetDisplayForWindow, lib, "SDL_GetDisplayForWindow")
+	// purego.RegisterLibFunc(&sdlGetDisplayName, lib, "SDL_GetDisplayName")
+	// purego.RegisterLibFunc(&sdlGetDisplayProperties, lib, "SDL_GetDisplayProperties")
+	// purego.RegisterLibFunc(&sdlGetDisplays, lib, "SDL_GetDisplays")
+	// purego.RegisterLibFunc(&sdlGetDisplayUsableBounds, lib, "SDL_GetDisplayUsableBounds")
+	// // purego.RegisterLibFunc(&sdlgetenv, lib, "SDL_getenv")
+	// // purego.RegisterLibFunc(&sdlgetenv_unsafe, lib, "SDL_getenv_unsafe")
+	// // purego.RegisterLibFunc(&sdlGetEnvironment, lib, "SDL_GetEnvironment")
+	// // purego.RegisterLibFunc(&sdlGetEnvironmentVariable, lib, "SDL_GetEnvironmentVariable")
+	// // purego.RegisterLibFunc(&sdlGetEnvironmentVariables, lib, "SDL_GetEnvironmentVariables")
+	sdlGetError = func() string { return bridge.Call("SDL_GetError").String() }
+	// purego.RegisterLibFunc(&sdlGetEventFilter, lib, "SDL_GetEventFilter")
+	// purego.RegisterLibFunc(&sdlGetFloatProperty, lib, "SDL_GetFloatProperty")
+	// purego.RegisterLibFunc(&sdlGetFullscreenDisplayModes, lib, "SDL_GetFullscreenDisplayModes")
+	// // purego.RegisterLibFunc(&sdlGetGamepadAppleSFSymbolsNameForAxis, lib, "SDL_GetGamepadAppleSFSymbolsNameForAxis")
+	// // purego.RegisterLibFunc(&sdlGetGamepadAppleSFSymbolsNameForButton, lib, "SDL_GetGamepadAppleSFSymbolsNameForButton")
+	// // purego.RegisterLibFunc(&sdlGetGamepadAxis, lib, "SDL_GetGamepadAxis")
+	// // purego.RegisterLibFunc(&sdlGetGamepadAxisFromString, lib, "SDL_GetGamepadAxisFromString")
+	// purego.RegisterLibFunc(&sdlGetGamepadBindings, lib, "SDL_GetGamepadBindings")
+	// // purego.RegisterLibFunc(&sdlGetGamepadButton, lib, "SDL_GetGamepadButton")
+	// // purego.RegisterLibFunc(&sdlGetGamepadButtonFromString, lib, "SDL_GetGamepadButtonFromString")
+	// // purego.RegisterLibFunc(&sdlGetGamepadButtonLabel, lib, "SDL_GetGamepadButtonLabel")
+	// // purego.RegisterLibFunc(&sdlGetGamepadButtonLabelForType, lib, "SDL_GetGamepadButtonLabelForType")
+	// // purego.RegisterLibFunc(&sdlGetGamepadConnectionState, lib, "SDL_GetGamepadConnectionState")
+	// // purego.RegisterLibFunc(&sdlGetGamepadFirmwareVersion, lib, "SDL_GetGamepadFirmwareVersion")
+	// purego.RegisterLibFunc(&sdlGetGamepadFromID, lib, "SDL_GetGamepadFromID")
+	// // purego.RegisterLibFunc(&sdlGetGamepadFromPlayerIndex, lib, "SDL_GetGamepadFromPlayerIndex")
+	// // purego.RegisterLibFunc(&sdlGetGamepadGUIDForID, lib, "SDL_GetGamepadGUIDForID")
+	// // purego.RegisterLibFunc(&sdlGetGamepadID, lib, "SDL_GetGamepadID")
+	// // purego.RegisterLibFunc(&sdlGetGamepadJoystick, lib, "SDL_GetGamepadJoystick")
+	// // purego.RegisterLibFunc(&sdlGetGamepadMapping, lib, "SDL_GetGamepadMapping")
+	// // purego.RegisterLibFunc(&sdlGetGamepadMappingForGUID, lib, "SDL_GetGamepadMappingForGUID")
+	// // purego.RegisterLibFunc(&sdlGetGamepadMappingForID, lib, "SDL_GetGamepadMappingForID")
+	// // purego.RegisterLibFunc(&sdlGetGamepadMappings, lib, "SDL_GetGamepadMappings")
+	// purego.RegisterLibFunc(&sdlGetGamepadName, lib, "SDL_GetGamepadName")
+	// purego.RegisterLibFunc(&sdlGetGamepadNameForID, lib, "SDL_GetGamepadNameForID")
+	// // purego.RegisterLibFunc(&sdlGetGamepadPath, lib, "SDL_GetGamepadPath")
+	// // purego.RegisterLibFunc(&sdlGetGamepadPathForID, lib, "SDL_GetGamepadPathForID")
+	// // purego.RegisterLibFunc(&sdlGetGamepadPlayerIndex, lib, "SDL_GetGamepadPlayerIndex")
+	// // purego.RegisterLibFunc(&sdlGetGamepadPlayerIndexForID, lib, "SDL_GetGamepadPlayerIndexForID")
+	// // purego.RegisterLibFunc(&sdlGetGamepadPowerInfo, lib, "SDL_GetGamepadPowerInfo")
+	// // purego.RegisterLibFunc(&sdlGetGamepadProduct, lib, "SDL_GetGamepadProduct")
+	// // purego.RegisterLibFunc(&sdlGetGamepadProductForID, lib, "SDL_GetGamepadProductForID")
+	// // purego.RegisterLibFunc(&sdlGetGamepadProductVersion, lib, "SDL_GetGamepadProductVersion")
+	// // purego.RegisterLibFunc(&sdlGetGamepadProductVersionForID, lib, "SDL_GetGamepadProductVersionForID")
+	// // purego.RegisterLibFunc(&sdlGetGamepadProperties, lib, "SDL_GetGamepadProperties")
+	// purego.RegisterLibFunc(&sdlGetGamepads, lib, "SDL_GetGamepads")
+	// // purego.RegisterLibFunc(&sdlGetGamepadSensorData, lib, "SDL_GetGamepadSensorData")
+	// // purego.RegisterLibFunc(&sdlGetGamepadSensorDataRate, lib, "SDL_GetGamepadSensorDataRate")
+	// purego.RegisterLibFunc(&sdlGetGamepadSerial, lib, "SDL_GetGamepadSerial")
+	// // purego.RegisterLibFunc(&sdlGetGamepadSteamHandle, lib, "SDL_GetGamepadSteamHandle")
+	// // purego.RegisterLibFunc(&sdlGetGamepadStringForAxis, lib, "SDL_GetGamepadStringForAxis")
+	// purego.RegisterLibFunc(&sdlGetGamepadStringForButton, lib, "SDL_GetGamepadStringForButton")
+	// purego.RegisterLibFunc(&sdlGetGamepadStringForType, lib, "SDL_GetGamepadStringForType")
+	// // purego.RegisterLibFunc(&sdlGetGamepadTouchpadFinger, lib, "SDL_GetGamepadTouchpadFinger")
+	// purego.RegisterLibFunc(&sdlGetGamepadType, lib, "SDL_GetGamepadType")
+	// // purego.RegisterLibFunc(&sdlGetGamepadTypeForID, lib, "SDL_GetGamepadTypeForID")
+	// // purego.RegisterLibFunc(&sdlGetGamepadTypeFromString, lib, "SDL_GetGamepadTypeFromString")
+	// // purego.RegisterLibFunc(&sdlGetGamepadVendor, lib, "SDL_GetGamepadVendor")
+	// // purego.RegisterLibFunc(&sdlGetGamepadVendorForID, lib, "SDL_GetGamepadVendorForID")
+	// purego.RegisterLibFunc(&sdlGetGlobalMouseState, lib, "SDL_GetGlobalMouseState")
+	// purego.RegisterLibFunc(&sdlGetGlobalProperties, lib, "SDL_GetGlobalProperties")
+	// purego.RegisterLibFunc(&sdlGetGPUDeviceDriver, lib, "SDL_GetGPUDeviceDriver")
+	// purego.RegisterLibFunc(&sdlGetGPUDriver, lib, "SDL_GetGPUDriver")
+	// purego.RegisterLibFunc(&sdlGetGPUShaderFormats, lib, "SDL_GetGPUShaderFormats")
+	// purego.RegisterLibFunc(&sdlGetGPUSwapchainTextureFormat, lib, "SDL_GetGPUSwapchainTextureFormat")
+	// purego.RegisterLibFunc(&sdlGetGrabbedWindow, lib, "SDL_GetGrabbedWindow")
+	// // purego.RegisterLibFunc(&sdlGetHapticEffectStatus, lib, "SDL_GetHapticEffectStatus")
+	// // purego.RegisterLibFunc(&sdlGetHapticFeatures, lib, "SDL_GetHapticFeatures")
+	// // purego.RegisterLibFunc(&sdlGetHapticFromID, lib, "SDL_GetHapticFromID")
+	// // purego.RegisterLibFunc(&sdlGetHapticID, lib, "SDL_GetHapticID")
+	// // purego.RegisterLibFunc(&sdlGetHapticName, lib, "SDL_GetHapticName")
+	// // purego.RegisterLibFunc(&sdlGetHapticNameForID, lib, "SDL_GetHapticNameForID")
+	// // purego.RegisterLibFunc(&sdlGetHaptics, lib, "SDL_GetHaptics")
+	// purego.RegisterLibFunc(&sdlGetHint, lib, "SDL_GetHint")
+	// purego.RegisterLibFunc(&sdlGetHintBoolean, lib, "SDL_GetHintBoolean")
+	// // purego.RegisterLibFunc(&sdlGetIOProperties, lib, "SDL_GetIOProperties")
+	// // purego.RegisterLibFunc(&sdlGetIOSize, lib, "SDL_GetIOSize")
+	// // purego.RegisterLibFunc(&sdlGetIOStatus, lib, "SDL_GetIOStatus")
+	// purego.RegisterLibFunc(&sdlGetJoystickAxis, lib, "SDL_GetJoystickAxis")
+	// purego.RegisterLibFunc(&sdlGetJoystickAxisInitialState, lib, "SDL_GetJoystickAxisInitialState")
+	// purego.RegisterLibFunc(&sdlGetJoystickBall, lib, "SDL_GetJoystickBall")
+	// purego.RegisterLibFunc(&sdlGetJoystickButton, lib, "SDL_GetJoystickButton")
+	// purego.RegisterLibFunc(&sdlGetJoystickConnectionState, lib, "SDL_GetJoystickConnectionState")
+	// purego.RegisterLibFunc(&sdlGetJoystickFirmwareVersion, lib, "SDL_GetJoystickFirmwareVersion")
+	// purego.RegisterLibFunc(&sdlGetJoystickFromID, lib, "SDL_GetJoystickFromID")
+	// purego.RegisterLibFunc(&sdlGetJoystickFromPlayerIndex, lib, "SDL_GetJoystickFromPlayerIndex")
+	// // purego.RegisterLibFunc(&sdlGetJoystickGUID, lib, "SDL_GetJoystickGUID")
+	// // purego.RegisterLibFunc(&sdlGetJoystickGUIDForID, lib, "SDL_GetJoystickGUIDForID")
+	// // purego.RegisterLibFunc(&sdlGetJoystickGUIDInfo, lib, "SDL_GetJoystickGUIDInfo")
+	// purego.RegisterLibFunc(&sdlGetJoystickHat, lib, "SDL_GetJoystickHat")
+	// purego.RegisterLibFunc(&sdlGetJoystickID, lib, "SDL_GetJoystickID")
+	// purego.RegisterLibFunc(&sdlGetJoystickName, lib, "SDL_GetJoystickName")
+	// purego.RegisterLibFunc(&sdlGetJoystickNameForID, lib, "SDL_GetJoystickNameForID")
+	// purego.RegisterLibFunc(&sdlGetJoystickPath, lib, "SDL_GetJoystickPath")
+	// purego.RegisterLibFunc(&sdlGetJoystickPathForID, lib, "SDL_GetJoystickPathForID")
+	// purego.RegisterLibFunc(&sdlGetJoystickPlayerIndex, lib, "SDL_GetJoystickPlayerIndex")
+	// purego.RegisterLibFunc(&sdlGetJoystickPlayerIndexForID, lib, "SDL_GetJoystickPlayerIndexForID")
+	// purego.RegisterLibFunc(&sdlGetJoystickPowerInfo, lib, "SDL_GetJoystickPowerInfo")
+	// purego.RegisterLibFunc(&sdlGetJoystickProduct, lib, "SDL_GetJoystickProduct")
+	// purego.RegisterLibFunc(&sdlGetJoystickProductForID, lib, "SDL_GetJoystickProductForID")
+	// purego.RegisterLibFunc(&sdlGetJoystickProductVersion, lib, "SDL_GetJoystickProductVersion")
+	// purego.RegisterLibFunc(&sdlGetJoystickProductVersionForID, lib, "SDL_GetJoystickProductVersionForID")
+	// purego.RegisterLibFunc(&sdlGetJoystickProperties, lib, "SDL_GetJoystickProperties")
+	// purego.RegisterLibFunc(&sdlGetJoysticks, lib, "SDL_GetJoysticks")
+	// purego.RegisterLibFunc(&sdlGetJoystickSerial, lib, "SDL_GetJoystickSerial")
+	// purego.RegisterLibFunc(&sdlGetJoystickType, lib, "SDL_GetJoystickType")
+	// purego.RegisterLibFunc(&sdlGetJoystickTypeForID, lib, "SDL_GetJoystickTypeForID")
+	// purego.RegisterLibFunc(&sdlGetJoystickVendor, lib, "SDL_GetJoystickVendor")
+	// purego.RegisterLibFunc(&sdlGetJoystickVendorForID, lib, "SDL_GetJoystickVendorForID")
+	// purego.RegisterLibFunc(&sdlGetKeyboardFocus, lib, "SDL_GetKeyboardFocus")
+	// purego.RegisterLibFunc(&sdlGetKeyboardNameForID, lib, "SDL_GetKeyboardNameForID")
+	// purego.RegisterLibFunc(&sdlGetKeyboards, lib, "SDL_GetKeyboards")
+	// purego.RegisterLibFunc(&sdlGetKeyboardState, lib, "SDL_GetKeyboardState")
+	// purego.RegisterLibFunc(&sdlGetKeyFromName, lib, "SDL_GetKeyFromName")
+	// purego.RegisterLibFunc(&sdlGetKeyFromScancode, lib, "SDL_GetKeyFromScancode")
+	// purego.RegisterLibFunc(&sdlGetKeyName, lib, "SDL_GetKeyName")
+	// // purego.RegisterLibFunc(&sdlGetLogOutputFunction, lib, "SDL_GetLogOutputFunction")
+	// // purego.RegisterLibFunc(&sdlGetLogPriority, lib, "SDL_GetLogPriority")
+	// // purego.RegisterLibFunc(&sdlGetMasksForPixelFormat, lib, "SDL_GetMasksForPixelFormat")
+	// // purego.RegisterLibFunc(&sdlGetMaxHapticEffects, lib, "SDL_GetMaxHapticEffects")
+	// // purego.RegisterLibFunc(&sdlGetMaxHapticEffectsPlaying, lib, "SDL_GetMaxHapticEffectsPlaying")
+	// // purego.RegisterLibFunc(&sdlGetMemoryFunctions, lib, "SDL_GetMemoryFunctions")
+	// purego.RegisterLibFunc(&sdlGetMice, lib, "SDL_GetMice")
+	// purego.RegisterLibFunc(&sdlGetModState, lib, "SDL_GetModState")
+	// purego.RegisterLibFunc(&sdlGetMouseFocus, lib, "SDL_GetMouseFocus")
+	// purego.RegisterLibFunc(&sdlGetMouseNameForID, lib, "SDL_GetMouseNameForID")
+	// purego.RegisterLibFunc(&sdlGetMouseState, lib, "SDL_GetMouseState")
+	// purego.RegisterLibFunc(&sdlGetNaturalDisplayOrientation, lib, "SDL_GetNaturalDisplayOrientation")
+	// // purego.RegisterLibFunc(&sdlGetNumAllocations, lib, "SDL_GetNumAllocations")
+	// purego.RegisterLibFunc(&sdlGetNumAudioDrivers, lib, "SDL_GetNumAudioDrivers")
+	// purego.RegisterLibFunc(&sdlGetNumberProperty, lib, "SDL_GetNumberProperty")
+	// purego.RegisterLibFunc(&sdlGetNumCameraDrivers, lib, "SDL_GetNumCameraDrivers")
+	// // purego.RegisterLibFunc(&sdlGetNumGamepadTouchpadFingers, lib, "SDL_GetNumGamepadTouchpadFingers")
+	// // purego.RegisterLibFunc(&sdlGetNumGamepadTouchpads, lib, "SDL_GetNumGamepadTouchpads")
+	// purego.RegisterLibFunc(&sdlGetNumGPUDrivers, lib, "SDL_GetNumGPUDrivers")
+	// // purego.RegisterLibFunc(&sdlGetNumHapticAxes, lib, "SDL_GetNumHapticAxes")
+	// purego.RegisterLibFunc(&sdlGetNumJoystickAxes, lib, "SDL_GetNumJoystickAxes")
+	// purego.RegisterLibFunc(&sdlGetNumJoystickBalls, lib, "SDL_GetNumJoystickBalls")
+	// purego.RegisterLibFunc(&sdlGetNumJoystickButtons, lib, "SDL_GetNumJoystickButtons")
+	// purego.RegisterLibFunc(&sdlGetNumJoystickHats, lib, "SDL_GetNumJoystickHats")
+	// purego.RegisterLibFunc(&sdlGetNumLogicalCPUCores, lib, "SDL_GetNumLogicalCPUCores")
+	sdlGetNumRenderDrivers = func() int32 { return int32(bridge.Call("SDL_GetNumRenderDrivers").Int()) }
+	// purego.RegisterLibFunc(&sdlGetNumVideoDrivers, lib, "SDL_GetNumVideoDrivers")
+	// // purego.RegisterLibFunc(&sdlGetOriginalMemoryFunctions, lib, "SDL_GetOriginalMemoryFunctions")
+	// // purego.RegisterLibFunc(&sdlGetPathInfo, lib, "SDL_GetPathInfo")
+	sdlGetPerformanceCounter = func() uint64 { return uint64(bridge.Call("SDL_GetPerformanceCounter").Int()) }
+	sdlGetPerformanceFrequency = func() uint64 { return uint64(bridge.Call("SDL_GetPerformanceFrequency").Int()) }
+	// purego.RegisterLibFunc(&sdlGetPixelFormatDetails, lib, "SDL_GetPixelFormatDetails")
+	// // purego.RegisterLibFunc(&sdlGetPixelFormatForMasks, lib, "SDL_GetPixelFormatForMasks")
+	// // purego.RegisterLibFunc(&sdlGetPixelFormatName, lib, "SDL_GetPixelFormatName")
+	// // purego.RegisterLibFunc(&sdlGetPlatform, lib, "SDL_GetPlatform")
+	// purego.RegisterLibFunc(&sdlGetPointerProperty, lib, "SDL_GetPointerProperty")
+	// purego.RegisterLibFunc(&sdlGetPowerInfo, lib, "SDL_GetPowerInfo")
+	// purego.RegisterLibFunc(&sdlGetPreferredLocales, lib, "SDL_GetPreferredLocales")
+	// purego.RegisterLibFunc(&sdlGetPrefPath, lib, "SDL_GetPrefPath")
+	// purego.RegisterLibFunc(&sdlGetPrimaryDisplay, lib, "SDL_GetPrimaryDisplay")
+	// // purego.RegisterLibFunc(&sdlGetPrimarySelectionText, lib, "SDL_GetPrimarySelectionText")
+	// // purego.RegisterLibFunc(&sdlGetProcessInput, lib, "SDL_GetProcessInput")
+	// // purego.RegisterLibFunc(&sdlGetProcessOutput, lib, "SDL_GetProcessOutput")
+	// // purego.RegisterLibFunc(&sdlGetProcessProperties, lib, "SDL_GetProcessProperties")
+	// purego.RegisterLibFunc(&sdlGetPropertyType, lib, "SDL_GetPropertyType")
+	// // purego.RegisterLibFunc(&sdlGetRealGamepadType, lib, "SDL_GetRealGamepadType")
+	// // purego.RegisterLibFunc(&sdlGetRealGamepadTypeForID, lib, "SDL_GetRealGamepadTypeForID")
+	// purego.RegisterLibFunc(&sdlGetRectAndLineIntersection, lib, "SDL_GetRectAndLineIntersection")
+	// purego.RegisterLibFunc(&sdlGetRectAndLineIntersectionFloat, lib, "SDL_GetRectAndLineIntersectionFloat")
+	// purego.RegisterLibFunc(&sdlGetRectEnclosingPoints, lib, "SDL_GetRectEnclosingPoints")
+	// purego.RegisterLibFunc(&sdlGetRectEnclosingPointsFloat, lib, "SDL_GetRectEnclosingPointsFloat")
+	// purego.RegisterLibFunc(&sdlGetRectIntersection, lib, "SDL_GetRectIntersection")
+	// purego.RegisterLibFunc(&sdlGetRectIntersectionFloat, lib, "SDL_GetRectIntersectionFloat")
+	// purego.RegisterLibFunc(&sdlGetRectUnion, lib, "SDL_GetRectUnion")
+	// purego.RegisterLibFunc(&sdlGetRectUnionFloat, lib, "SDL_GetRectUnionFloat")
+	// purego.RegisterLibFunc(&sdlGetRelativeMouseState, lib, "SDL_GetRelativeMouseState")
+	// purego.RegisterLibFunc(&sdlGetRenderClipRect, lib, "SDL_GetRenderClipRect")
+	// purego.RegisterLibFunc(&sdlGetRenderColorScale, lib, "SDL_GetRenderColorScale")
+	// purego.RegisterLibFunc(&sdlGetRenderDrawBlendMode, lib, "SDL_GetRenderDrawBlendMode")
+	// purego.RegisterLibFunc(&sdlGetRenderDrawColor, lib, "SDL_GetRenderDrawColor")
+	// purego.RegisterLibFunc(&sdlGetRenderDrawColorFloat, lib, "SDL_GetRenderDrawColorFloat")
+	sdlGetRenderDriver = func(index int32) string { return bridge.Call("SDL_GetRenderDriver", index).String() }
+	// purego.RegisterLibFunc(&sdlGetRenderer, lib, "SDL_GetRenderer")
+	// purego.RegisterLibFunc(&sdlGetRendererFromTexture, lib, "SDL_GetRendererFromTexture")
+	sdlGetRendererName = func(renderer *Renderer) string {
+		return bridge.Call("SDL_GetRendererName", unsafe.Pointer(renderer)).String()
+	}
+	// purego.RegisterLibFunc(&sdlGetRendererProperties, lib, "SDL_GetRendererProperties")
+	// purego.RegisterLibFunc(&sdlGetRenderLogicalPresentation, lib, "SDL_GetRenderLogicalPresentation")
+	// purego.RegisterLibFunc(&sdlGetRenderLogicalPresentationRect, lib, "SDL_GetRenderLogicalPresentationRect")
+	// purego.RegisterLibFunc(&sdlGetRenderMetalCommandEncoder, lib, "SDL_GetRenderMetalCommandEncoder")
+	// purego.RegisterLibFunc(&sdlGetRenderMetalLayer, lib, "SDL_GetRenderMetalLayer")
+	// purego.RegisterLibFunc(&sdlGetRenderOutputSize, lib, "SDL_GetRenderOutputSize")
+	// purego.RegisterLibFunc(&sdlGetRenderSafeArea, lib, "SDL_GetRenderSafeArea")
+	// purego.RegisterLibFunc(&sdlGetRenderScale, lib, "SDL_GetRenderScale")
+	// purego.RegisterLibFunc(&sdlGetRenderTarget, lib, "SDL_GetRenderTarget")
+	// purego.RegisterLibFunc(&sdlGetRenderViewport, lib, "SDL_GetRenderViewport")
+	// purego.RegisterLibFunc(&sdlGetRenderVSync, lib, "SDL_GetRenderVSync")
+	// purego.RegisterLibFunc(&sdlGetRenderWindow, lib, "SDL_GetRenderWindow")
+	sdlGetRevision = func() string { return bridge.Call("SDL_GetRevision").String() }
+	// // purego.RegisterLibFunc(&sdlGetRGB, lib, "SDL_GetRGB")
+	// // purego.RegisterLibFunc(&sdlGetRGBA, lib, "SDL_GetRGBA")
+	// // purego.RegisterLibFunc(&sdlGetSandbox, lib, "SDL_GetSandbox")
+	// purego.RegisterLibFunc(&sdlGetScancodeFromKey, lib, "SDL_GetScancodeFromKey")
+	// purego.RegisterLibFunc(&sdlGetScancodeFromName, lib, "SDL_GetScancodeFromName")
+	// purego.RegisterLibFunc(&sdlGetScancodeName, lib, "SDL_GetScancodeName")
+	// // purego.RegisterLibFunc(&sdlGetSemaphoreValue, lib, "SDL_GetSemaphoreValue")
+	// // purego.RegisterLibFunc(&sdlGetSensorData, lib, "SDL_GetSensorData")
+	// // purego.RegisterLibFunc(&sdlGetSensorFromID, lib, "SDL_GetSensorFromID")
+	// // purego.RegisterLibFunc(&sdlGetSensorID, lib, "SDL_GetSensorID")
+	// // purego.RegisterLibFunc(&sdlGetSensorName, lib, "SDL_GetSensorName")
+	// // purego.RegisterLibFunc(&sdlGetSensorNameForID, lib, "SDL_GetSensorNameForID")
+	// // purego.RegisterLibFunc(&sdlGetSensorNonPortableType, lib, "SDL_GetSensorNonPortableType")
+	// // purego.RegisterLibFunc(&sdlGetSensorNonPortableTypeForID, lib, "SDL_GetSensorNonPortableTypeForID")
+	// // purego.RegisterLibFunc(&sdlGetSensorProperties, lib, "SDL_GetSensorProperties")
+	// // purego.RegisterLibFunc(&sdlGetSensors, lib, "SDL_GetSensors")
+	// // purego.RegisterLibFunc(&sdlGetSensorType, lib, "SDL_GetSensorType")
+	// // purego.RegisterLibFunc(&sdlGetSensorTypeForID, lib, "SDL_GetSensorTypeForID")
+	// // purego.RegisterLibFunc(&sdlGetSilenceValueForFormat, lib, "SDL_GetSilenceValueForFormat")
+	// purego.RegisterLibFunc(&sdlGetSIMDAlignment, lib, "SDL_GetSIMDAlignment")
+	// // purego.RegisterLibFunc(&sdlGetStorageFileSize, lib, "SDL_GetStorageFileSize")
+	// // purego.RegisterLibFunc(&sdlGetStoragePathInfo, lib, "SDL_GetStoragePathInfo")
+	// // purego.RegisterLibFunc(&sdlGetStorageSpaceRemaining, lib, "SDL_GetStorageSpaceRemaining")
+	// purego.RegisterLibFunc(&sdlGetStringProperty, lib, "SDL_GetStringProperty")
+	// purego.RegisterLibFunc(&sdlGetSurfaceAlphaMod, lib, "SDL_GetSurfaceAlphaMod")
+	// purego.RegisterLibFunc(&sdlGetSurfaceBlendMode, lib, "SDL_GetSurfaceBlendMode")
+	// purego.RegisterLibFunc(&sdlGetSurfaceClipRect, lib, "SDL_GetSurfaceClipRect")
+	// purego.RegisterLibFunc(&sdlGetSurfaceColorKey, lib, "SDL_GetSurfaceColorKey")
+	// purego.RegisterLibFunc(&sdlGetSurfaceColorMod, lib, "SDL_GetSurfaceColorMod")
+	// purego.RegisterLibFunc(&sdlGetSurfaceColorspace, lib, "SDL_GetSurfaceColorspace")
+	// purego.RegisterLibFunc(&sdlGetSurfaceImages, lib, "SDL_GetSurfaceImages")
+	// purego.RegisterLibFunc(&sdlGetSurfacePalette, lib, "SDL_GetSurfacePalette")
+	// purego.RegisterLibFunc(&sdlGetSurfaceProperties, lib, "SDL_GetSurfaceProperties")
+	// purego.RegisterLibFunc(&sdlGetSystemRAM, lib, "SDL_GetSystemRAM")
+	// purego.RegisterLibFunc(&sdlGetSystemTheme, lib, "SDL_GetSystemTheme")
+	// purego.RegisterLibFunc(&sdlGetTextInputArea, lib, "SDL_GetTextInputArea")
+	// purego.RegisterLibFunc(&sdlGetTextureAlphaMod, lib, "SDL_GetTextureAlphaMod")
+	// purego.RegisterLibFunc(&sdlGetTextureAlphaModFloat, lib, "SDL_GetTextureAlphaModFloat")
+	// purego.RegisterLibFunc(&sdlGetTextureBlendMode, lib, "SDL_GetTextureBlendMode")
+	// purego.RegisterLibFunc(&sdlGetTextureColorMod, lib, "SDL_GetTextureColorMod")
+	// purego.RegisterLibFunc(&sdlGetTextureColorModFloat, lib, "SDL_GetTextureColorModFloat")
+	// purego.RegisterLibFunc(&sdlGetTextureProperties, lib, "SDL_GetTextureProperties")
+	// purego.RegisterLibFunc(&sdlGetTextureScaleMode, lib, "SDL_GetTextureScaleMode")
+	// purego.RegisterLibFunc(&sdlGetTextureSize, lib, "SDL_GetTextureSize")
+	// // purego.RegisterLibFunc(&sdlGetThreadID, lib, "SDL_GetThreadID")
+	// // purego.RegisterLibFunc(&sdlGetThreadName, lib, "SDL_GetThreadName")
+	// // purego.RegisterLibFunc(&sdlGetThreadState, lib, "SDL_GetThreadState")
+	// sdlGetTicksPtr := shared.Get(lib, "SDL_GetTicks")
+	// sdlGetTicks = func() uint64 {
+	// 	ret, _, _ := purego.SyscallN(sdlGetTicksPtr)
+	// 	return uint64(ret)
+	// }
+	// sdlGetTicksNSPtr := shared.Get(lib, "SDL_GetTicksNS")
+	// sdlGetTicksNS = func() uint64 {
+	// 	ret, _, _ := purego.SyscallN(sdlGetTicksNSPtr)
+	// 	return uint64(ret)
+	// }
+	// // purego.RegisterLibFunc(&sdlGetTLS, lib, "SDL_GetTLS")
+	// // purego.RegisterLibFunc(&sdlGetTouchDeviceName, lib, "SDL_GetTouchDeviceName")
+	// // purego.RegisterLibFunc(&sdlGetTouchDevices, lib, "SDL_GetTouchDevices")
+	// // purego.RegisterLibFunc(&sdlGetTouchDeviceType, lib, "SDL_GetTouchDeviceType")
+	// // purego.RegisterLibFunc(&sdlGetTouchFingers, lib, "SDL_GetTouchFingers")
+	// // purego.RegisterLibFunc(&sdlGetTrayEntries, lib, "SDL_GetTrayEntries")
+	// // purego.RegisterLibFunc(&sdlGetTrayEntryChecked, lib, "SDL_GetTrayEntryChecked")
+	// // purego.RegisterLibFunc(&sdlGetTrayEntryEnabled, lib, "SDL_GetTrayEntryEnabled")
+	// // purego.RegisterLibFunc(&sdlGetTrayEntryLabel, lib, "SDL_GetTrayEntryLabel")
+	// // purego.RegisterLibFunc(&sdlGetTrayEntryParent, lib, "SDL_GetTrayEntryParent")
+	// // purego.RegisterLibFunc(&sdlGetTrayMenu, lib, "SDL_GetTrayMenu")
+	// // purego.RegisterLibFunc(&sdlGetTrayMenuParentEntry, lib, "SDL_GetTrayMenuParentEntry")
+	// // purego.RegisterLibFunc(&sdlGetTrayMenuParentTray, lib, "SDL_GetTrayMenuParentTray")
+	// // purego.RegisterLibFunc(&sdlGetTraySubmenu, lib, "SDL_GetTraySubmenu")
+	// // purego.RegisterLibFunc(&sdlGetUserFolder, lib, "SDL_GetUserFolder")
+	sdlGetVersion = func() int32 { return int32(bridge.Call("SDL_GetVersion").Int()) }
+	// purego.RegisterLibFunc(&sdlGetVideoDriver, lib, "SDL_GetVideoDriver")
+	// purego.RegisterLibFunc(&sdlGetWindowAspectRatio, lib, "SDL_GetWindowAspectRatio")
+	// purego.RegisterLibFunc(&sdlGetWindowBordersSize, lib, "SDL_GetWindowBordersSize")
+	// purego.RegisterLibFunc(&sdlGetWindowDisplayScale, lib, "SDL_GetWindowDisplayScale")
+	// purego.RegisterLibFunc(&sdlGetWindowFlags, lib, "SDL_GetWindowFlags")
+	// purego.RegisterLibFunc(&sdlGetWindowFromEvent, lib, "SDL_GetWindowFromEvent")
+	// purego.RegisterLibFunc(&sdlGetWindowFromID, lib, "SDL_GetWindowFromID")
+	// purego.RegisterLibFunc(&sdlGetWindowFullscreenMode, lib, "SDL_GetWindowFullscreenMode")
+	// // purego.RegisterLibFunc(&sdlGetWindowICCProfile, lib, "SDL_GetWindowICCProfile")
+	// purego.RegisterLibFunc(&sdlGetWindowID, lib, "SDL_GetWindowID")
+	// purego.RegisterLibFunc(&sdlGetWindowKeyboardGrab, lib, "SDL_GetWindowKeyboardGrab")
+	// purego.RegisterLibFunc(&sdlGetWindowMaximumSize, lib, "SDL_GetWindowMaximumSize")
+	// purego.RegisterLibFunc(&sdlGetWindowMinimumSize, lib, "SDL_GetWindowMinimumSize")
+	// purego.RegisterLibFunc(&sdlGetWindowMouseGrab, lib, "SDL_GetWindowMouseGrab")
+	// purego.RegisterLibFunc(&sdlGetWindowMouseRect, lib, "SDL_GetWindowMouseRect")
+	// purego.RegisterLibFunc(&sdlGetWindowOpacity, lib, "SDL_GetWindowOpacity")
+	// purego.RegisterLibFunc(&sdlGetWindowParent, lib, "SDL_GetWindowParent")
+	// purego.RegisterLibFunc(&sdlGetWindowPixelDensity, lib, "SDL_GetWindowPixelDensity")
+	// purego.RegisterLibFunc(&sdlGetWindowPixelFormat, lib, "SDL_GetWindowPixelFormat")
+	// purego.RegisterLibFunc(&sdlGetWindowPosition, lib, "SDL_GetWindowPosition")
+	// purego.RegisterLibFunc(&sdlGetWindowProperties, lib, "SDL_GetWindowProperties")
+	// purego.RegisterLibFunc(&sdlGetWindowRelativeMouseMode, lib, "SDL_GetWindowRelativeMouseMode")
+	// purego.RegisterLibFunc(&sdlGetWindows, lib, "SDL_GetWindows")
+	// purego.RegisterLibFunc(&sdlGetWindowSafeArea, lib, "SDL_GetWindowSafeArea")
+	// purego.RegisterLibFunc(&sdlGetWindowSize, lib, "SDL_GetWindowSize")
+	// purego.RegisterLibFunc(&sdlGetWindowSizeInPixels, lib, "SDL_GetWindowSizeInPixels")
+	// purego.RegisterLibFunc(&sdlGetWindowSurface, lib, "SDL_GetWindowSurface")
+	// purego.RegisterLibFunc(&sdlGetWindowSurfaceVSync, lib, "SDL_GetWindowSurfaceVSync")
+	sdlGetWindowTitle = func(window *Window) string {
+		return bridge.Call("SDL_GetWindowTitle", unsafe.Pointer(window)).String()
+	}
+	// purego.RegisterLibFunc(&sdlGLCreateContext, lib, "SDL_GL_CreateContext")
+	// purego.RegisterLibFunc(&sdlGLDestroyContext, lib, "SDL_GL_DestroyContext")
+	// // purego.RegisterLibFunc(&sdlGL_ExtensionSupported, lib, "SDL_GL_ExtensionSupported")
+	// purego.RegisterLibFunc(&sdlGLGetAttribute, lib, "SDL_GL_GetAttribute")
+	// purego.RegisterLibFunc(&sdlGLGetCurrentContext, lib, "SDL_GL_GetCurrentContext")
+	// purego.RegisterLibFunc(&sdlGLGetCurrentWindow, lib, "SDL_GL_GetCurrentWindow")
+	// // purego.RegisterLibFunc(&sdlGL_GetProcAddress, lib, "SDL_GL_GetProcAddress")
+	// // purego.RegisterLibFunc(&sdlGL_GetSwapInterval, lib, "SDL_GL_GetSwapInterval")
+	// // purego.RegisterLibFunc(&sdlGL_LoadLibrary, lib, "SDL_GL_LoadLibrary")
+	// // purego.RegisterLibFunc(&sdlGL_MakeCurrent, lib, "SDL_GL_MakeCurrent")
+	// // purego.RegisterLibFunc(&sdlGL_ResetAttributes, lib, "SDL_GL_ResetAttributes")
+	// purego.RegisterLibFunc(&sdlGLSetAttribute, lib, "SDL_GL_SetAttribute")
+	// sdlGLSetSwapIntervalPtr := shared.Get(lib, "SDL_GL_SetSwapInterval")
+	// sdlGLSetSwapInterval = func(interval int32) bool {
+	// 	ret, _, _ := purego.SyscallN(sdlGLSetSwapIntervalPtr, uintptr(interval))
+	// 	return byte(ret) != 0
+	// }
+	// sdlGLSwapWindowPtr := shared.Get(lib, "SDL_GL_SwapWindow")
+	// sdlGLSwapWindow = func(window *Window) bool {
+	// 	ret, _, _ := purego.SyscallN(sdlGLSwapWindowPtr, uintptr(unsafe.Pointer(window)))
+	// 	return byte(ret) != 0
+	// }
+	// // purego.RegisterLibFunc(&sdlGL_UnloadLibrary, lib, "SDL_GL_UnloadLibrary")
+	// // purego.RegisterLibFunc(&sdlGlobDirectory, lib, "SDL_GlobDirectory")
+	// // purego.RegisterLibFunc(&sdlGlobStorageDirectory, lib, "SDL_GlobStorageDirectory")
+	// // purego.RegisterLibFunc(&sdlGPUSupportsProperties, lib, "SDL_GPUSupportsProperties")
+	// // purego.RegisterLibFunc(&sdlGPUSupportsShaderFormats, lib, "SDL_GPUSupportsShaderFormats")
+	// // purego.RegisterLibFunc(&sdlGPUTextureFormatTexelBlockSize, lib, "SDL_GPUTextureFormatTexelBlockSize")
+	// // purego.RegisterLibFunc(&sdlGPUTextureSupportsFormat, lib, "SDL_GPUTextureSupportsFormat")
+	// // purego.RegisterLibFunc(&sdlGPUTextureSupportsSampleCount, lib, "SDL_GPUTextureSupportsSampleCount")
+	// // purego.RegisterLibFunc(&sdlGUIDToString, lib, "SDL_GUIDToString")
+	// // purego.RegisterLibFunc(&sdlHapticEffectSupported, lib, "SDL_HapticEffectSupported")
+	// // purego.RegisterLibFunc(&sdlHapticRumbleSupported, lib, "SDL_HapticRumbleSupported")
+	// purego.RegisterLibFunc(&sdlHasAltiVec, lib, "SDL_HasAltiVec")
+	// purego.RegisterLibFunc(&sdlHasARMSIMD, lib, "SDL_HasARMSIMD")
+	// purego.RegisterLibFunc(&sdlHasAVX, lib, "SDL_HasAVX")
+	// purego.RegisterLibFunc(&sdlHasAVX2, lib, "SDL_HasAVX2")
+	// purego.RegisterLibFunc(&sdlHasAVX512F, lib, "SDL_HasAVX512F")
+	// // purego.RegisterLibFunc(&sdlHasClipboardData, lib, "SDL_HasClipboardData")
+	// // purego.RegisterLibFunc(&sdlHasClipboardText, lib, "SDL_HasClipboardText")
+	// purego.RegisterLibFunc(&sdlHasEvent, lib, "SDL_HasEvent")
+	// purego.RegisterLibFunc(&sdlHasEvents, lib, "SDL_HasEvents")
+	// // purego.RegisterLibFunc(&sdlHasExactlyOneBitSet32, lib, "SDL_HasExactlyOneBitSet32")
+	// // purego.RegisterLibFunc(&sdlHasGamepad, lib, "SDL_HasGamepad")
+	// purego.RegisterLibFunc(&sdlHasJoystick, lib, "SDL_HasJoystick")
+	// purego.RegisterLibFunc(&sdlHasKeyboard, lib, "SDL_HasKeyboard")
+	// purego.RegisterLibFunc(&sdlHasLASX, lib, "SDL_HasLASX")
+	// purego.RegisterLibFunc(&sdlHasLSX, lib, "SDL_HasLSX")
+	// purego.RegisterLibFunc(&sdlHasMMX, lib, "SDL_HasMMX")
+	// purego.RegisterLibFunc(&sdlHasMouse, lib, "SDL_HasMouse")
+	// purego.RegisterLibFunc(&sdlHasNEON, lib, "SDL_HasNEON")
+	// // purego.RegisterLibFunc(&sdlHasPrimarySelectionText, lib, "SDL_HasPrimarySelectionText")
+	// purego.RegisterLibFunc(&sdlHasProperty, lib, "SDL_HasProperty")
+	// purego.RegisterLibFunc(&sdlHasRectIntersection, lib, "SDL_HasRectIntersection")
+	// purego.RegisterLibFunc(&sdlHasRectIntersectionFloat, lib, "SDL_HasRectIntersectionFloat")
+	// purego.RegisterLibFunc(&sdlHasScreenKeyboardSupport, lib, "SDL_HasScreenKeyboardSupport")
+	// purego.RegisterLibFunc(&sdlHasSSE, lib, "SDL_HasSSE")
+	// purego.RegisterLibFunc(&sdlHasSSE2, lib, "SDL_HasSSE2")
+	// purego.RegisterLibFunc(&sdlHasSSE3, lib, "SDL_HasSSE3")
+	// purego.RegisterLibFunc(&sdlHasSSE41, lib, "SDL_HasSSE41")
+	// purego.RegisterLibFunc(&sdlHasSSE42, lib, "SDL_HasSSE42")
+	// // purego.RegisterLibFunc(&sdlhid_ble_scan, lib, "SDL_hid_ble_scan")
+	// // purego.RegisterLibFunc(&sdlhid_close, lib, "SDL_hid_close")
+	// // purego.RegisterLibFunc(&sdlhid_device_change_count, lib, "SDL_hid_device_change_count")
+	// // purego.RegisterLibFunc(&sdlhid_enumerate, lib, "SDL_hid_enumerate")
+	// // purego.RegisterLibFunc(&sdlhid_exit, lib, "SDL_hid_exit")
+	// // purego.RegisterLibFunc(&sdlhid_free_enumeration, lib, "SDL_hid_free_enumeration")
+	// // purego.RegisterLibFunc(&sdlhid_get_device_info, lib, "SDL_hid_get_device_info")
+	// // purego.RegisterLibFunc(&sdlhid_get_feature_report, lib, "SDL_hid_get_feature_report")
+	// // purego.RegisterLibFunc(&sdlhid_get_indexed_string, lib, "SDL_hid_get_indexed_string")
+	// // purego.RegisterLibFunc(&sdlhid_get_input_report, lib, "SDL_hid_get_input_report")
+	// // purego.RegisterLibFunc(&sdlhid_get_manufacturer_string, lib, "SDL_hid_get_manufacturer_string")
+	// // purego.RegisterLibFunc(&sdlhid_get_product_string, lib, "SDL_hid_get_product_string")
+	// // purego.RegisterLibFunc(&sdlhid_get_report_descriptor, lib, "SDL_hid_get_report_descriptor")
+	// // purego.RegisterLibFunc(&sdlhid_get_serial_number_string, lib, "SDL_hid_get_serial_number_string")
+	// // purego.RegisterLibFunc(&sdlhid_init, lib, "SDL_hid_init")
+	// // purego.RegisterLibFunc(&sdlhid_open, lib, "SDL_hid_open")
+	// // purego.RegisterLibFunc(&sdlhid_open_path, lib, "SDL_hid_open_path")
+	// // purego.RegisterLibFunc(&sdlhid_read, lib, "SDL_hid_read")
+	// // purego.RegisterLibFunc(&sdlhid_read_timeout, lib, "SDL_hid_read_timeout")
+	// // purego.RegisterLibFunc(&sdlhid_send_feature_report, lib, "SDL_hid_send_feature_report")
+	// // purego.RegisterLibFunc(&sdlhid_set_nonblocking, lib, "SDL_hid_set_nonblocking")
+	// // purego.RegisterLibFunc(&sdlhid_write, lib, "SDL_hid_write")
+	// purego.RegisterLibFunc(&sdlHideCursor, lib, "SDL_HideCursor")
+	// purego.RegisterLibFunc(&sdlHideWindow, lib, "SDL_HideWindow")
+	// // purego.RegisterLibFunc(&sdliconv, lib, "SDL_iconv")
+	// // purego.RegisterLibFunc(&sdliconv_close, lib, "SDL_iconv_close")
+	// // purego.RegisterLibFunc(&sdliconv_open, lib, "SDL_iconv_open")
+	// // purego.RegisterLibFunc(&sdliconv_string, lib, "SDL_iconv_string")
+	sdlInit = func(flags InitFlags) bool { return bridge.Call("SDL_Init", uint32(flags)).Int() != 0 }
+	// // purego.RegisterLibFunc(&sdlInitHapticRumble, lib, "SDL_InitHapticRumble")
+	// // purego.RegisterLibFunc(&sdlInitSubSystem, lib, "SDL_InitSubSystem")
+	// // purego.RegisterLibFunc(&sdlInsertGPUDebugLabel, lib, "SDL_InsertGPUDebugLabel")
+	// // purego.RegisterLibFunc(&sdlInsertTrayEntryAt, lib, "SDL_InsertTrayEntryAt")
+	sdlIOFromConstMem = func(mem []byte, size int) *IOStream {
+		js.CopyBytesToJS(memoryBufferView, mem) // Copy the bytes over
+		res := bridge.Call("SDL_IOFromConstMem", size).Int()
+		if res == 0 {
+			return nil
+		}
+		return (*IOStream)(unsafe.Pointer(uintptr(res)))
+	}
+	// // purego.RegisterLibFunc(&sdlIOFromDynamicMem, lib, "SDL_IOFromDynamicMem")
+	// purego.RegisterLibFunc(&sdlIOFromFile, lib, "SDL_IOFromFile")
+	sdlIOFromMem = func(mem []byte, size int) *IOStream {
+		js.CopyBytesToJS(memoryBufferView, mem) // Copy the bytes over
+		res := bridge.Call("SDL_IOFromMem", size).Int()
+		if res == 0 {
+			return nil
+		}
+		return (*IOStream)(unsafe.Pointer(uintptr(res)))
+	}
+	// // purego.RegisterLibFunc(&sdlIOprintf, lib, "SDL_IOprintf")
+	// // purego.RegisterLibFunc(&sdlIOvprintf, lib, "SDL_IOvprintf")
+	// // purego.RegisterLibFunc(&sdlisalnum, lib, "SDL_isalnum")
+	// // purego.RegisterLibFunc(&sdlisalpha, lib, "SDL_isalpha")
+	// // purego.RegisterLibFunc(&sdlIsAudioDevicePhysical, lib, "SDL_IsAudioDevicePhysical")
+	// // purego.RegisterLibFunc(&sdlIsAudioDevicePlayback, lib, "SDL_IsAudioDevicePlayback")
+	// // purego.RegisterLibFunc(&sdlisblank, lib, "SDL_isblank")
+	// // purego.RegisterLibFunc(&sdliscntrl, lib, "SDL_iscntrl")
+	// // purego.RegisterLibFunc(&sdlisdigit, lib, "SDL_isdigit")
+	// // purego.RegisterLibFunc(&sdlIsGamepad, lib, "SDL_IsGamepad")
+	// // purego.RegisterLibFunc(&sdlisgraph, lib, "SDL_isgraph")
+	// // purego.RegisterLibFunc(&sdlisinf, lib, "SDL_isinf")
+	// // purego.RegisterLibFunc(&sdlisinff, lib, "SDL_isinff")
+	// // purego.RegisterLibFunc(&sdlIsJoystickHaptic, lib, "SDL_IsJoystickHaptic")
+	// // purego.RegisterLibFunc(&sdlIsJoystickVirtual, lib, "SDL_IsJoystickVirtual")
+	// // purego.RegisterLibFunc(&sdlislower, lib, "SDL_islower")
+	// purego.RegisterLibFunc(&sdlIsMainThread, lib, "SDL_IsMainThread")
+	// // purego.RegisterLibFunc(&sdlIsMouseHaptic, lib, "SDL_IsMouseHaptic")
+	// // purego.RegisterLibFunc(&sdlisnan, lib, "SDL_isnan")
+	// // purego.RegisterLibFunc(&sdlisnanf, lib, "SDL_isnanf")
+	// // purego.RegisterLibFunc(&sdlisprint, lib, "SDL_isprint")
+	// // purego.RegisterLibFunc(&sdlispunct, lib, "SDL_ispunct")
+	// // purego.RegisterLibFunc(&sdlisspace, lib, "SDL_isspace")
+	// // purego.RegisterLibFunc(&sdlIsTablet, lib, "SDL_IsTablet")
+	// // purego.RegisterLibFunc(&sdlIsTV, lib, "SDL_IsTV")
+	// // purego.RegisterLibFunc(&sdlisupper, lib, "SDL_isupper")
+	// // purego.RegisterLibFunc(&sdlisxdigit, lib, "SDL_isxdigit")
+	// // purego.RegisterLibFunc(&sdlitoa, lib, "SDL_itoa")
+	// purego.RegisterLibFunc(&sdlJoystickConnected, lib, "SDL_JoystickConnected")
+	// purego.RegisterLibFunc(&sdlJoystickEventsEnabled, lib, "SDL_JoystickEventsEnabled")
+	// // purego.RegisterLibFunc(&sdlKillProcess, lib, "SDL_KillProcess")
+	// // purego.RegisterLibFunc(&sdllltoa, lib, "SDL_lltoa")
+	sdlLoadBMP = func(file string) *Surface {
+		res := bridge.Call("SDL_LoadBMP", file).Int()
+		if res == 0 {
+			return nil
+		}
+		sur := Surface{}
+		surBytes := unsafe.Slice((*byte)(unsafe.Pointer(&sur)), unsafe.Sizeof(Surface{}))
+		memoryView := bridge.Call("copyBytes", res, unsafe.Sizeof(Surface{}))
+		js.CopyBytesToGo(surBytes, memoryView)
+		StructToSDLPointer[unsafe.Pointer(&sur)] = res
+		return &sur
+	}
+	sdlLoadBMPIO = func(src *IOStream, closeio bool) *Surface {
+		res := bridge.Call("SDL_LoadBMP_IO", unsafe.Pointer(src), closeio).Int()
+		if res == 0 {
+			return nil
+		}
+		sur := Surface{}
+		surBytes := unsafe.Slice((*byte)(unsafe.Pointer(&sur)), unsafe.Sizeof(Surface{}))
+		memoryView := bridge.Call("copyBytes", res, unsafe.Sizeof(Surface{}))
+		js.CopyBytesToGo(surBytes, memoryView)
+		StructToSDLPointer[unsafe.Pointer(&sur)] = res
+		return &sur
+	}
+	// purego.RegisterLibFunc(&sdlLoadFile, lib, "SDL_LoadFile")
+	// // purego.RegisterLibFunc(&sdlLoadFile_IO, lib, "SDL_LoadFile_IO")
+	// // purego.RegisterLibFunc(&sdlLoadFileAsync, lib, "SDL_LoadFileAsync")
+	// // purego.RegisterLibFunc(&sdlLoadFunction, lib, "SDL_LoadFunction")
+	// // purego.RegisterLibFunc(&sdlLoadObject, lib, "SDL_LoadObject")
+	// purego.RegisterLibFunc(&sdlLoadWAV, lib, "SDL_LoadWAV")
+	sdlLoadWAVIO = func(src *IOStream, closeio bool, spec *AudioSpec, audioBuf **uint8, audioLen *uint32) bool {
+		res := bridge.Call("SDL_LoadWAV_IO", unsafe.Pointer(src), closeio)
+		if res.Index(0).Int() == 0 {
+			return false
+		}
+		if spec != nil {
+			*spec = AudioSpec{}
+			audioSpecBytes := unsafe.Slice((*byte)(unsafe.Pointer(spec)), unsafe.Sizeof(AudioSpec{}))
+			memoryView := bridge.Call("copyBytes", res.Index(1), unsafe.Sizeof(AudioSpec{}))
+			js.CopyBytesToGo(audioSpecBytes, memoryView)
+		}
+		if audioBuf != nil {
+			*audioBuf = (*uint8)(unsafe.Pointer(uintptr(res.Index(2).Int())))
+		}
+		if audioLen != nil {
+			*audioLen = uint32(res.Index(3).Int())
+		}
+		StructToSDLPointer[unsafe.Pointer(spec)] = res.Index(1).Int()
+		return res.Index(0).Int() != 0
+	}
+	// // purego.RegisterLibFunc(&sdlLockAudioStream, lib, "SDL_LockAudioStream")
+	// purego.RegisterLibFunc(&sdlLockJoysticks, lib, "SDL_LockJoysticks")
+	// // purego.RegisterLibFunc(&sdlLockMutex, lib, "SDL_LockMutex")
+	// purego.RegisterLibFunc(&sdlLockProperties, lib, "SDL_LockProperties")
+	// // purego.RegisterLibFunc(&sdlLockRWLockForReading, lib, "SDL_LockRWLockForReading")
+	// // purego.RegisterLibFunc(&sdlLockRWLockForWriting, lib, "SDL_LockRWLockForWriting")
+	// // purego.RegisterLibFunc(&sdlLockSpinlock, lib, "SDL_LockSpinlock")
+	// purego.RegisterLibFunc(&sdlLockSurface, lib, "SDL_LockSurface")
+	// purego.RegisterLibFunc(&sdlLockTexture, lib, "SDL_LockTexture")
+	// purego.RegisterLibFunc(&sdlLockTextureToSurface, lib, "SDL_LockTextureToSurface")
+	// purego.RegisterLibFunc(&sdlLog, lib, "SDL_Log")
+	// // purego.RegisterLibFunc(&sdllog, lib, "SDL_log")
+	// // purego.RegisterLibFunc(&sdllog10, lib, "SDL_log10")
+	// // purego.RegisterLibFunc(&sdllog10f, lib, "SDL_log10f")
+	// // purego.RegisterLibFunc(&sdlLogCritical, lib, "SDL_LogCritical")
+	// // purego.RegisterLibFunc(&sdlLogDebug, lib, "SDL_LogDebug")
+	// purego.RegisterLibFunc(&sdlLogError, lib, "SDL_LogError")
+	// // purego.RegisterLibFunc(&sdllogf, lib, "SDL_logf")
+	// // purego.RegisterLibFunc(&sdlLogInfo, lib, "SDL_LogInfo")
+	// purego.RegisterLibFunc(&sdlLogMessage, lib, "SDL_LogMessage")
+	// // purego.RegisterLibFunc(&sdlLogMessageV, lib, "SDL_LogMessageV")
+	// // purego.RegisterLibFunc(&sdlLogTrace, lib, "SDL_LogTrace")
+	// // purego.RegisterLibFunc(&sdlLogVerbose, lib, "SDL_LogVerbose")
+	// // purego.RegisterLibFunc(&sdlLogWarn, lib, "SDL_LogWarn")
+	// // purego.RegisterLibFunc(&sdllround, lib, "SDL_lround")
+	// // purego.RegisterLibFunc(&sdllroundf, lib, "SDL_lroundf")
+	// // purego.RegisterLibFunc(&sdlltoa, lib, "SDL_ltoa")
+	// // purego.RegisterLibFunc(&sdlmain, lib, "SDL_main")
+	// // purego.RegisterLibFunc(&sdlmalloc, lib, "SDL_malloc")
+	// purego.RegisterLibFunc(&sdlMapGPUTransferBuffer, lib, "SDL_MapGPUTransferBuffer")
+	// purego.RegisterLibFunc(&sdlMapRGB, lib, "SDL_MapRGB")
+	// // purego.RegisterLibFunc(&sdlMapRGBA, lib, "SDL_MapRGBA")
+	// purego.RegisterLibFunc(&sdlMapSurfaceRGB, lib, "SDL_MapSurfaceRGB")
+	// // purego.RegisterLibFunc(&sdlMapSurfaceRGBA, lib, "SDL_MapSurfaceRGBA")
+	// purego.RegisterLibFunc(&sdlMaximizeWindow, lib, "SDL_MaximizeWindow")
+	// // purego.RegisterLibFunc(&sdlmemcmp, lib, "SDL_memcmp")
+	// // purego.RegisterLibFunc(&sdlmemcpy, lib, "SDL_memcpy")
+	// // purego.RegisterLibFunc(&sdlmemmove, lib, "SDL_memmove")
+	// // purego.RegisterLibFunc(&sdlMemoryBarrierAcquireFunction, lib, "SDL_MemoryBarrierAcquireFunction")
+	// // purego.RegisterLibFunc(&sdlMemoryBarrierReleaseFunction, lib, "SDL_MemoryBarrierReleaseFunction")
+	// // purego.RegisterLibFunc(&sdlmemset, lib, "SDL_memset")
+	// // purego.RegisterLibFunc(&sdlmemset4, lib, "SDL_memset4")
+	// // purego.RegisterLibFunc(&sdlMetal_CreateView, lib, "SDL_Metal_CreateView")
+	// // purego.RegisterLibFunc(&sdlMetal_DestroyView, lib, "SDL_Metal_DestroyView")
+	// // purego.RegisterLibFunc(&sdlMetal_GetLayer, lib, "SDL_Metal_GetLayer")
+	// purego.RegisterLibFunc(&sdlMinimizeWindow, lib, "SDL_MinimizeWindow")
+	// // purego.RegisterLibFunc(&sdlMixAudio, lib, "SDL_MixAudio")
+	// // purego.RegisterLibFunc(&sdlmodf, lib, "SDL_modf")
+	// // purego.RegisterLibFunc(&sdlmodff, lib, "SDL_modff")
+	// // purego.RegisterLibFunc(&sdlMostSignificantBitIndex32, lib, "SDL_MostSignificantBitIndex32")
+	// // purego.RegisterLibFunc(&sdlmurmur3_32, lib, "SDL_murmur3_32")
+	// // purego.RegisterLibFunc(&sdlOnApplicationDidEnterBackground, lib, "SDL_OnApplicationDidEnterBackground")
+	// // purego.RegisterLibFunc(&sdlOnApplicationDidEnterForeground, lib, "SDL_OnApplicationDidEnterForeground")
+	// // purego.RegisterLibFunc(&sdlOnApplicationDidReceiveMemoryWarning, lib, "SDL_OnApplicationDidReceiveMemoryWarning")
+	// // purego.RegisterLibFunc(&sdlOnApplicationWillEnterBackground, lib, "SDL_OnApplicationWillEnterBackground")
+	// // purego.RegisterLibFunc(&sdlOnApplicationWillEnterForeground, lib, "SDL_OnApplicationWillEnterForeground")
+	// // purego.RegisterLibFunc(&sdlOnApplicationWillTerminate, lib, "SDL_OnApplicationWillTerminate")
+	// // purego.RegisterLibFunc(&sdlOpenAudioDevice, lib, "SDL_OpenAudioDevice")
+	sdlOpenAudioDeviceStream = func(devid AudioDeviceID, spec *AudioSpec, callback AudioStreamCallback, userdata unsafe.Pointer) *AudioStream {
+		res := bridge.Call("SDL_OpenAudioDeviceStream", uint32(devid), StructToSDLPointer[unsafe.Pointer(spec)], unsafe.Pointer(callback), userdata).Int()
+		if res == 0 {
+			return nil
+		}
+		return (*AudioStream)(unsafe.Pointer(uintptr(res)))
+	}
+	// purego.RegisterLibFunc(&sdlOpenCamera, lib, "SDL_OpenCamera")
+	// // purego.RegisterLibFunc(&sdlOpenFileStorage, lib, "SDL_OpenFileStorage")
+	// purego.RegisterLibFunc(&sdlOpenGamepad, lib, "SDL_OpenGamepad")
+	// // purego.RegisterLibFunc(&sdlOpenHaptic, lib, "SDL_OpenHaptic")
+	// // purego.RegisterLibFunc(&sdlOpenHapticFromJoystick, lib, "SDL_OpenHapticFromJoystick")
+	// // purego.RegisterLibFunc(&sdlOpenHapticFromMouse, lib, "SDL_OpenHapticFromMouse")
+	// // purego.RegisterLibFunc(&sdlOpenIO, lib, "SDL_OpenIO")
+	// purego.RegisterLibFunc(&sdlOpenJoystick, lib, "SDL_OpenJoystick")
+	// // purego.RegisterLibFunc(&sdlOpenSensor, lib, "SDL_OpenSensor")
+	// // purego.RegisterLibFunc(&sdlOpenStorage, lib, "SDL_OpenStorage")
+	// // purego.RegisterLibFunc(&sdlOpenTitleStorage, lib, "SDL_OpenTitleStorage")
+	// purego.RegisterLibFunc(&sdlOpenURL, lib, "SDL_OpenURL")
+	// // purego.RegisterLibFunc(&sdlOpenUserStorage, lib, "SDL_OpenUserStorage")
+	// // purego.RegisterLibFunc(&sdlOutOfMemory, lib, "SDL_OutOfMemory")
+	// // purego.RegisterLibFunc(&sdlPauseAudioDevice, lib, "SDL_PauseAudioDevice")
+	sdlPauseAudioStreamDevice = func(stream *AudioStream) bool {
+		return bridge.Call("SDL_PauseAudioStreamDevice", unsafe.Pointer(stream)).Int() != 0
+	}
+	// // purego.RegisterLibFunc(&sdlPauseHaptic, lib, "SDL_PauseHaptic")
+	// purego.RegisterLibFunc(&sdlPeepEvents, lib, "SDL_PeepEvents")
+	// // purego.RegisterLibFunc(&sdlPlayHapticRumble, lib, "SDL_PlayHapticRumble")
+	sdlPollEvent = func(event *Event) bool {
+		res := bridge.Call("SDL_PollEvent", unsafe.Pointer(event))
+		if event != nil {
+			js.CopyBytesToGo(event[:], res.Index(1))
+		}
+		return res.Index(0).Int() != 0
+	}
+	// // purego.RegisterLibFunc(&sdlPopGPUDebugGroup, lib, "SDL_PopGPUDebugGroup")
+	// // purego.RegisterLibFunc(&sdlpow, lib, "SDL_pow")
+	// // purego.RegisterLibFunc(&sdlpowf, lib, "SDL_powf")
+	// // purego.RegisterLibFunc(&sdlPremultiplyAlpha, lib, "SDL_PremultiplyAlpha")
+	// // purego.RegisterLibFunc(&sdlPremultiplySurfaceAlpha, lib, "SDL_PremultiplySurfaceAlpha")
+	// purego.RegisterLibFunc(&sdlPumpEvents, lib, "SDL_PumpEvents")
+	// purego.RegisterLibFunc(&sdlPushEvent, lib, "SDL_PushEvent")
+	// // purego.RegisterLibFunc(&sdlPushGPUComputeUniformData, lib, "SDL_PushGPUComputeUniformData")
+	// // purego.RegisterLibFunc(&sdlPushGPUDebugGroup, lib, "SDL_PushGPUDebugGroup")
+	// purego.RegisterLibFunc(&sdlPushGPUFragmentUniformData, lib, "SDL_PushGPUFragmentUniformData")
+	// purego.RegisterLibFunc(&sdlPushGPUVertexUniformData, lib, "SDL_PushGPUVertexUniformData")
+	sdlPutAudioStreamData = func(stream *AudioStream, buf *uint8, len int32) bool {
+		return bridge.Call("SDL_PutAudioStreamData", unsafe.Pointer(stream), unsafe.Pointer(buf), len).Int() != 0
+	}
+	// // purego.RegisterLibFunc(&sdlqsort, lib, "SDL_qsort")
+	// // purego.RegisterLibFunc(&sdlqsort_r, lib, "SDL_qsort_r")
+	// // purego.RegisterLibFunc(&sdlQueryGPUFence, lib, "SDL_QueryGPUFence")
+	sdlQuit = func() { bridge.Call("SDL_Quit") }
+	// purego.RegisterLibFunc(&sdlQuitSubSystem, lib, "SDL_QuitSubSystem")
+	// purego.RegisterLibFunc(&sdlRaiseWindow, lib, "SDL_RaiseWindow")
+	// // purego.RegisterLibFunc(&sdlrand, lib, "SDL_rand")
+	// // purego.RegisterLibFunc(&sdlrand_bits, lib, "SDL_rand_bits")
+	// // purego.RegisterLibFunc(&sdlrand_bits_r, lib, "SDL_rand_bits_r")
+	// // purego.RegisterLibFunc(&sdlrand_r, lib, "SDL_rand_r")
+	// // purego.RegisterLibFunc(&sdlrandf, lib, "SDL_randf")
+	// // purego.RegisterLibFunc(&sdlrandf_r, lib, "SDL_randf_r")
+	// // purego.RegisterLibFunc(&sdlReadAsyncIO, lib, "SDL_ReadAsyncIO")
+	// // purego.RegisterLibFunc(&sdlReadIO, lib, "SDL_ReadIO")
+	// // purego.RegisterLibFunc(&sdlReadProcess, lib, "SDL_ReadProcess")
+	// // purego.RegisterLibFunc(&sdlReadS16BE, lib, "SDL_ReadS16BE")
+	// // purego.RegisterLibFunc(&sdlReadS16LE, lib, "SDL_ReadS16LE")
+	// // purego.RegisterLibFunc(&sdlReadS32BE, lib, "SDL_ReadS32BE")
+	// // purego.RegisterLibFunc(&sdlReadS32LE, lib, "SDL_ReadS32LE")
+	// // purego.RegisterLibFunc(&sdlReadS64BE, lib, "SDL_ReadS64BE")
+	// // purego.RegisterLibFunc(&sdlReadS64LE, lib, "SDL_ReadS64LE")
+	// // purego.RegisterLibFunc(&sdlReadS8, lib, "SDL_ReadS8")
+	// // purego.RegisterLibFunc(&sdlReadStorageFile, lib, "SDL_ReadStorageFile")
+	// // purego.RegisterLibFunc(&sdlReadSurfacePixel, lib, "SDL_ReadSurfacePixel")
+	// // purego.RegisterLibFunc(&sdlReadSurfacePixelFloat, lib, "SDL_ReadSurfacePixelFloat")
+	// // purego.RegisterLibFunc(&sdlReadU16BE, lib, "SDL_ReadU16BE")
+	// // purego.RegisterLibFunc(&sdlReadU16LE, lib, "SDL_ReadU16LE")
+	// // purego.RegisterLibFunc(&sdlReadU32BE, lib, "SDL_ReadU32BE")
+	// // purego.RegisterLibFunc(&sdlReadU32LE, lib, "SDL_ReadU32LE")
+	// // purego.RegisterLibFunc(&sdlReadU64BE, lib, "SDL_ReadU64BE")
+	// // purego.RegisterLibFunc(&sdlReadU64LE, lib, "SDL_ReadU64LE")
+	// // purego.RegisterLibFunc(&sdlReadU8, lib, "SDL_ReadU8")
+	// // purego.RegisterLibFunc(&sdlrealloc, lib, "SDL_realloc")
+	// purego.RegisterLibFunc(&sdlRegisterEvents, lib, "SDL_RegisterEvents")
+	// purego.RegisterLibFunc(&sdlReleaseCameraFrame, lib, "SDL_ReleaseCameraFrame")
+	// purego.RegisterLibFunc(&sdlReleaseGPUBuffer, lib, "SDL_ReleaseGPUBuffer")
+	// // purego.RegisterLibFunc(&sdlReleaseGPUComputePipeline, lib, "SDL_ReleaseGPUComputePipeline")
+	// // purego.RegisterLibFunc(&sdlReleaseGPUFence, lib, "SDL_ReleaseGPUFence")
+	// purego.RegisterLibFunc(&sdlReleaseGPUGraphicsPipeline, lib, "SDL_ReleaseGPUGraphicsPipeline")
+	// purego.RegisterLibFunc(&sdlReleaseGPUSampler, lib, "SDL_ReleaseGPUSampler")
+	// purego.RegisterLibFunc(&sdlReleaseGPUShader, lib, "SDL_ReleaseGPUShader")
+	// purego.RegisterLibFunc(&sdlReleaseGPUTexture, lib, "SDL_ReleaseGPUTexture")
+	// purego.RegisterLibFunc(&sdlReleaseGPUTransferBuffer, lib, "SDL_ReleaseGPUTransferBuffer")
+	// purego.RegisterLibFunc(&sdlReleaseWindowFromGPUDevice, lib, "SDL_ReleaseWindowFromGPUDevice")
+	// // purego.RegisterLibFunc(&sdlReloadGamepadMappings, lib, "SDL_ReloadGamepadMappings")
+	// purego.RegisterLibFunc(&sdlRemoveEventWatch, lib, "SDL_RemoveEventWatch")
+	// purego.RegisterLibFunc(&sdlRemoveHintCallback, lib, "SDL_RemoveHintCallback")
+	// // purego.RegisterLibFunc(&sdlRemovePath, lib, "SDL_RemovePath")
+	// // purego.RegisterLibFunc(&sdlRemoveStoragePath, lib, "SDL_RemoveStoragePath")
+	// purego.RegisterLibFunc(&sdlRemoveSurfaceAlternateImages, lib, "SDL_RemoveSurfaceAlternateImages")
+	// // purego.RegisterLibFunc(&sdlRemoveTimer, lib, "SDL_RemoveTimer")
+	// // purego.RegisterLibFunc(&sdlRemoveTrayEntry, lib, "SDL_RemoveTrayEntry")
+	// // purego.RegisterLibFunc(&sdlRenamePath, lib, "SDL_RenamePath")
+	// // purego.RegisterLibFunc(&sdlRenameStoragePath, lib, "SDL_RenameStoragePath")
+	sdlRenderClear = func(renderer *Renderer) bool {
+		return bridge.Call("SDL_RenderClear", unsafe.Pointer(renderer)).Int() != 0
+	}
+	// purego.RegisterLibFunc(&sdlRenderClipEnabled, lib, "SDL_RenderClipEnabled")
+	// purego.RegisterLibFunc(&sdlRenderCoordinatesFromWindow, lib, "SDL_RenderCoordinatesFromWindow")
+	// purego.RegisterLibFunc(&sdlRenderCoordinatesToWindow, lib, "SDL_RenderCoordinatesToWindow")
+	sdlRenderDebugText = func(renderer *Renderer, x, y float32, text string) bool {
+		return bridge.Call("SDL_RenderDebugText", unsafe.Pointer(renderer), x, y, text).Int() != 0
+	}
+	sdlRenderDebugTextFormat = func(renderer *Renderer, x, y float32, text string) bool {
+		return bridge.Call("SDL_RenderDebugTextFormat", unsafe.Pointer(renderer), x, y, text).Int() != 0
+	}
+	sdlRenderFillRect = func(renderer *Renderer, rect *FRect) bool {
+		var x, y, w, h any = nil, nil, nil, nil
+		if rect != nil {
+			x, y, w, h = rect.X, rect.Y, rect.W, rect.H
+		}
+		return bridge.Call("SDL_RenderFillRect", unsafe.Pointer(renderer), x, y, w, h).Int() != 0
+	}
+	sdlRenderFillRects = func(renderer *Renderer, rects []FRect) bool {
+		numRects := len(rects)
+		if rects != nil {
+			r := unsafe.Slice((*byte)(unsafe.Pointer(&rects[0])), numRects*int(unsafe.Sizeof(FRect{}))) // Treat rects slice as byte array
+			js.CopyBytesToJS(memoryBufferView, r)                                                       // Copy the bytes over
+		} else {
+			numRects = -1
+		}
+		return bridge.Call("SDL_RenderFillRects", unsafe.Pointer(renderer), numRects).Int() != 0
+	}
+	sdlRenderGeometry = func(renderer *Renderer, texture *Texture, vertices []Vertex, indices []int32) bool {
+		var v, i []byte
+		numVertices, numIndices := len(vertices), len(indices)
+		if vertices != nil {
+			v = unsafe.Slice((*byte)(unsafe.Pointer(&vertices[0])), len(vertices)*int(unsafe.Sizeof(Vertex{}))) // Treat vertices slice as byte array
+		} else {
+			numVertices = -1
+		}
+		if indices != nil {
+			i = unsafe.Slice((*byte)(unsafe.Pointer(&indices[0])), len(indices)*int(unsafe.Sizeof(int32(0)))) // Treat indices slice as byte array
+		} else {
+			numIndices = -1
+		}
+		tmp := make([]byte, len(v)+len(i)) // Create temporary slice that will hold vertices and indices
+		copy(tmp, v)
+		copy(tmp[len(v):], i)
+		js.CopyBytesToJS(memoryBufferView, tmp) // Copy the bytes over
+		return bridge.Call("SDL_RenderGeometry", unsafe.Pointer(renderer), StructToSDLPointer[unsafe.Pointer(texture)], numVertices, numIndices, len(v)).Int() != 0
+	}
+	// sdlRenderGeometryRawPtr := shared.Get(lib, "SDL_RenderGeometryRaw")
+	// sdlRenderGeometryRaw = func(renderer *Renderer, texture *Texture, xy []FPoint, color []FColor, uv []FPoint, indices []int32) bool {
+	// 	var xyPtr, uvPtr *FPoint
+	// 	numXY := len(xy)
+	// 	if numXY > 0 {
+	// 		xyPtr = &xy[0]
+	// 	}
+	// 	if len(uv) > 0 {
+	// 		uvPtr = &uv[0]
+	// 	}
+
+	// 	var colorPtr *FColor
+	// 	if len(color) > 0 {
+	// 		colorPtr = &color[0]
+	// 	}
+
+	// 	var indicesPtr *int32
+	// 	numIndices := len(indices)
+	// 	if numIndices > 0 {
+	// 		indicesPtr = &indices[0]
+	// 	}
+
+	// 	ret, _, _ := purego.SyscallN(sdlRenderGeometryRawPtr,
+	// 		uintptr(unsafe.Pointer(renderer)),
+	// 		uintptr(unsafe.Pointer(texture)),
+	// 		uintptr(unsafe.Pointer(xyPtr)),
+	// 		uintptr(unsafe.Sizeof(FPoint{})), // xyStride
+	// 		uintptr(unsafe.Pointer(colorPtr)),
+	// 		uintptr(unsafe.Sizeof(FColor{})), // colorStride
+	// 		uintptr(unsafe.Pointer(uvPtr)),
+	// 		uintptr(unsafe.Sizeof(FPoint{})), // uvStride
+	// 		uintptr(numXY),
+	// 		uintptr(unsafe.Pointer(indicesPtr)),
+	// 		uintptr(numIndices),
+	// 		uintptr(unsafe.Sizeof(uint32(0)))) // sizeIndices
+
+	// 	return byte(ret) != 0
+	// }
+	sdlRenderLine = func(renderer *Renderer, x1, y1, x2, y2 float32) bool {
+		return bridge.Call("SDL_RenderLine", unsafe.Pointer(renderer), x1, y1, x2, y2).Int() != 0
+	}
+	sdlRenderLines = func(renderer *Renderer, points []FPoint) bool {
+		numPoints := len(points)
+		if points != nil {
+			p := unsafe.Slice((*byte)(unsafe.Pointer(&points[0])), numPoints*int(unsafe.Sizeof(FPoint{}))) // Treat points slice as byte array
+			js.CopyBytesToJS(memoryBufferView, p)                                                          // Copy the bytes over
+		} else {
+			numPoints = -1
+		}
+		return bridge.Call("SDL_RenderLines", unsafe.Pointer(renderer), numPoints).Int() != 0
+	}
+	sdlRenderPoint = func(renderer *Renderer, x, y float32) bool {
+		return bridge.Call("SDL_RenderPoint", unsafe.Pointer(renderer), x, y).Int() != 0
+	}
+	sdlRenderPoints = func(renderer *Renderer, points []FPoint) bool {
+		numPoints := len(points)
+		if points != nil {
+			r := unsafe.Slice((*byte)(unsafe.Pointer(&points[0])), numPoints*int(unsafe.Sizeof(FPoint{}))) // Treat points slice as byte array
+			js.CopyBytesToJS(memoryBufferView, r)                                                          // Copy the bytes over
+		} else {
+			numPoints = -1
+		}
+		return bridge.Call("SDL_RenderPoints", unsafe.Pointer(renderer), numPoints).Int() != 0
+	}
+	sdlRenderPresent = func(renderer *Renderer) bool {
+		return bridge.Call("SDL_RenderPresent", unsafe.Pointer(renderer)).Int() != 0
+	}
+	// purego.RegisterLibFunc(&sdlRenderReadPixels, lib, "SDL_RenderReadPixels")
+	sdlRenderRect = func(renderer *Renderer, rect *FRect) bool {
+		var x, y, w, h any = nil, nil, nil, nil
+		if rect != nil {
+			x, y, w, h = rect.X, rect.Y, rect.W, rect.H
+		}
+		return bridge.Call("SDL_RenderRect", unsafe.Pointer(renderer), x, y, w, h).Int() != 0
+	}
+	sdlRenderRects = func(renderer *Renderer, rects []FRect) bool {
+		numRects := len(rects)
+		if rects != nil {
+			r := unsafe.Slice((*byte)(unsafe.Pointer(&rects[0])), numRects*int(unsafe.Sizeof(FRect{}))) // Treat rects slice as byte array
+			js.CopyBytesToJS(memoryBufferView, r)                                                       // Copy the bytes over
+		} else {
+			numRects = -1
+		}
+		return bridge.Call("SDL_RenderRects", unsafe.Pointer(renderer), numRects).Int() != 0
+	}
+	sdlRenderTexture = func(renderer *Renderer, texture *Texture, srcrect, dstrect *FRect) bool {
+		var srX, srY, srW, srH any
+		var drX, drY, drW, drH any
+		if srcrect != nil {
+			srX, srY, srW, srH = srcrect.X, srcrect.Y, srcrect.W, srcrect.H
+		}
+		if dstrect != nil {
+			drX, drY, drW, drH = dstrect.X, dstrect.Y, dstrect.W, dstrect.H
+		}
+		return bridge.Call("SDL_RenderTexture", unsafe.Pointer(renderer), StructToSDLPointer[unsafe.Pointer(texture)],
+			srX, srY, srW, srH,
+			drX, drY, drW, drH,
+		).Int() != 0
+	}
+	sdlRenderTexture9Grid = func(renderer *Renderer, texture *Texture, srcrect *FRect, leftWidth, rightWidth, topHeight, bottomHeight, scale float32, dstrect *FRect) bool {
+		var srX, srY, srW, srH any
+		var drX, drY, drW, drH any
+		if srcrect != nil {
+			srX, srY, srW, srH = srcrect.X, srcrect.Y, srcrect.W, srcrect.H
+		}
+		if dstrect != nil {
+			drX, drY, drW, drH = dstrect.X, dstrect.Y, dstrect.W, dstrect.H
+		}
+		return bridge.Call("SDL_RenderTexture9Grid", unsafe.Pointer(renderer), StructToSDLPointer[unsafe.Pointer(texture)],
+			srX, srY, srW, srH,
+			leftWidth, rightWidth, topHeight, bottomHeight, scale,
+			drX, drY, drW, drH,
+		).Int() != 0
+	}
+	sdlRenderTextureAffine = func(renderer *Renderer, texture *Texture, srcrect *FRect, origin, right, down *FPoint) bool {
+		var srX, srY, srW, srH any
+		var p1X, p1Y, p2X, p2Y, p3X, p3Y any
+		if srcrect != nil {
+			srX, srY, srW, srH = srcrect.X, srcrect.Y, srcrect.W, srcrect.H
+		}
+		if origin != nil {
+			p1X, p1Y = origin.X, origin.Y
+		}
+		if right != nil {
+			p2X, p2Y = right.X, right.Y
+		}
+		if down != nil {
+			p3X, p3Y = down.X, down.Y
+		}
+		return bridge.Call("SDL_RenderTextureAffine", unsafe.Pointer(renderer), StructToSDLPointer[unsafe.Pointer(texture)],
+			srX, srY, srW, srH,
+			p1X, p1Y, p2X, p2Y, p3X, p3Y).Int() != 0
+	}
+	sdlRenderTextureRotated = func(renderer *Renderer, texture *Texture, srcrect, dstrect *FRect, angle float64, center *FPoint, flip FlipMode) bool {
+		var srX, srY, srW, srH any
+		var drX, drY, drW, drH any
+		var pX, pY any
+		if srcrect != nil {
+			srX, srY, srW, srH = srcrect.X, srcrect.Y, srcrect.W, srcrect.H
+		}
+		if dstrect != nil {
+			drX, drY, drW, drH = dstrect.X, dstrect.Y, dstrect.W, dstrect.H
+		}
+		if center != nil {
+			pX, pY = center.X, center.Y
+		}
+		return bridge.Call("SDL_RenderTextureRotated", unsafe.Pointer(renderer), StructToSDLPointer[unsafe.Pointer(texture)],
+			srX, srY, srW, srH,
+			drX, drY, drW, drH,
+			angle,
+			pX, pY,
+			uint32(flip)).Int() != 0
+	}
+	sdlRenderTextureTiled = func(renderer *Renderer, texture *Texture, srcrect *FRect, scale float32, dstrect *FRect) bool {
+		var srX, srY, srW, srH any
+		var drX, drY, drW, drH any
+		if srcrect != nil {
+			srX, srY, srW, srH = srcrect.X, srcrect.Y, srcrect.W, srcrect.H
+		}
+		if dstrect != nil {
+			drX, drY, drW, drH = dstrect.X, dstrect.Y, dstrect.W, dstrect.H
+		}
+		return bridge.Call("SDL_RenderTextureTiled", unsafe.Pointer(renderer), StructToSDLPointer[unsafe.Pointer(texture)],
+			srX, srY, srW, srH,
+			scale,
+			drX, drY, drW, drH).Int() != 0
+	}
+	// purego.RegisterLibFunc(&sdlRenderViewportSet, lib, "SDL_RenderViewportSet")
+	// // purego.RegisterLibFunc(&sdlReportAssertion, lib, "SDL_ReportAssertion")
+	// // purego.RegisterLibFunc(&sdlResetAssertionReport, lib, "SDL_ResetAssertionReport")
+	// purego.RegisterLibFunc(&sdlResetHint, lib, "SDL_ResetHint")
+	// purego.RegisterLibFunc(&sdlResetHints, lib, "SDL_ResetHints")
+	// purego.RegisterLibFunc(&sdlResetKeyboard, lib, "SDL_ResetKeyboard")
+	// purego.RegisterLibFunc(&sdlResetLogPriorities, lib, "SDL_ResetLogPriorities")
+	// purego.RegisterLibFunc(&sdlRestoreWindow, lib, "SDL_RestoreWindow")
+	// // purego.RegisterLibFunc(&sdlResumeAudioDevice, lib, "SDL_ResumeAudioDevice")
+	sdlResumeAudioStreamDevice = func(stream *AudioStream) bool {
+		return bridge.Call("SDL_ResumeAudioStreamDevice", unsafe.Pointer(stream)).Int() != 0
+	}
+	// // purego.RegisterLibFunc(&sdlResumeHaptic, lib, "SDL_ResumeHaptic")
+	// // purego.RegisterLibFunc(&sdlround, lib, "SDL_round")
+	// // purego.RegisterLibFunc(&sdlroundf, lib, "SDL_roundf")
+	// // purego.RegisterLibFunc(&sdlRumbleGamepad, lib, "SDL_RumbleGamepad")
+	// // purego.RegisterLibFunc(&sdlRumbleGamepadTriggers, lib, "SDL_RumbleGamepadTriggers")
+	// purego.RegisterLibFunc(&sdlRumbleJoystick, lib, "SDL_RumbleJoystick")
+	// purego.RegisterLibFunc(&sdlRumbleJoystickTriggers, lib, "SDL_RumbleJoystickTriggers")
+	sdlRunApp = func(argc int32, argv **byte, mainFunction MainFunc, reserved unsafe.Pointer) int32 {
+		mainFuncPtr := js.FuncOf(func(this js.Value, args []js.Value) any {
+			return mainFunction(argc, argv)
+		})
+		return int32(bridge.Call("SDL_RunApp", argc, nil, mainFuncPtr, reserved).Int())
+	}
+	// // purego.RegisterLibFunc(&sdlRunHapticEffect, lib, "SDL_RunHapticEffect")
+	// // purego.RegisterLibFunc(&sdlRunOnMainThread, lib, "SDL_RunOnMainThread")
+	// purego.RegisterLibFunc(&sdlSaveBMP, lib, "SDL_SaveBMP")
+	// purego.RegisterLibFunc(&sdlSaveBMPIO, lib, "SDL_SaveBMP_IO")
+	// // purego.RegisterLibFunc(&sdlSaveFile, lib, "SDL_SaveFile")
+	// // purego.RegisterLibFunc(&sdlSaveFile_IO, lib, "SDL_SaveFile_IO")
+	// // purego.RegisterLibFunc(&sdlscalbn, lib, "SDL_scalbn")
+	// // purego.RegisterLibFunc(&sdlscalbnf, lib, "SDL_scalbnf")
+	// purego.RegisterLibFunc(&sdlScaleSurface, lib, "SDL_ScaleSurface")
+	// purego.RegisterLibFunc(&sdlScreenKeyboardShown, lib, "SDL_ScreenKeyboardShown")
+	// purego.RegisterLibFunc(&sdlScreenSaverEnabled, lib, "SDL_ScreenSaverEnabled")
+	// // purego.RegisterLibFunc(&sdlSeekIO, lib, "SDL_SeekIO")
+	// // purego.RegisterLibFunc(&sdlSendGamepadEffect, lib, "SDL_SendGamepadEffect")
+	// purego.RegisterLibFunc(&sdlSendJoystickEffect, lib, "SDL_SendJoystickEffect")
+	// // purego.RegisterLibFunc(&sdlSendJoystickVirtualSensorData, lib, "SDL_SendJoystickVirtualSensorData")
+	// // purego.RegisterLibFunc(&sdlSetAppMetadata, lib, "SDL_SetAppMetadata")
+	// // purego.RegisterLibFunc(&sdlSetAppMetadataProperty, lib, "SDL_SetAppMetadataProperty")
+	// // purego.RegisterLibFunc(&sdlSetAssertionHandler, lib, "SDL_SetAssertionHandler")
+	// // purego.RegisterLibFunc(&sdlSetAtomicInt, lib, "SDL_SetAtomicInt")
+	// // purego.RegisterLibFunc(&sdlSetAtomicPointer, lib, "SDL_SetAtomicPointer")
+	// // purego.RegisterLibFunc(&sdlSetAtomicU32, lib, "SDL_SetAtomicU32")
+	// // purego.RegisterLibFunc(&sdlSetAudioDeviceGain, lib, "SDL_SetAudioDeviceGain")
+	// // purego.RegisterLibFunc(&sdlSetAudioPostmixCallback, lib, "SDL_SetAudioPostmixCallback")
+	// purego.RegisterLibFunc(&sdlSetAudioStreamFormat, lib, "SDL_SetAudioStreamFormat")
+	// purego.RegisterLibFunc(&sdlSetAudioStreamFrequencyRatio, lib, "SDL_SetAudioStreamFrequencyRatio")
+	sdlSetAudioStreamGain = func(stream *AudioStream, gain float32) bool {
+		return bridge.Call("SDL_SetAudioStreamGain", unsafe.Pointer(stream), gain).Int() != 0
+	}
+	// // purego.RegisterLibFunc(&sdlSetAudioStreamGetCallback, lib, "SDL_SetAudioStreamGetCallback")
+	// // purego.RegisterLibFunc(&sdlSetAudioStreamInputChannelMap, lib, "SDL_SetAudioStreamInputChannelMap")
+	// // purego.RegisterLibFunc(&sdlSetAudioStreamOutputChannelMap, lib, "SDL_SetAudioStreamOutputChannelMap")
+	// // purego.RegisterLibFunc(&sdlSetAudioStreamPutCallback, lib, "SDL_SetAudioStreamPutCallback")
+	// purego.RegisterLibFunc(&sdlSetBooleanProperty, lib, "SDL_SetBooleanProperty")
+	// // purego.RegisterLibFunc(&sdlSetClipboardData, lib, "SDL_SetClipboardData")
+	// // purego.RegisterLibFunc(&sdlSetClipboardText, lib, "SDL_SetClipboardText")
+	// // purego.RegisterLibFunc(&sdlSetCurrentThreadPriority, lib, "SDL_SetCurrentThreadPriority")
+	// purego.RegisterLibFunc(&sdlSetCursor, lib, "SDL_SetCursor")
+	// // purego.RegisterLibFunc(&sdlsetenv_unsafe, lib, "SDL_setenv_unsafe")
+	// // purego.RegisterLibFunc(&sdlSetEnvironmentVariable, lib, "SDL_SetEnvironmentVariable")
+	// purego.RegisterLibFunc(&sdlSetError, lib, "SDL_SetError")
+	// // purego.RegisterLibFunc(&sdlSetErrorV, lib, "SDL_SetErrorV")
+	// purego.RegisterLibFunc(&sdlSetEventEnabled, lib, "SDL_SetEventEnabled")
+	// purego.RegisterLibFunc(&sdlSetEventFilter, lib, "SDL_SetEventFilter")
+	// purego.RegisterLibFunc(&sdlSetFloatProperty, lib, "SDL_SetFloatProperty")
+	// // purego.RegisterLibFunc(&sdlSetGamepadEventsEnabled, lib, "SDL_SetGamepadEventsEnabled")
+	// // purego.RegisterLibFunc(&sdlSetGamepadLED, lib, "SDL_SetGamepadLED")
+	// // purego.RegisterLibFunc(&sdlSetGamepadMapping, lib, "SDL_SetGamepadMapping")
+	// // purego.RegisterLibFunc(&sdlSetGamepadPlayerIndex, lib, "SDL_SetGamepadPlayerIndex")
+	// // purego.RegisterLibFunc(&sdlSetGamepadSensorEnabled, lib, "SDL_SetGamepadSensorEnabled")
+	// // purego.RegisterLibFunc(&sdlSetGPUAllowedFramesInFlight, lib, "SDL_SetGPUAllowedFramesInFlight")
+	// // purego.RegisterLibFunc(&sdlSetGPUBlendConstants, lib, "SDL_SetGPUBlendConstants")
+	// purego.RegisterLibFunc(&sdlSetGPUBufferName, lib, "SDL_SetGPUBufferName")
+	// purego.RegisterLibFunc(&sdlSetGPUScissor, lib, "SDL_SetGPUScissor")
+	// // purego.RegisterLibFunc(&sdlSetGPUStencilReference, lib, "SDL_SetGPUStencilReference")
+	// purego.RegisterLibFunc(&sdlSetGPUSwapchainParameters, lib, "SDL_SetGPUSwapchainParameters")
+	// // purego.RegisterLibFunc(&sdlSetGPUTextureName, lib, "SDL_SetGPUTextureName")
+	// purego.RegisterLibFunc(&sdlSetGPUViewport, lib, "SDL_SetGPUViewport")
+	// // purego.RegisterLibFunc(&sdlSetHapticAutocenter, lib, "SDL_SetHapticAutocenter")
+	// // purego.RegisterLibFunc(&sdlSetHapticGain, lib, "SDL_SetHapticGain")
+	// purego.RegisterLibFunc(&sdlSetHint, lib, "SDL_SetHint")
+	// purego.RegisterLibFunc(&sdlSetHintWithPriority, lib, "SDL_SetHintWithPriority")
+	// // purego.RegisterLibFunc(&sdlSetInitialized, lib, "SDL_SetInitialized")
+	// purego.RegisterLibFunc(&sdlSetJoystickEventsEnabled, lib, "SDL_SetJoystickEventsEnabled")
+	// purego.RegisterLibFunc(&sdlSetJoystickLED, lib, "SDL_SetJoystickLED")
+	// purego.RegisterLibFunc(&sdlSetJoystickPlayerIndex, lib, "SDL_SetJoystickPlayerIndex")
+	// // purego.RegisterLibFunc(&sdlSetJoystickVirtualAxis, lib, "SDL_SetJoystickVirtualAxis")
+	// // purego.RegisterLibFunc(&sdlSetJoystickVirtualBall, lib, "SDL_SetJoystickVirtualBall")
+	// // purego.RegisterLibFunc(&sdlSetJoystickVirtualButton, lib, "SDL_SetJoystickVirtualButton")
+	// // purego.RegisterLibFunc(&sdlSetJoystickVirtualHat, lib, "SDL_SetJoystickVirtualHat")
+	// // purego.RegisterLibFunc(&sdlSetJoystickVirtualTouchpad, lib, "SDL_SetJoystickVirtualTouchpad")
+	// // purego.RegisterLibFunc(&sdlSetLinuxThreadPriority, lib, "SDL_SetLinuxThreadPriority")
+	// // purego.RegisterLibFunc(&sdlSetLinuxThreadPriorityAndPolicy, lib, "SDL_SetLinuxThreadPriorityAndPolicy")
+	// purego.RegisterLibFunc(&sdlSetLogOutputFunction, lib, "SDL_SetLogOutputFunction")
+	// purego.RegisterLibFunc(&sdlSetLogPriorities, lib, "SDL_SetLogPriorities")
+	// purego.RegisterLibFunc(&sdlSetLogPriority, lib, "SDL_SetLogPriority")
+	// // purego.RegisterLibFunc(&sdlSetLogPriorityPrefix, lib, "SDL_SetLogPriorityPrefix")
+	// // purego.RegisterLibFunc(&sdlSetMainReady, lib, "SDL_SetMainReady")
+	// // purego.RegisterLibFunc(&sdlSetMemoryFunctions, lib, "SDL_SetMemoryFunctions")
+	// purego.RegisterLibFunc(&sdlSetModState, lib, "SDL_SetModState")
+	sdlSetNumberProperty = func(props PropertiesID, name string, value int64) bool {
+		return bridge.Call("SDL_SetNumberProperty", uint32(props), name, value).Int() != 0
+	}
+	// purego.RegisterLibFunc(&sdlSetPaletteColors, lib, "SDL_SetPaletteColors")
+	sdlSetPointerProperty = func(props PropertiesID, name string, value unsafe.Pointer) bool {
+		return bridge.Call("SDL_SetPointerProperty", uint32(props), name, value).Int() != 0
+	}
+	// purego.RegisterLibFunc(&sdlSetPointerPropertyWithCleanup, lib, "SDL_SetPointerPropertyWithCleanup")
+	// // purego.RegisterLibFunc(&sdlSetPrimarySelectionText, lib, "SDL_SetPrimarySelectionText")
+	// purego.RegisterLibFunc(&sdlSetRenderClipRect, lib, "SDL_SetRenderClipRect")
+	// purego.RegisterLibFunc(&sdlSetRenderColorScale, lib, "SDL_SetRenderColorScale")
+	// purego.RegisterLibFunc(&sdlSetRenderDrawBlendMode, lib, "SDL_SetRenderDrawBlendMode")
+	sdlSetRenderDrawColor = func(renderer *Renderer, r, g, b, a uint8) bool {
+		return bridge.Call("SDL_SetRenderDrawColor", unsafe.Pointer(renderer), r, g, b, a).Int() != 0
+	}
+	sdlSetRenderDrawColorFloat = func(renderer *Renderer, r, g, b, a float32) bool {
+		return bridge.Call("SDL_SetRenderDrawColorFloat", unsafe.Pointer(renderer), r, g, b, a).Int() != 0
+	}
+	// purego.RegisterLibFunc(&sdlSetRenderLogicalPresentation, lib, "SDL_SetRenderLogicalPresentation")
+	// purego.RegisterLibFunc(&sdlSetRenderScale, lib, "SDL_SetRenderScale")
+	// purego.RegisterLibFunc(&sdlSetRenderTarget, lib, "SDL_SetRenderTarget")
+	// purego.RegisterLibFunc(&sdlSetRenderViewport, lib, "SDL_SetRenderViewport")
+	sdlSetRenderVSync = func(renderer *Renderer, vsync int32) bool {
+		return bridge.Call("SDL_SetRenderVSync", unsafe.Pointer(renderer), vsync).Int() != 0
+	}
+	// purego.RegisterLibFunc(&sdlSetScancodeName, lib, "SDL_SetScancodeName")
+	// purego.RegisterLibFunc(&sdlSetStringProperty, lib, "SDL_SetStringProperty")
+	// purego.RegisterLibFunc(&sdlSetSurfaceAlphaMod, lib, "SDL_SetSurfaceAlphaMod")
+	// purego.RegisterLibFunc(&sdlSetSurfaceBlendMode, lib, "SDL_SetSurfaceBlendMode")
+	// purego.RegisterLibFunc(&sdlSetSurfaceClipRect, lib, "SDL_SetSurfaceClipRect")
+	// purego.RegisterLibFunc(&sdlSetSurfaceColorKey, lib, "SDL_SetSurfaceColorKey")
+	// purego.RegisterLibFunc(&sdlSetSurfaceColorMod, lib, "SDL_SetSurfaceColorMod")
+	// purego.RegisterLibFunc(&sdlSetSurfaceColorspace, lib, "SDL_SetSurfaceColorspace")
+	// purego.RegisterLibFunc(&sdlSetSurfacePalette, lib, "SDL_SetSurfacePalette")
+	// purego.RegisterLibFunc(&sdlSetSurfaceRLE, lib, "SDL_SetSurfaceRLE")
+	// purego.RegisterLibFunc(&sdlSetTextInputArea, lib, "SDL_SetTextInputArea")
+	// sdlSetTextureAlphaModPtr := shared.Get(lib, "SDL_SetTextureAlphaMod")
+	// sdlSetTextureAlphaMod = func(texture *Texture, alpha uint8) bool {
+	// 	ret, _, _ := purego.SyscallN(sdlSetTextureAlphaModPtr, uintptr(unsafe.Pointer(texture)), uintptr(alpha))
+	// 	return byte(ret) != 0
+	// }
+	// purego.RegisterLibFunc(&sdlSetTextureAlphaModFloat, lib, "SDL_SetTextureAlphaModFloat")
+	// purego.RegisterLibFunc(&sdlSetTextureBlendMode, lib, "SDL_SetTextureBlendMode")
+	// sdlSetTextureColorModPtr := shared.Get(lib, "SDL_SetTextureColorMod")
+	// sdlSetTextureColorMod = func(texture *Texture, r, g, b uint8) bool {
+	// 	ret, _, _ := purego.SyscallN(sdlSetTextureColorModPtr, uintptr(unsafe.Pointer(texture)), uintptr(r), uintptr(g), uintptr(b))
+	// 	return byte(ret) != 0
+	// }
+	// purego.RegisterLibFunc(&sdlSetTextureColorModFloat, lib, "SDL_SetTextureColorModFloat")
+	sdlSetTextureScaleMode = func(texture *Texture, scaleMode ScaleMode) bool {
+		return bridge.Call("SDL_SetTextureScaleMode", StructToSDLPointer[unsafe.Pointer(texture)], int32(scaleMode)).Int() != 0
+	}
+	// // purego.RegisterLibFunc(&sdlSetTLS, lib, "SDL_SetTLS")
+	// // purego.RegisterLibFunc(&sdlSetTrayEntryCallback, lib, "SDL_SetTrayEntryCallback")
+	// // purego.RegisterLibFunc(&sdlSetTrayEntryChecked, lib, "SDL_SetTrayEntryChecked")
+	// // purego.RegisterLibFunc(&sdlSetTrayEntryEnabled, lib, "SDL_SetTrayEntryEnabled")
+	// // purego.RegisterLibFunc(&sdlSetTrayEntryLabel, lib, "SDL_SetTrayEntryLabel")
+	// // purego.RegisterLibFunc(&sdlSetTrayIcon, lib, "SDL_SetTrayIcon")
+	// // purego.RegisterLibFunc(&sdlSetTrayTooltip, lib, "SDL_SetTrayTooltip")
+	// purego.RegisterLibFunc(&sdlSetWindowAlwaysOnTop, lib, "SDL_SetWindowAlwaysOnTop")
+	// purego.RegisterLibFunc(&sdlSetWindowAspectRatio, lib, "SDL_SetWindowAspectRatio")
+	// purego.RegisterLibFunc(&sdlSetWindowBordered, lib, "SDL_SetWindowBordered")
+	// purego.RegisterLibFunc(&sdlSetWindowFocusable, lib, "SDL_SetWindowFocusable")
+	// purego.RegisterLibFunc(&sdlSetWindowFullscreen, lib, "SDL_SetWindowFullscreen")
+	// purego.RegisterLibFunc(&sdlSetWindowFullscreenMode, lib, "SDL_SetWindowFullscreenMode")
+	// purego.RegisterLibFunc(&sdlSetWindowHitTest, lib, "SDL_SetWindowHitTest")
+	// purego.RegisterLibFunc(&sdlSetWindowIcon, lib, "SDL_SetWindowIcon")
+	// purego.RegisterLibFunc(&sdlSetWindowKeyboardGrab, lib, "SDL_SetWindowKeyboardGrab")
+	// purego.RegisterLibFunc(&sdlSetWindowMaximumSize, lib, "SDL_SetWindowMaximumSize")
+	// purego.RegisterLibFunc(&sdlSetWindowMinimumSize, lib, "SDL_SetWindowMinimumSize")
+	// purego.RegisterLibFunc(&sdlSetWindowModal, lib, "SDL_SetWindowModal")
+	// purego.RegisterLibFunc(&sdlSetWindowMouseGrab, lib, "SDL_SetWindowMouseGrab")
+	// purego.RegisterLibFunc(&sdlSetWindowMouseRect, lib, "SDL_SetWindowMouseRect")
+	// purego.RegisterLibFunc(&sdlSetWindowOpacity, lib, "SDL_SetWindowOpacity")
+	// purego.RegisterLibFunc(&sdlSetWindowParent, lib, "SDL_SetWindowParent")
+	// purego.RegisterLibFunc(&sdlSetWindowPosition, lib, "SDL_SetWindowPosition")
+	// purego.RegisterLibFunc(&sdlSetWindowRelativeMouseMode, lib, "SDL_SetWindowRelativeMouseMode")
+	// purego.RegisterLibFunc(&sdlSetWindowResizable, lib, "SDL_SetWindowResizable")
+	// // purego.RegisterLibFunc(&sdlSetWindowShape, lib, "SDL_SetWindowShape")
+	// purego.RegisterLibFunc(&sdlSetWindowSize, lib, "SDL_SetWindowSize")
+	// purego.RegisterLibFunc(&sdlSetWindowSurfaceVSync, lib, "SDL_SetWindowSurfaceVSync")
+	// purego.RegisterLibFunc(&sdlSetWindowTitle, lib, "SDL_SetWindowTitle")
+	// // purego.RegisterLibFunc(&sdlSetX11EventHook, lib, "SDL_SetX11EventHook")
+	// // purego.RegisterLibFunc(&sdlShouldInit, lib, "SDL_ShouldInit")
+	// // purego.RegisterLibFunc(&sdlShouldQuit, lib, "SDL_ShouldQuit")
+	// purego.RegisterLibFunc(&sdlShowCursor, lib, "SDL_ShowCursor")
+	// purego.RegisterLibFunc(&sdlShowFileDialogWithProperties, lib, "SDL_ShowFileDialogWithProperties")
+	// purego.RegisterLibFunc(&sdlShowMessageBox, lib, "SDL_ShowMessageBox")
+	// purego.RegisterLibFunc(&sdlShowOpenFileDialog, lib, "SDL_ShowOpenFileDialog")
+	// purego.RegisterLibFunc(&sdlShowOpenFolderDialog, lib, "SDL_ShowOpenFolderDialog")
+	// purego.RegisterLibFunc(&sdlShowSaveFileDialog, lib, "SDL_ShowSaveFileDialog")
+	// purego.RegisterLibFunc(&sdlShowSimpleMessageBox, lib, "SDL_ShowSimpleMessageBox")
+	// purego.RegisterLibFunc(&sdlShowWindow, lib, "SDL_ShowWindow")
+	// purego.RegisterLibFunc(&sdlShowWindowSystemMenu, lib, "SDL_ShowWindowSystemMenu")
+	// // purego.RegisterLibFunc(&sdlSignalAsyncIOQueue, lib, "SDL_SignalAsyncIOQueue")
+	// // purego.RegisterLibFunc(&sdlSignalCondition, lib, "SDL_SignalCondition")
+	// // purego.RegisterLibFunc(&sdlSignalSemaphore, lib, "SDL_SignalSemaphore")
+	// // purego.RegisterLibFunc(&sdlsin, lib, "SDL_sin")
+	// // purego.RegisterLibFunc(&sdlsinf, lib, "SDL_sinf")
+	// // purego.RegisterLibFunc(&sdlsize_add_check_overflow, lib, "SDL_size_add_check_overflow")
+	// // purego.RegisterLibFunc(&sdlsize_add_check_overflow_builtin, lib, "SDL_size_add_check_overflow_builtin")
+	// // purego.RegisterLibFunc(&sdlsize_mul_check_overflow, lib, "SDL_size_mul_check_overflow")
+	// // purego.RegisterLibFunc(&sdlsize_mul_check_overflow_builtin, lib, "SDL_size_mul_check_overflow_builtin")
+	// // purego.RegisterLibFunc(&sdlsnprintf, lib, "SDL_snprintf")
+	// // purego.RegisterLibFunc(&sdlsqrt, lib, "SDL_sqrt")
+	// // purego.RegisterLibFunc(&sdlsqrtf, lib, "SDL_sqrtf")
+	// // purego.RegisterLibFunc(&sdlsrand, lib, "SDL_srand")
+	// // purego.RegisterLibFunc(&sdlsscanf, lib, "SDL_sscanf")
+	// purego.RegisterLibFunc(&sdlStartTextInput, lib, "SDL_StartTextInput")
+	// purego.RegisterLibFunc(&sdlStartTextInputWithProperties, lib, "SDL_StartTextInputWithProperties")
+	// // purego.RegisterLibFunc(&sdlStepBackUTF8, lib, "SDL_StepBackUTF8")
+	// // purego.RegisterLibFunc(&sdlStepUTF8, lib, "SDL_StepUTF8")
+	// // purego.RegisterLibFunc(&sdlStopHapticEffect, lib, "SDL_StopHapticEffect")
+	// // purego.RegisterLibFunc(&sdlStopHapticEffects, lib, "SDL_StopHapticEffects")
+	// // purego.RegisterLibFunc(&sdlStopHapticRumble, lib, "SDL_StopHapticRumble")
+	// purego.RegisterLibFunc(&sdlStopTextInput, lib, "SDL_StopTextInput")
+	// // purego.RegisterLibFunc(&sdlStorageReady, lib, "SDL_StorageReady")
+	// // purego.RegisterLibFunc(&sdlstrcasecmp, lib, "SDL_strcasecmp")
+	// // purego.RegisterLibFunc(&sdlstrcasestr, lib, "SDL_strcasestr")
+	// // purego.RegisterLibFunc(&sdlstrchr, lib, "SDL_strchr")
+	// // purego.RegisterLibFunc(&sdlstrcmp, lib, "SDL_strcmp")
+	// // purego.RegisterLibFunc(&sdlstrdup, lib, "SDL_strdup")
+	// // purego.RegisterLibFunc(&sdlStringToGUID, lib, "SDL_StringToGUID")
+	// // purego.RegisterLibFunc(&sdlstrlcat, lib, "SDL_strlcat")
+	// // purego.RegisterLibFunc(&sdlstrlcpy, lib, "SDL_strlcpy")
+	// // purego.RegisterLibFunc(&sdlstrlen, lib, "SDL_strlen")
+	// // purego.RegisterLibFunc(&sdlstrlwr, lib, "SDL_strlwr")
+	// // purego.RegisterLibFunc(&sdlstrncasecmp, lib, "SDL_strncasecmp")
+	// // purego.RegisterLibFunc(&sdlstrncmp, lib, "SDL_strncmp")
+	// // purego.RegisterLibFunc(&sdlstrndup, lib, "SDL_strndup")
+	// // purego.RegisterLibFunc(&sdlstrnlen, lib, "SDL_strnlen")
+	// // purego.RegisterLibFunc(&sdlstrnstr, lib, "SDL_strnstr")
+	// // purego.RegisterLibFunc(&sdlstrpbrk, lib, "SDL_strpbrk")
+	// // purego.RegisterLibFunc(&sdlstrrchr, lib, "SDL_strrchr")
+	// // purego.RegisterLibFunc(&sdlstrrev, lib, "SDL_strrev")
+	// purego.RegisterLibFunc(&sdlstrstr, lib, "SDL_strstr")
+	// // purego.RegisterLibFunc(&sdlstrtod, lib, "SDL_strtod")
+	// // purego.RegisterLibFunc(&sdlstrtok_r, lib, "SDL_strtok_r")
+	// // purego.RegisterLibFunc(&sdlstrtol, lib, "SDL_strtol")
+	// // purego.RegisterLibFunc(&sdlstrtoll, lib, "SDL_strtoll")
+	// // purego.RegisterLibFunc(&sdlstrtoul, lib, "SDL_strtoul")
+	// // purego.RegisterLibFunc(&sdlstrtoull, lib, "SDL_strtoull")
+	// // purego.RegisterLibFunc(&sdlstrupr, lib, "SDL_strupr")
+	// purego.RegisterLibFunc(&sdlSubmitGPUCommandBuffer, lib, "SDL_SubmitGPUCommandBuffer")
+	// // purego.RegisterLibFunc(&sdlSubmitGPUCommandBufferAndAcquireFence, lib, "SDL_SubmitGPUCommandBufferAndAcquireFence")
+	// purego.RegisterLibFunc(&sdlSurfaceHasAlternateImages, lib, "SDL_SurfaceHasAlternateImages")
+	// purego.RegisterLibFunc(&sdlSurfaceHasColorKey, lib, "SDL_SurfaceHasColorKey")
+	// purego.RegisterLibFunc(&sdlSurfaceHasRLE, lib, "SDL_SurfaceHasRLE")
+	// // purego.RegisterLibFunc(&sdlSwapFloat, lib, "SDL_SwapFloat")
+	// // purego.RegisterLibFunc(&sdlswprintf, lib, "SDL_swprintf")
+	// purego.RegisterLibFunc(&sdlSyncWindow, lib, "SDL_SyncWindow")
+	// // purego.RegisterLibFunc(&sdltan, lib, "SDL_tan")
+	// // purego.RegisterLibFunc(&sdltanf, lib, "SDL_tanf")
+	// // purego.RegisterLibFunc(&sdlTellIO, lib, "SDL_TellIO")
+	// purego.RegisterLibFunc(&sdlTextInputActive, lib, "SDL_TextInputActive")
+	// // purego.RegisterLibFunc(&sdlTimeFromWindows, lib, "SDL_TimeFromWindows")
+	// // purego.RegisterLibFunc(&sdlTimeToDateTime, lib, "SDL_TimeToDateTime")
+	// // purego.RegisterLibFunc(&sdlTimeToWindows, lib, "SDL_TimeToWindows")
+	// // purego.RegisterLibFunc(&sdltolower, lib, "SDL_tolower")
+	// // purego.RegisterLibFunc(&sdltoupper, lib, "SDL_toupper")
+	// // purego.RegisterLibFunc(&sdltrunc, lib, "SDL_trunc")
+	// // purego.RegisterLibFunc(&sdltruncf, lib, "SDL_truncf")
+	// // purego.RegisterLibFunc(&sdlTryLockMutex, lib, "SDL_TryLockMutex")
+	// // purego.RegisterLibFunc(&sdlTryLockRWLockForReading, lib, "SDL_TryLockRWLockForReading")
+	// // purego.RegisterLibFunc(&sdlTryLockRWLockForWriting, lib, "SDL_TryLockRWLockForWriting")
+	// // purego.RegisterLibFunc(&sdlTryLockSpinlock, lib, "SDL_TryLockSpinlock")
+	// // purego.RegisterLibFunc(&sdlTryWaitSemaphore, lib, "SDL_TryWaitSemaphore")
+	// // purego.RegisterLibFunc(&sdlUCS4ToUTF8, lib, "SDL_UCS4ToUTF8")
+	// // purego.RegisterLibFunc(&sdluitoa, lib, "SDL_uitoa")
+	// // purego.RegisterLibFunc(&sdlulltoa, lib, "SDL_ulltoa")
+	// // purego.RegisterLibFunc(&sdlultoa, lib, "SDL_ultoa")
+	// // purego.RegisterLibFunc(&sdlUnbindAudioStream, lib, "SDL_UnbindAudioStream")
+	// // purego.RegisterLibFunc(&sdlUnbindAudioStreams, lib, "SDL_UnbindAudioStreams")
+	// // purego.RegisterLibFunc(&sdlUnloadObject, lib, "SDL_UnloadObject")
+	// // purego.RegisterLibFunc(&sdlUnlockAudioStream, lib, "SDL_UnlockAudioStream")
+	// purego.RegisterLibFunc(&sdlUnlockJoysticks, lib, "SDL_UnlockJoysticks")
+	// // purego.RegisterLibFunc(&sdlUnlockMutex, lib, "SDL_UnlockMutex")
+	// purego.RegisterLibFunc(&sdlUnlockProperties, lib, "SDL_UnlockProperties")
+	// // purego.RegisterLibFunc(&sdlUnlockRWLock, lib, "SDL_UnlockRWLock")
+	// // purego.RegisterLibFunc(&sdlUnlockSpinlock, lib, "SDL_UnlockSpinlock")
+	// purego.RegisterLibFunc(&sdlUnlockSurface, lib, "SDL_UnlockSurface")
+	// purego.RegisterLibFunc(&sdlUnlockTexture, lib, "SDL_UnlockTexture")
+	// purego.RegisterLibFunc(&sdlUnmapGPUTransferBuffer, lib, "SDL_UnmapGPUTransferBuffer")
+	// // purego.RegisterLibFunc(&sdlunsetenv_unsafe, lib, "SDL_unsetenv_unsafe")
+	// // purego.RegisterLibFunc(&sdlUnsetEnvironmentVariable, lib, "SDL_UnsetEnvironmentVariable")
+	// // purego.RegisterLibFunc(&sdlUpdateGamepads, lib, "SDL_UpdateGamepads")
+	// // purego.RegisterLibFunc(&sdlUpdateHapticEffect, lib, "SDL_UpdateHapticEffect")
+	// purego.RegisterLibFunc(&sdlUpdateJoysticks, lib, "SDL_UpdateJoysticks")
+	// sdlUpdateNVTexturePtr := shared.Get(lib, "SDL_UpdateNVTexture")
+	// sdlUpdateNVTexture = func(texture *Texture, rect *Rect, yPlane *uint8, yPitch int32, uvPlane *uint8, uvPitch int32) bool {
+	// 	ret, _, _ := purego.SyscallN(
+	// 		sdlUpdateNVTexturePtr,
+	// 		uintptr(unsafe.Pointer(texture)),
+	// 		uintptr(unsafe.Pointer(rect)),
+	// 		uintptr(unsafe.Pointer(yPlane)), uintptr(yPitch),
+	// 		uintptr(unsafe.Pointer(uvPlane)), uintptr(uvPitch))
+
+	// 	return byte(ret) != 0
+	// }
+	// // purego.RegisterLibFunc(&sdlUpdateSensors, lib, "SDL_UpdateSensors")
+	// sdlUpdateTexturePtr := shared.Get(lib, "SDL_UpdateTexture")
+	// sdlUpdateTexture = func(texture *Texture, rect *Rect, pixels unsafe.Pointer, pitch int32) bool {
+	// 	ret, _, _ := purego.SyscallN(sdlUpdateTexturePtr, uintptr(unsafe.Pointer(texture)), uintptr(unsafe.Pointer(rect)), uintptr(pixels), uintptr(pitch))
+	// 	return byte(ret) != 0
+	// }
+	// purego.RegisterLibFunc(&sdlUpdateWindowSurface, lib, "SDL_UpdateWindowSurface")
+	// // purego.RegisterLibFunc(&sdlUpdateWindowSurfaceRects, lib, "SDL_UpdateWindowSurfaceRects")
+	// sdlUpdateYUVTexturePtr := shared.Get(lib, "SDL_UpdateYUVTexture")
+	// sdlUpdateYUVTexture = func(texture *Texture, rect *Rect, yPlane *uint8, yPitch int32, uPlane *uint8, uPitch int32, vPlane *uint8, vPitch int32) bool {
+	// 	ret, _, _ := purego.SyscallN(
+	// 		sdlUpdateYUVTexturePtr,
+	// 		uintptr(unsafe.Pointer(texture)),
+	// 		uintptr(unsafe.Pointer(rect)),
+	// 		uintptr(unsafe.Pointer(yPlane)), uintptr(yPitch),
+	// 		uintptr(unsafe.Pointer(uPlane)), uintptr(uPitch),
+	// 		uintptr(unsafe.Pointer(vPlane)), uintptr(vPitch))
+
+	// 	return byte(ret) != 0
+	// }
+	// purego.RegisterLibFunc(&sdlUploadToGPUBuffer, lib, "SDL_UploadToGPUBuffer")
+	// purego.RegisterLibFunc(&sdlUploadToGPUTexture, lib, "SDL_UploadToGPUTexture")
+	// // purego.RegisterLibFunc(&sdlutf8strlcpy, lib, "SDL_utf8strlcpy")
+	// // purego.RegisterLibFunc(&sdlutf8strlen, lib, "SDL_utf8strlen")
+	// // purego.RegisterLibFunc(&sdlutf8strnlen, lib, "SDL_utf8strnlen")
+	// // purego.RegisterLibFunc(&sdlvasprintf, lib, "SDL_vasprintf")
+	// // purego.RegisterLibFunc(&sdlvsnprintf, lib, "SDL_vsnprintf")
+	// // purego.RegisterLibFunc(&sdlvsscanf, lib, "SDL_vsscanf")
+	// // purego.RegisterLibFunc(&sdlvswprintf, lib, "SDL_vswprintf")
+	// purego.RegisterLibFunc(&sdlWaitAndAcquireGPUSwapchainTexture, lib, "SDL_WaitAndAcquireGPUSwapchainTexture")
+	// // purego.RegisterLibFunc(&sdlWaitAsyncIOResult, lib, "SDL_WaitAsyncIOResult")
+	// // purego.RegisterLibFunc(&sdlWaitCondition, lib, "SDL_WaitCondition")
+	// // purego.RegisterLibFunc(&sdlWaitConditionTimeout, lib, "SDL_WaitConditionTimeout")
+	// purego.RegisterLibFunc(&sdlWaitEvent, lib, "SDL_WaitEvent")
+	// purego.RegisterLibFunc(&sdlWaitEventTimeout, lib, "SDL_WaitEventTimeout")
+	// // purego.RegisterLibFunc(&sdlWaitForGPUFences, lib, "SDL_WaitForGPUFences")
+	// // purego.RegisterLibFunc(&sdlWaitForGPUIdle, lib, "SDL_WaitForGPUIdle")
+	// // purego.RegisterLibFunc(&sdlWaitForGPUSwapchain, lib, "SDL_WaitForGPUSwapchain")
+	// // purego.RegisterLibFunc(&sdlWaitProcess, lib, "SDL_WaitProcess")
+	// // purego.RegisterLibFunc(&sdlWaitSemaphore, lib, "SDL_WaitSemaphore")
+	// // purego.RegisterLibFunc(&sdlWaitSemaphoreTimeout, lib, "SDL_WaitSemaphoreTimeout")
+	// // purego.RegisterLibFunc(&sdlWaitThread, lib, "SDL_WaitThread")
+	// purego.RegisterLibFunc(&sdlWarpMouseGlobal, lib, "SDL_WarpMouseGlobal")
+	// purego.RegisterLibFunc(&sdlWarpMouseInWindow, lib, "SDL_WarpMouseInWindow")
+	// // purego.RegisterLibFunc(&sdlWasInit, lib, "SDL_WasInit")
+	// // purego.RegisterLibFunc(&sdlwcscasecmp, lib, "SDL_wcscasecmp")
+	// // purego.RegisterLibFunc(&sdlwcscmp, lib, "SDL_wcscmp")
+	// // purego.RegisterLibFunc(&sdlwcsdup, lib, "SDL_wcsdup")
+	// // purego.RegisterLibFunc(&sdlwcslcat, lib, "SDL_wcslcat")
+	// // purego.RegisterLibFunc(&sdlwcslcpy, lib, "SDL_wcslcpy")
+	// // purego.RegisterLibFunc(&sdlwcslen, lib, "SDL_wcslen")
+	// // purego.RegisterLibFunc(&sdlwcsncasecmp, lib, "SDL_wcsncasecmp")
+	// // purego.RegisterLibFunc(&sdlwcsncmp, lib, "SDL_wcsncmp")
+	// // purego.RegisterLibFunc(&sdlwcsnlen, lib, "SDL_wcsnlen")
+	// // purego.RegisterLibFunc(&sdlwcsnstr, lib, "SDL_wcsnstr")
+	// // purego.RegisterLibFunc(&sdlwcsstr, lib, "SDL_wcsstr")
+	// // purego.RegisterLibFunc(&sdlwcstol, lib, "SDL_wcstol")
+	// purego.RegisterLibFunc(&sdlWindowHasSurface, lib, "SDL_WindowHasSurface")
+	// purego.RegisterLibFunc(&sdlWindowSupportsGPUPresentMode, lib, "SDL_WindowSupportsGPUPresentMode")
+	// // purego.RegisterLibFunc(&sdlWindowSupportsGPUSwapchainComposition, lib, "SDL_WindowSupportsGPUSwapchainComposition")
+	// // purego.RegisterLibFunc(&sdlWriteAsyncIO, lib, "SDL_WriteAsyncIO")
+	// // purego.RegisterLibFunc(&sdlWriteIO, lib, "SDL_WriteIO")
+	// // purego.RegisterLibFunc(&sdlWriteS16BE, lib, "SDL_WriteS16BE")
+	// // purego.RegisterLibFunc(&sdlWriteS16LE, lib, "SDL_WriteS16LE")
+	// // purego.RegisterLibFunc(&sdlWriteS32BE, lib, "SDL_WriteS32BE")
+	// // purego.RegisterLibFunc(&sdlWriteS32LE, lib, "SDL_WriteS32LE")
+	// // purego.RegisterLibFunc(&sdlWriteS64BE, lib, "SDL_WriteS64BE")
+	// // purego.RegisterLibFunc(&sdlWriteS64LE, lib, "SDL_WriteS64LE")
+	// // purego.RegisterLibFunc(&sdlWriteS8, lib, "SDL_WriteS8")
+	// // purego.RegisterLibFunc(&sdlWriteStorageFile, lib, "SDL_WriteStorageFile")
+	// // purego.RegisterLibFunc(&sdlWriteSurfacePixel, lib, "SDL_WriteSurfacePixel")
+	// // purego.RegisterLibFunc(&sdlWriteSurfacePixelFloat, lib, "SDL_WriteSurfacePixelFloat")
+	// // purego.RegisterLibFunc(&sdlWriteU16BE, lib, "SDL_WriteU16BE")
+	// // purego.RegisterLibFunc(&sdlWriteU16LE, lib, "SDL_WriteU16LE")
+	// // purego.RegisterLibFunc(&sdlWriteU32BE, lib, "SDL_WriteU32BE")
+	// // purego.RegisterLibFunc(&sdlWriteU32LE, lib, "SDL_WriteU32LE")
+	// // purego.RegisterLibFunc(&sdlWriteU64BE, lib, "SDL_WriteU64BE")
+	// // purego.RegisterLibFunc(&sdlWriteU64LE, lib, "SDL_WriteU64LE")
+	// // purego.RegisterLibFunc(&sdlWriteU8, lib, "SDL_WriteU8")
+
+	// // Load functions available since 3.4.0
+	// versionMajor, versionMinor, _ := GetVersion()
+	// if versionMajor >= 3 && versionMinor >= 4 {
+	// 	// purego.RegisterLibFunc(&sdlAddAtomicU32, lib, "SDL_AddAtomicU32")
+	// 	purego.RegisterLibFunc(&sdlCreateAnimatedCursor, lib, "SDL_CreateAnimatedCursor")
+	// 	purego.RegisterLibFunc(&sdlCreateGPURenderer, lib, "SDL_CreateGPURenderer")
+	// 	// purego.RegisterLibFunc(&sdlCreateGPURenderState, lib, "SDL_CreateGPURenderState")
+	// 	// purego.RegisterLibFunc(&sdlDestroyGPURenderState, lib, "SDL_DestroyGPURenderState")
+	// 	purego.RegisterLibFunc(&sdlGetDefaultTextureScaleMode, lib, "SDL_GetDefaultTextureScaleMode")
+	// 	// purego.RegisterLibFunc(&sdlGetEventDescription, lib, "SDL_GetEventDescription")
+	// 	purego.RegisterLibFunc(&sdlGetGPUDeviceProperties, lib, "SDL_GetGPUDeviceProperties")
+	// 	purego.RegisterLibFunc(&sdlGetGPURendererDevice, lib, "SDL_GetGPURendererDevice")
+	// 	purego.RegisterLibFunc(&sdlGetGPUTextureFormatFromPixelFormat, lib, "SDL_GetGPUTextureFormatFromPixelFormat")
+	// 	// purego.RegisterLibFunc(&sdlGetPenDeviceType, lib, "SDL_GetPenDeviceType")
+	// 	purego.RegisterLibFunc(&sdlGetPixelFormatFromGPUTextureFormat, lib, "SDL_GetPixelFormatFromGPUTextureFormat")
+	// 	purego.RegisterLibFunc(&sdlGetRenderTextureAddressMode, lib, "SDL_GetRenderTextureAddressMode")
+	// 	purego.RegisterLibFunc(&sdlGetSystemPageSize, lib, "SDL_GetSystemPageSize")
+	// 	purego.RegisterLibFunc(&sdlGetTexturePalette, lib, "SDL_GetTexturePalette")
+	// 	purego.RegisterLibFunc(&sdlGetWindowProgressState, lib, "SDL_GetWindowProgressState")
+	// 	purego.RegisterLibFunc(&sdlGetWindowProgressValue, lib, "SDL_GetWindowProgressValue")
+	// 	// purego.RegisterLibFunc(&sdlhid_get_properties, lib, "SDL_hid_get_properties")
+	// 	purego.RegisterLibFunc(&sdlLoadPNG, lib, "SDL_LoadPNG")
+	// 	// purego.RegisterLibFunc(&sdlLoadPNGIO, lib, "SDL_LoadPNG_IO")
+	// 	purego.RegisterLibFunc(&sdlLoadSurface, lib, "SDL_LoadSurface")
+	// 	// purego.RegisterLibFunc(&sdlLoadSurfaceIO, lib, "SDL_LoadSurface_IO")
+	// 	// sdlPutAudioStreamDataNoCopy = shared.Get(lib, "SDL_PutAudioStreamDataNoCopy")
+	// 	// sdlPutAudioStreamPlanarData = shared.Get(lib, "SDL_PutAudioStreamPlanarData")
+	// 	purego.RegisterLibFunc(&sdlRenderTexture9GridTiled, lib, "SDL_RenderTexture9GridTiled")
+	// 	purego.RegisterLibFunc(&sdlRotateSurface, lib, "SDL_RotateSurface")
+	// 	purego.RegisterLibFunc(&sdlStretchSurface, lib, "SDL_StretchSurface")
+	// 	purego.RegisterLibFunc(&sdlSavePNG, lib, "SDL_SavePNG")
+	// 	// purego.RegisterLibFunc(&sdlSavePNGIO, lib, "SDL_SavePNG_IO")
+	// 	purego.RegisterLibFunc(&sdlSetDefaultTextureScaleMode, lib, "SDL_SetDefaultTextureScaleMode")
+	// 	// purego.RegisterLibFunc(&sdlSetGPURenderState, lib, "SDL_SetGPURenderState")
+	// 	// purego.RegisterLibFunc(&sdlSetGPURenderStateFragmentUniforms, lib, "SDL_SetGPURenderStateFragmentUniforms")
+	// 	// purego.RegisterLibFunc(&sdlSetRelativeMouseTransform, lib, "SDL_SetRelativeMouseTransform")
+	// 	purego.RegisterLibFunc(&sdlSetRenderTextureAddressMode, lib, "SDL_SetRenderTextureAddressMode")
+	// 	purego.RegisterLibFunc(&sdlSetTexturePalette, lib, "SDL_SetTexturePalette")
+	// 	// purego.RegisterLibFunc(&sdlSetWindowFillDocument, lib, "SDL_SetWindowFillDocument")
+	// 	purego.RegisterLibFunc(&sdlSetWindowProgressState, lib, "SDL_SetWindowProgressState")
+	// 	purego.RegisterLibFunc(&sdlSetWindowProgressValue, lib, "SDL_SetWindowProgressValue")
+	// }
+
+	// NewEventFilter = func(filter func(userdata unsafe.Pointer, event *Event) bool) EventFilter {
+	// 	// workaround to avoid panic "expected function with one uintptr-sized result" on Windows
+	// 	cb := purego.NewCallback(func(userdata unsafe.Pointer, event *Event) uintptr {
+	// 		if filter(userdata, event) {
+	// 			return 1
+	// 		}
+	// 		return 0
+	// 	})
+
+	// 	return EventFilter(cb)
+	// }
+
+	// NewAudioStreamCallback = func(callback func(userdata unsafe.Pointer, stream *AudioStream, additionalAmount, totalAmount int32)) AudioStreamCallback {
+	// 	cb := purego.NewCallback(func(userdata unsafe.Pointer, stream *AudioStream, additionalAmount, totalAmount int32) uintptr {
+	// 		callback(userdata, stream, additionalAmount, totalAmount)
+	// 		return 0
+	// 	})
+
+	// 	return AudioStreamCallback(cb)
+	// }
+
+	// NewDialogFileCallback = func(callback func(userdata unsafe.Pointer, filelist []string, filter int32)) DialogFileCallback {
+	// 	cb := purego.NewCallback(func(userdata unsafe.Pointer, filelist **byte, filter int32) uintptr {
+	// 		callback(userdata, convert.ToStringSlice(filelist), filter)
+	// 		return 0
+	// 	})
+
+	// 	return DialogFileCallback(cb)
+	// }
+
+	// NewHintCallback = func(callback func(userdata unsafe.Pointer, name, oldValue, newValue string)) HintCallback {
+	// 	cb := purego.NewCallback(func(userdata unsafe.Pointer, name, oldValue, newValue *byte) uintptr {
+	// 		callback(userdata, convert.ToString(name), convert.ToString(oldValue), convert.ToString(newValue))
+	// 		return 0
+	// 	})
+
+	// 	return HintCallback(cb)
+	// }
+
+	// NewLogOutputFunctionCallback = func(callback func(userdata unsafe.Pointer, category LogCategory, priority LogPriority, message string)) LogOutputFunction {
+	// 	cb := purego.NewCallback(func(userdata unsafe.Pointer, category int32, priority LogPriority, message *byte) uintptr {
+	// 		callback(userdata, LogCategory(category), priority, convert.ToString(message))
+	// 		return 0
+	// 	})
+
+	// 	return LogOutputFunction(cb)
+	// }
+
+	// NewCleanupPropertyCallback = func(callback func(userdata, value unsafe.Pointer)) CleanupPropertyCallback {
+	// 	cb := purego.NewCallback(func(userdata, value unsafe.Pointer) uintptr {
+	// 		callback(userdata, value)
+	// 		return 0
+	// 	})
+
+	// 	return CleanupPropertyCallback(cb)
+	// }
+
+	// NewEnumeratePropertiesCallback = func(callback func(userdata unsafe.Pointer, props PropertiesID, name string)) EnumeratePropertiesCallback {
+	// 	cb := purego.NewCallback(func(userdata unsafe.Pointer, props PropertiesID, name *byte) uintptr {
+	// 		callback(userdata, props, convert.ToString(name))
+	// 		return 0
+	// 	})
+
+	// 	return EnumeratePropertiesCallback(cb)
+	// }
+}

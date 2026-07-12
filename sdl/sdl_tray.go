@@ -28,12 +28,16 @@ const (
 	TrayentryChecked  TrayEntryFlags = 0x40000000 // Make the entry checked. This is valid only for checkboxes. Optional.
 )
 
-// func ClickTrayEntry(entry *TrayEntry)  {
-//	sdlClickTrayEntry(entry)
-// }
-
 // func CreateTray(icon *Surface, tooltip string) *Tray {
 //	return sdlCreateTray(icon, tooltip)
+// }
+
+// func SetTrayIcon(tray *Tray, icon *Surface)  {
+//	sdlSetTrayIcon(tray, icon)
+// }
+
+// func SetTrayTooltip(tray *Tray, tooltip string)  {
+//	sdlSetTrayTooltip(tray, tooltip)
 // }
 
 // func CreateTrayMenu(tray *Tray) *TrayMenu {
@@ -44,32 +48,64 @@ const (
 //	return sdlCreateTraySubmenu(entry)
 // }
 
-// func DestroyTray(tray *Tray)  {
-//	sdlDestroyTray(tray)
+// func GetTrayMenu(tray *Tray) *TrayMenu {
+//	return sdlGetTrayMenu(tray)
+// }
+
+// func GetTraySubmenu(entry *TrayEntry) *TrayMenu {
+//	return sdlGetTraySubmenu(entry)
 // }
 
 // func GetTrayEntries(menu *TrayMenu, size *int32) **TrayEntry {
 //	return sdlGetTrayEntries(menu, size)
 // }
 
-// func GetTrayEntryChecked(entry *TrayEntry) bool {
-//	return sdlGetTrayEntryChecked(entry)
+// func RemoveTrayEntry(entry *TrayEntry)  {
+//	sdlRemoveTrayEntry(entry)
 // }
 
-// func GetTrayEntryEnabled(entry *TrayEntry) bool {
-//	return sdlGetTrayEntryEnabled(entry)
+// func InsertTrayEntryAt(menu *TrayMenu, pos int32, label string, flags TrayEntryFlags) *TrayEntry {
+//	return sdlInsertTrayEntryAt(menu, pos, label, flags)
+// }
+
+// func SetTrayEntryLabel(entry *TrayEntry, label string)  {
+//	sdlSetTrayEntryLabel(entry, label)
 // }
 
 // func GetTrayEntryLabel(entry *TrayEntry) string {
 //	return sdlGetTrayEntryLabel(entry)
 // }
 
-// func GetTrayEntryParent(entry *TrayEntry) *TrayMenu {
-//	return sdlGetTrayEntryParent(entry)
+// func SetTrayEntryChecked(entry *TrayEntry, checked bool)  {
+//	sdlSetTrayEntryChecked(entry, checked)
 // }
 
-// func GetTrayMenu(tray *Tray) *TrayMenu {
-//	return sdlGetTrayMenu(tray)
+// func GetTrayEntryChecked(entry *TrayEntry) bool {
+//	return sdlGetTrayEntryChecked(entry)
+// }
+
+// func SetTrayEntryEnabled(entry *TrayEntry, enabled bool)  {
+//	sdlSetTrayEntryEnabled(entry, enabled)
+// }
+
+// func GetTrayEntryEnabled(entry *TrayEntry) bool {
+//	return sdlGetTrayEntryEnabled(entry)
+// }
+
+// func SetTrayEntryCallback(entry *TrayEntry, callback TrayCallback, userdata unsafe.Pointer)  {
+//	sdlSetTrayEntryCallback(entry, callback, userdata)
+// }
+
+// func ClickTrayEntry(entry *TrayEntry)  {
+//	sdlClickTrayEntry(entry)
+// }
+
+// func DestroyTray(tray *Tray)  {
+//	sdlDestroyTray(tray)
+// }
+
+// func GetTrayEntryParent(entry *TrayEntry) *TrayMenu {
+//	return sdlGetTrayEntryParent(entry)
 // }
 
 // func GetTrayMenuParentEntry(menu *TrayMenu) *TrayEntry {
@@ -78,42 +114,6 @@ const (
 
 // func GetTrayMenuParentTray(menu *TrayMenu) *Tray {
 //	return sdlGetTrayMenuParentTray(menu)
-// }
-
-// func GetTraySubmenu(entry *TrayEntry) *TrayMenu {
-//	return sdlGetTraySubmenu(entry)
-// }
-
-// func InsertTrayEntryAt(menu *TrayMenu, pos int32, label string, flags TrayEntryFlags) *TrayEntry {
-//	return sdlInsertTrayEntryAt(menu, pos, label, flags)
-// }
-
-// func RemoveTrayEntry(entry *TrayEntry)  {
-//	sdlRemoveTrayEntry(entry)
-// }
-
-// func SetTrayEntryCallback(entry *TrayEntry, callback TrayCallback, userdata unsafe.Pointer)  {
-//	sdlSetTrayEntryCallback(entry, callback, userdata)
-// }
-
-// func SetTrayEntryChecked(entry *TrayEntry, checked bool)  {
-//	sdlSetTrayEntryChecked(entry, checked)
-// }
-
-// func SetTrayEntryEnabled(entry *TrayEntry, enabled bool)  {
-//	sdlSetTrayEntryEnabled(entry, enabled)
-// }
-
-// func SetTrayEntryLabel(entry *TrayEntry, label string)  {
-//	sdlSetTrayEntryLabel(entry, label)
-// }
-
-// func SetTrayIcon(tray *Tray, icon *Surface)  {
-//	sdlSetTrayIcon(tray, icon)
-// }
-
-// func SetTrayTooltip(tray *Tray, tooltip string)  {
-//	sdlSetTrayTooltip(tray, tooltip)
 // }
 
 // [UpdateTrays] updates the trays.

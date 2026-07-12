@@ -6,26 +6,45 @@ import (
 	"github.com/jupiterrider/purego-sdl3/sdl"
 )
 
-// [Animation] defines the animated image support.
-//
-// [Animation]: https://wiki.libsdl.org/SDL3_image/IMG_Animation
-type Animation struct {
-	W      int32         // The width of the frames.
-	H      int32         // The height of the frames.
-	Count  int32         // The number of frames.
-	frames **sdl.Surface // An array of frames.
-	delays *int32        // An array of frame delays, in milliseconds.
-}
+const (
+	PropAnimationEncoderCreateFilenameString            = "SDL_image.animation_encoder.create.filename"
+	PropAnimationEncoderCreateIostreamPointer           = "SDL_image.animation_encoder.create.iostream"
+	PropAnimationEncoderCreateIostreamAutocloseBoolean  = "SDL_image.animation_encoder.create.iostream.autoclose"
+	PropAnimationEncoderCreateTypeString                = "SDL_image.animation_encoder.create.type"
+	PropAnimationEncoderCreateQualityNumber             = "SDL_image.animation_encoder.create.quality"
+	PropAnimationEncoderCreateTimebaseNumeratorNumber   = "SDL_image.animation_encoder.create.timebase.numerator"
+	PropAnimationEncoderCreateTimebaseDenominatorNumber = "SDL_image.animation_encoder.create.timebase.denominator"
 
-// Frames gets available frames.
-func (a *Animation) Frames() []*sdl.Surface {
-	return unsafe.Slice(a.frames, a.Count)
-}
+	PropAnimationEncoderCreateAvifMaxThreadsNumber       = "SDL_image.animation_encoder.create.avif.max_threads"
+	PropAnimationEncoderCreateAvifKeyframeIntervalNumber = "SDL_image.animation_encoder.create.avif.keyframe_interval"
+	PropAnimationEncoderCreateGifUseLutBoolean           = "SDL_image.animation_encoder.create.gif.use_lut"
+)
 
-// Delays gets delays between frames.
-func (a *Animation) Delays() []int32 {
-	return unsafe.Slice(a.delays, a.Count)
-}
+const (
+	PropAnimationDecoderCreateFilenameString            = "SDL_image.animation_decoder.create.filename"
+	PropAnimationDecoderCreateIostreamPointer           = "SDL_image.animation_decoder.create.iostream"
+	PropAnimationDecoderCreateIostreamAutocloseBoolean  = "SDL_image.animation_decoder.create.iostream.autoclose"
+	PropAnimationDecoderCreateTypeString                = "SDL_image.animation_decoder.create.type"
+	PropAnimationDecoderCreateTimebaseNumeratorNumber   = "SDL_image.animation_decoder.create.timebase.numerator"
+	PropAnimationDecoderCreateTimebaseDenominatorNumber = "SDL_image.animation_decoder.create.timebase.denominator"
+
+	PropAnimationDecoderCreateAvifMaxThreadsNumber           = "SDL_image.animation_decoder.create.avif.max_threads"
+	PropAnimationDecoderCreateAvifAllowIncrementalBoolean    = "SDL_image.animation_decoder.create.avif.allow_incremental"
+	PropAnimationDecoderCreateAvifAllowProgressiveBoolean    = "SDL_image.animation_decoder.create.avif.allow_progressive"
+	PropAnimationDecoderCreateGifTransparentColorIndexNumber = "SDL_image.animation_encoder.create.gif.transparent_color_index"
+	PropAnimationDecoderCreateGifNumColorsNumber             = "SDL_image.animation_encoder.create.gif.num_colors"
+)
+
+const (
+	PropMetadataIgnorePropsBoolean = "SDL_image.metadata.ignore_props"
+	PropMetadataDescriptionString  = "SDL_image.metadata.description"
+	PropMetadataCopyrightString    = "SDL_image.metadata.copyright"
+	PropMetadataTitleString        = "SDL_image.metadata.title"
+	PropMetadataAuthorString       = "SDL_image.metadata.author"
+	PropMetadataCreationTimeString = "SDL_image.metadata.creation_time"
+	PropMetadataFrameCountNumber   = "SDL_image.metadata.frame_count"
+	PropMetadataLoopCountNumber    = "SDL_image.metadata.loop_count"
+)
 
 // [Version] gets the version of the dynamically linked SDL_image library.
 //
@@ -38,11 +57,91 @@ func Version() (major, minor, patch int32) {
 	return
 }
 
-// [FreeAnimation] disposes of an [Animation] and free its resources.
+// [Load] loads an image from a filesystem path into a software surface.
 //
-// [FreeAnimation]: https://wiki.libsdl.org/SDL3_image/IMG_FreeAnimation
-func FreeAnimation(anim *Animation) {
-	imgFreeAnimation(anim)
+// [Load]: https://wiki.libsdl.org/SDL3_image/IMG_Load
+func Load(file string) *sdl.Surface {
+	return imgLoad(file)
+}
+
+// [LoadIO] loads an image from an SDL data source into a software surface.
+//
+// [LoadIO]: https://wiki.libsdl.org/SDL3_image/IMG_Load_IO
+func LoadIO(src *sdl.IOStream, closeio bool) *sdl.Surface {
+	return imgLoadIO(src, closeio)
+}
+
+// [LoadTypedIO] loads an image from an SDL data source into a software surface.
+//
+// [LoadTypedIO]: https://wiki.libsdl.org/SDL3_image/IMG_LoadTyped_IO
+func LoadTypedIO(src *sdl.IOStream, closeio bool, format string) *sdl.Surface {
+	return imgLoadTypedIO(src, closeio, format)
+}
+
+// [LoadTexture] loads an image from a filesystem path into a GPU texture.
+//
+// [LoadTexture]: https://wiki.libsdl.org/SDL3_image/IMG_LoadTexture
+func LoadTexture(renderer *sdl.Renderer, file string) *sdl.Texture {
+	return imgLoadTexture(renderer, file)
+}
+
+// [LoadTextureIO] loads an image from an SDL data source into a GPU texture.
+//
+// [LoadTextureIO]: https://wiki.libsdl.org/SDL3_image/IMG_LoadTexture_IO
+func LoadTextureIO(renderer *sdl.Renderer, src *sdl.IOStream, closeio bool) *sdl.Texture {
+	return imgLoadTextureIO(renderer, src, closeio)
+}
+
+// [LoadTextureTypedIO] loads an image from an SDL data source into a GPU texture.
+//
+// [LoadTextureTypedIO]: https://wiki.libsdl.org/SDL3_image/IMG_LoadTextureTyped_IO
+func LoadTextureTypedIO(renderer *sdl.Renderer, src *sdl.IOStream, closeio bool, format string) *sdl.Texture {
+	return imgLoadTextureTypedIO(renderer, src, closeio, format)
+}
+
+// [LoadGPUTexture] loads an image from a filesystem path into a GPU texture.
+//
+// Available since SDL_image 3.4.0.
+//
+// [LoadGPUTexture]: https://wiki.libsdl.org/SDL3_image/IMG_LoadGPUTexture
+func LoadGPUTexture(device *sdl.GPUDevice, copyPass *sdl.GPUCopyPass, file string, width, height *int32) *sdl.GPUTexture {
+	return imgLoadGPUTexture(device, copyPass, file, width, height)
+}
+
+// [LoadGPUTextureIO] loads an image from an SDL data source into a GPU texture.
+//
+// Available since SDL_image 3.4.0.
+//
+// [LoadGPUTextureIO]: https://wiki.libsdl.org/SDL3_image/IMG_LoadGPUTexture_IO
+func LoadGPUTextureIO(device *sdl.GPUDevice, copyPass *sdl.GPUCopyPass, src *sdl.IOStream, closeio bool, width, height *int32) *sdl.GPUTexture {
+	return imgLoadGPUTextureIO(device, copyPass, src, closeio, width, height)
+}
+
+// [LoadGPUTextureTypedIO] loads an image from an SDL data source into a GPU texture.
+//
+// Available since SDL_image 3.4.0.
+//
+// [LoadGPUTextureTypedIO]: https://wiki.libsdl.org/SDL3_image/IMG_LoadGPUTextureTyped_IO
+func LoadGPUTextureTypedIO(device *sdl.GPUDevice, copyPass *sdl.GPUCopyPass, src *sdl.IOStream, closeio bool, _type string, width, height *int32) *sdl.GPUTexture {
+	return imgLoadGPUTextureTypedIO(device, copyPass, src, closeio, _type, width, height)
+}
+
+// [GetClipboardImage] gets the image currently in the clipboard.
+//
+// Available since SDL_image 3.4.0.
+//
+// [GetClipboardImage]: https://wiki.libsdl.org/SDL3_image/IMG_GetClipboardImage
+func GetClipboardImage() *sdl.Surface {
+	return imgGetClipboardImage()
+}
+
+// [IsANI] detects ANI animated cursor data on a readable/seekable [sdl.IOStream].
+//
+// Available since SDL_image 3.4.0.
+//
+// [IsANI]: https://wiki.libsdl.org/SDL3_image/IMG_IsANI
+func IsANI(src *sdl.IOStream) bool {
+	return imgIsANI(src)
 }
 
 // [IsAVIF] detects AVIF image data on a readable/seekable [sdl.IOStream].
@@ -52,18 +151,18 @@ func IsAVIF(src *sdl.IOStream) bool {
 	return imgIsAVIF(src)
 }
 
-// [IsBMP] detects BMP image data on a readable/seekable [sdl.IOStream].
-//
-// [IsBMP]: https://wiki.libsdl.org/SDL3_image/IMG_isBMP
-func IsBMP(src *sdl.IOStream) bool {
-	return imgIsBMP(src)
-}
-
 // [IsCUR] detects CUR image data on a readable/seekable [sdl.IOStream].
 //
 // [IsCUR]: https://wiki.libsdl.org/SDL3_image/IMG_isCUR
 func IsCUR(src *sdl.IOStream) bool {
 	return imgIsCUR(src)
+}
+
+// [IsBMP] detects BMP image data on a readable/seekable [sdl.IOStream].
+//
+// [IsBMP]: https://wiki.libsdl.org/SDL3_image/IMG_isBMP
+func IsBMP(src *sdl.IOStream) bool {
+	return imgIsBMP(src)
 }
 
 // [IsGIF] detects GIF image data on a readable/seekable [sdl.IOStream].
@@ -171,41 +270,6 @@ func IsXV(src *sdl.IOStream) bool {
 	return imgIsXV(src)
 }
 
-// [Load] loads an image from a filesystem path into a software surface.
-//
-// [Load]: https://wiki.libsdl.org/SDL3_image/IMG_Load
-func Load(file string) *sdl.Surface {
-	return imgLoad(file)
-}
-
-// [Load] loads an image from an SDL data source into a software surface.
-//
-// [Load]: https://wiki.libsdl.org/SDL3_image/IMG_Load_IO
-func LoadIO(src *sdl.IOStream, closeio bool) *sdl.Surface {
-	return imgLoadIO(src, closeio)
-}
-
-// [LoadAnimation] loads an animation from a file.
-//
-// [LoadAnimation]: https://wiki.libsdl.org/SDL3_image/IMG_LoadAnimation
-func LoadAnimation(file string) *Animation {
-	return imgLoadAnimation(file)
-}
-
-// [LoadAnimation] loads an animation from an [sdl.IOStream].
-//
-// [LoadAnimation]: https://wiki.libsdl.org/SDL3_image/IMG_LoadAnimation_IO
-func LoadAnimationIO(src *sdl.IOStream, closeio bool) *Animation {
-	return imgLoadAnimationIO(src, closeio)
-}
-
-// [LoadAnimationTypedIO] loads an animation from an [sdl.IOStream].
-//
-// [LoadAnimationTypedIO]: https://wiki.libsdl.org/SDL3_image/IMG_LoadAnimationTyped_IO
-func LoadAnimationTypedIO(src *sdl.IOStream, closeio bool, format string) *Animation {
-	return imgLoadAnimationTypedIO(src, closeio, format)
-}
-
 // [LoadAVIFIO] loads a AVIF image directly.
 //
 // [LoadAVIFIO]: https://wiki.libsdl.org/SDL3_image/IMG_LoadAVIF_IO
@@ -232,13 +296,6 @@ func LoadCURIO(src *sdl.IOStream) *sdl.Surface {
 // [LoadGIFIO]: https://wiki.libsdl.org/SDL3_image/IMG_LoadGIF_IO
 func LoadGIFIO(src *sdl.IOStream) *sdl.Surface {
 	return imgLoadGIFIO(src)
-}
-
-// [LoadGIFAnimationIO] loads a GIF animation directly.
-//
-// [LoadGIFAnimationIO]: https://wiki.libsdl.org/SDL3_image/IMG_LoadGIFAnimation_IO
-func LoadGIFAnimationIO(src *sdl.IOStream) *Animation {
-	return imgLoadGIFAnimationIO(src)
 }
 
 // [LoadICOIO] loads a ICO image directly.
@@ -290,11 +347,11 @@ func LoadPNMIO(src *sdl.IOStream) *sdl.Surface {
 	return imgLoadPNMIO(src)
 }
 
-// [LoadQOIIO] loads a QOI image directly.
+// [LoadSVGIO] loads a SVG image directly.
 //
-// [LoadQOIIO]: https://wiki.libsdl.org/SDL3_image/IMG_LoadQOI_IO
-func LoadQOIIO(src *sdl.IOStream) *sdl.Surface {
-	return imgLoadQOIIO(src)
+// [LoadSVGIO]: https://wiki.libsdl.org/SDL3_image/IMG_LoadSVG_IO
+func LoadSVGIO(src *sdl.IOStream) *sdl.Surface {
+	return imgLoadSVGIO(src)
 }
 
 // [LoadSizedSVGIO] loads an SVG image, scaled to a specific size.
@@ -304,32 +361,11 @@ func LoadSizedSVGIO(src *sdl.IOStream, width int32, height int32) *sdl.Surface {
 	return imgLoadSizedSVGIO(src, width, height)
 }
 
-// [LoadSVGIO] loads a SVG image directly.
+// [LoadQOIIO] loads a QOI image directly.
 //
-// [LoadSVGIO]: https://wiki.libsdl.org/SDL3_image/IMG_LoadSVG_IO
-func LoadSVGIO(src *sdl.IOStream) *sdl.Surface {
-	return imgLoadSVGIO(src)
-}
-
-// [LoadTexture] loads an image from a filesystem path into a GPU texture.
-//
-// [LoadTexture]: https://wiki.libsdl.org/SDL3_image/IMG_LoadTexture
-func LoadTexture(renderer *sdl.Renderer, file string) *sdl.Texture {
-	return imgLoadTexture(renderer, file)
-}
-
-// [LoadTextureIO] loads an image from an SDL data source into a GPU texture.
-//
-// [LoadTextureIO]: https://wiki.libsdl.org/SDL3_image/IMG_LoadTexture_IO
-func LoadTextureIO(renderer *sdl.Renderer, src *sdl.IOStream, closeio bool) *sdl.Texture {
-	return imgLoadTextureIO(renderer, src, closeio)
-}
-
-// [LoadTextureTypedIO] loads an image from an SDL data source into a GPU texture.
-//
-// [LoadTextureTypedIO]: https://wiki.libsdl.org/SDL3_image/IMG_LoadTextureTyped_IO
-func LoadTextureTypedIO(renderer *sdl.Renderer, src *sdl.IOStream, closeio bool, format string) *sdl.Texture {
-	return imgLoadTextureTypedIO(renderer, src, closeio, format)
+// [LoadQOIIO]: https://wiki.libsdl.org/SDL3_image/IMG_LoadQOI_IO
+func LoadQOIIO(src *sdl.IOStream) *sdl.Surface {
+	return imgLoadQOIIO(src)
 }
 
 // [LoadTGAIO] loads a TGA image directly.
@@ -346,25 +382,11 @@ func LoadTIFIO(src *sdl.IOStream) *sdl.Surface {
 	return imgLoadTIFIO(src)
 }
 
-// [LoadTypedIO] loads an image from an SDL data source into a software surface.
-//
-// [LoadTypedIO]: https://wiki.libsdl.org/SDL3_image/IMG_LoadTyped_IO
-func LoadTypedIO(src *sdl.IOStream, closeio bool, format string) *sdl.Surface {
-	return imgLoadTypedIO(src, closeio, format)
-}
-
 // [LoadWEBPIO] loads a WEBP image directly.
 //
 // [LoadWEBPIO]: https://wiki.libsdl.org/SDL3_image/IMG_LoadWEBP_IO
 func LoadWEBPIO(src *sdl.IOStream) *sdl.Surface {
 	return imgLoadWEBPIO(src)
-}
-
-// [LoadWEBPAnimationIO] loads a WEBP animation directly.
-//
-// [LoadWEBPAnimationIO]: https://wiki.libsdl.org/SDL3_image/IMG_LoadWEBPAnimation_IO
-func LoadWEBPAnimationIO(src *sdl.IOStream) *Animation {
-	return imgLoadWEBPAnimationIO(src)
 }
 
 // [LoadXCFIO] loads a XCF image directly.
@@ -402,93 +424,6 @@ func ReadXPMFromArrayToRGB888(xpm **byte) *sdl.Surface {
 	return imgReadXPMFromArrayToRGB888(xpm)
 }
 
-// [SaveAVIF] saves an [sdl.Surface] into a AVIF image file.
-//
-// [SaveAVIF]: https://wiki.libsdl.org/SDL3_image/IMG_SaveAVIF
-func SaveAVIF(surface *sdl.Surface, file string, quality int32) bool {
-	return imgSaveAVIF(surface, file, quality)
-}
-
-// [SaveAVIFIO] saves an [sdl.Surface] into AVIF image data, via an [sdl.IOStream].
-//
-// [SaveAVIFIO]: https://wiki.libsdl.org/SDL3_image/IMG_SaveAVIF_IO
-func SaveAVIFIO(surface *sdl.Surface, dst *sdl.IOStream, closeio bool, quality int32) bool {
-	return imgSaveAVIFIO(surface, dst, closeio, quality)
-}
-
-// [SaveJPG] saves an [sdl.Surface] into a JPEG image file.
-//
-// [SaveJPG]: https://wiki.libsdl.org/SDL3_image/IMG_SaveJPG
-func SaveJPG(surface *sdl.Surface, file string, quality int32) bool {
-	return imgSaveJPG(surface, file, quality)
-}
-
-// [SaveJPGIO] saves an [sdl.Surface] into JPEG image data, via an [sdl.IOStream].
-//
-// [SaveJPGIO]: https://wiki.libsdl.org/SDL3_image/IMG_SaveJPG_IO
-func SaveJPGIO(surface *sdl.Surface, dst *sdl.IOStream, closeio bool, quality int32) bool {
-	return imgSaveJPGIO(surface, dst, closeio, quality)
-}
-
-// [SavePNG] saves an [sdl.Surface] into a PNG image file.
-//
-// [SavePNG]: https://wiki.libsdl.org/SDL3_image/IMG_SavePNG
-func SavePNG(surface *sdl.Surface, file string) bool {
-	return imgSavePNG(surface, file)
-}
-
-// [SavePNGIO] saves an [sdl.Surface] into PNG image data, via an [sdl.IOStream].
-//
-// [SavePNGIO]: https://wiki.libsdl.org/SDL3_image/IMG_SavePNG_IO
-func SavePNGIO(surface *sdl.Surface, dst *sdl.IOStream, closeio bool) bool {
-	return imgSavePNGIO(surface, dst, closeio)
-}
-
-// [LoadGPUTexture] loads an image from a filesystem path into a GPU texture.
-//
-// Available since SDL_image 3.4.0.
-//
-// [LoadGPUTexture]: https://wiki.libsdl.org/SDL3_image/IMG_LoadGPUTexture
-func LoadGPUTexture(device *sdl.GPUDevice, copyPass *sdl.GPUCopyPass, file string, width, height *int32) *sdl.GPUTexture {
-	return imgLoadGPUTexture(device, copyPass, file, width, height)
-}
-
-// [LoadGPUTextureIO] loads an image from an SDL data source into a GPU texture.
-//
-// Available since SDL_image 3.4.0.
-//
-// [LoadGPUTextureIO]: https://wiki.libsdl.org/SDL3_image/IMG_LoadGPUTexture_IO
-func LoadGPUTextureIO(device *sdl.GPUDevice, copyPass *sdl.GPUCopyPass, src *sdl.IOStream, closeio bool, width, height *int32) *sdl.GPUTexture {
-	return imgLoadGPUTextureIO(device, copyPass, src, closeio, width, height)
-}
-
-// [LoadGPUTextureTypedIO] loads an image from an SDL data source into a GPU texture.
-//
-// Available since SDL_image 3.4.0.
-//
-// [LoadGPUTextureTypedIO]: https://wiki.libsdl.org/SDL3_image/IMG_LoadGPUTextureTyped_IO
-func LoadGPUTextureTypedIO(device *sdl.GPUDevice, copyPass *sdl.GPUCopyPass, src *sdl.IOStream, closeio bool, _type string, width, height *int32) *sdl.GPUTexture {
-	return imgLoadGPUTextureTypedIO(device, copyPass, src, closeio, _type, width, height)
-}
-
-// [GetClipboardImage] gets the image currently in the clipboard.
-//
-// Available since SDL_image 3.4.0.
-//
-// [GetClipboardImage]: https://wiki.libsdl.org/SDL3_image/IMG_GetClipboardImage
-func GetClipboardImage() *sdl.Surface {
-	return imgGetClipboardImage()
-}
-
-// [IsANI] detects ANI animated cursor data on a readable/seekable [sdl.IOStream].
-//
-// Available since SDL_image 3.4.0.
-//
-// [IsANI]: https://wiki.libsdl.org/SDL3_image/IMG_IsANI
-func IsANI(src *sdl.IOStream) bool {
-	return imgIsANI(src)
-}
-
 // [Save] saves an [sdl.Surface] into an image file.
 //
 // Available since SDL_image 3.4.0.
@@ -505,6 +440,20 @@ func Save(surface *sdl.Surface, file string) bool {
 // [SaveTypedIO]: https://wiki.libsdl.org/SDL3_image/IMG_SaveTyped_IO
 func SaveTypedIO(surface *sdl.Surface, dst *sdl.IOStream, closeio bool, _type string) bool {
 	return imgSaveTypedIO(surface, dst, closeio, _type)
+}
+
+// [SaveAVIF] saves an [sdl.Surface] into a AVIF image file.
+//
+// [SaveAVIF]: https://wiki.libsdl.org/SDL3_image/IMG_SaveAVIF
+func SaveAVIF(surface *sdl.Surface, file string, quality int32) bool {
+	return imgSaveAVIF(surface, file, quality)
+}
+
+// [SaveAVIFIO] saves an [sdl.Surface] into AVIF image data, via an [sdl.IOStream].
+//
+// [SaveAVIFIO]: https://wiki.libsdl.org/SDL3_image/IMG_SaveAVIF_IO
+func SaveAVIFIO(surface *sdl.Surface, dst *sdl.IOStream, closeio bool, quality int32) bool {
+	return imgSaveAVIFIO(surface, dst, closeio, quality)
 }
 
 // [SaveBMP] saves an [sdl.Surface] into a BMP image file.
@@ -579,6 +528,34 @@ func SaveICOIO(surface *sdl.Surface, dst *sdl.IOStream, closeio bool) bool {
 	return imgSaveICOIO(surface, dst, closeio)
 }
 
+// [SaveJPG] saves an [sdl.Surface] into a JPEG image file.
+//
+// [SaveJPG]: https://wiki.libsdl.org/SDL3_image/IMG_SaveJPG
+func SaveJPG(surface *sdl.Surface, file string, quality int32) bool {
+	return imgSaveJPG(surface, file, quality)
+}
+
+// [SaveJPGIO] saves an [sdl.Surface] into JPEG image data, via an [sdl.IOStream].
+//
+// [SaveJPGIO]: https://wiki.libsdl.org/SDL3_image/IMG_SaveJPG_IO
+func SaveJPGIO(surface *sdl.Surface, dst *sdl.IOStream, closeio bool, quality int32) bool {
+	return imgSaveJPGIO(surface, dst, closeio, quality)
+}
+
+// [SavePNG] saves an [sdl.Surface] into a PNG image file.
+//
+// [SavePNG]: https://wiki.libsdl.org/SDL3_image/IMG_SavePNG
+func SavePNG(surface *sdl.Surface, file string) bool {
+	return imgSavePNG(surface, file)
+}
+
+// [SavePNGIO] saves an [sdl.Surface] into PNG image data, via an [sdl.IOStream].
+//
+// [SavePNGIO]: https://wiki.libsdl.org/SDL3_image/IMG_SavePNG_IO
+func SavePNGIO(surface *sdl.Surface, dst *sdl.IOStream, closeio bool) bool {
+	return imgSavePNGIO(surface, dst, closeio)
+}
+
 // [SaveTGA] saves an [sdl.Surface] into a TGA image file.
 //
 // Available since SDL_image 3.4.0.
@@ -615,6 +592,48 @@ func SaveWEBPIO(surface *sdl.Surface, dst *sdl.IOStream, closeio bool, quality f
 	return imgSaveWEBPIO(surface, dst, closeio, quality)
 }
 
+// [Animation] defines the animated image support.
+//
+// [Animation]: https://wiki.libsdl.org/SDL3_image/IMG_Animation
+type Animation struct {
+	W      int32         // The width of the frames.
+	H      int32         // The height of the frames.
+	Count  int32         // The number of frames.
+	frames **sdl.Surface // An array of frames.
+	delays *int32        // An array of frame delays, in milliseconds.
+}
+
+// Frames gets available frames.
+func (a *Animation) Frames() []*sdl.Surface {
+	return unsafe.Slice(a.frames, a.Count)
+}
+
+// Delays gets delays between frames.
+func (a *Animation) Delays() []int32 {
+	return unsafe.Slice(a.delays, a.Count)
+}
+
+// [LoadAnimation] loads an animation from a file.
+//
+// [LoadAnimation]: https://wiki.libsdl.org/SDL3_image/IMG_LoadAnimation
+func LoadAnimation(file string) *Animation {
+	return imgLoadAnimation(file)
+}
+
+// [LoadAnimationIO] loads an animation from an [sdl.IOStream].
+//
+// [LoadAnimationIO]: https://wiki.libsdl.org/SDL3_image/IMG_LoadAnimation_IO
+func LoadAnimationIO(src *sdl.IOStream, closeio bool) *Animation {
+	return imgLoadAnimationIO(src, closeio)
+}
+
+// [LoadAnimationTypedIO] loads an animation from an [sdl.IOStream].
+//
+// [LoadAnimationTypedIO]: https://wiki.libsdl.org/SDL3_image/IMG_LoadAnimationTyped_IO
+func LoadAnimationTypedIO(src *sdl.IOStream, closeio bool, format string) *Animation {
+	return imgLoadAnimationTypedIO(src, closeio, format)
+}
+
 // [LoadANIAnimationIO] loads an ANI animation directly from an [sdl.IOStream].
 //
 // Available since SDL_image 3.4.0.
@@ -640,6 +659,20 @@ func LoadAPNGAnimationIO(src *sdl.IOStream) *Animation {
 // [LoadAVIFAnimationIO]: https://wiki.libsdl.org/SDL3_image/IMG_LoadAVIFAnimation_IO
 func LoadAVIFAnimationIO(src *sdl.IOStream) *Animation {
 	return imgLoadAVIFAnimationIO(src)
+}
+
+// [LoadGIFAnimationIO] loads a GIF animation directly.
+//
+// [LoadGIFAnimationIO]: https://wiki.libsdl.org/SDL3_image/IMG_LoadGIFAnimation_IO
+func LoadGIFAnimationIO(src *sdl.IOStream) *Animation {
+	return imgLoadGIFAnimationIO(src)
+}
+
+// [LoadWEBPAnimationIO] loads a WEBP animation directly.
+//
+// [LoadWEBPAnimationIO]: https://wiki.libsdl.org/SDL3_image/IMG_LoadWEBPAnimation_IO
+func LoadWEBPAnimationIO(src *sdl.IOStream) *Animation {
+	return imgLoadWEBPAnimationIO(src)
 }
 
 // [SaveAnimation] saves an animation to a file.
@@ -714,6 +747,13 @@ func CreateAnimatedCursor(anim *Animation, hotX, hotY int32) *sdl.Cursor {
 	return imgCreateAnimatedCursor(anim, hotX, hotY)
 }
 
+// [FreeAnimation] disposes of an [Animation] and free its resources.
+//
+// [FreeAnimation]: https://wiki.libsdl.org/SDL3_image/IMG_FreeAnimation
+func FreeAnimation(anim *Animation) {
+	imgFreeAnimation(anim)
+}
+
 // [AnimationEncoder] is an object representing the encoder context.
 //
 // Available since SDL_image 3.4.0.
@@ -747,20 +787,6 @@ func CreateAnimationEncoderIO(dst *sdl.IOStream, closeio bool, _type string) *An
 func CreateAnimationEncoderWithProperties(props sdl.PropertiesID) *AnimationEncoder {
 	return imgCreateAnimationEncoderWithProperties(props)
 }
-
-const (
-	PropAnimationEncoderCreateFilenameString            = "SDL_image.animation_encoder.create.filename"
-	PropAnimationEncoderCreateIostreamPointer           = "SDL_image.animation_encoder.create.iostream"
-	PropAnimationEncoderCreateIostreamAutocloseBoolean  = "SDL_image.animation_encoder.create.iostream.autoclose"
-	PropAnimationEncoderCreateTypeString                = "SDL_image.animation_encoder.create.type"
-	PropAnimationEncoderCreateQualityNumber             = "SDL_image.animation_encoder.create.quality"
-	PropAnimationEncoderCreateTimebaseNumeratorNumber   = "SDL_image.animation_encoder.create.timebase.numerator"
-	PropAnimationEncoderCreateTimebaseDenominatorNumber = "SDL_image.animation_encoder.create.timebase.denominator"
-
-	PropAnimationEncoderCreateAvifMaxThreadsNumber       = "SDL_image.animation_encoder.create.avif.max_threads"
-	PropAnimationEncoderCreateAvifKeyframeIntervalNumber = "SDL_image.animation_encoder.create.avif.keyframe_interval"
-	PropAnimationEncoderCreateGifUseLutBoolean           = "SDL_image.animation_encoder.create.gif.use_lut"
-)
 
 // [AddAnimationEncoderFrame] adds a frame to an animation encoder.
 //
@@ -828,21 +854,6 @@ func CreateAnimationDecoderWithProperties(props sdl.PropertiesID) *AnimationDeco
 	return imgCreateAnimationDecoderWithProperties(props)
 }
 
-const (
-	PropAnimationDecoderCreateFilenameString            = "SDL_image.animation_decoder.create.filename"
-	PropAnimationDecoderCreateIostreamPointer           = "SDL_image.animation_decoder.create.iostream"
-	PropAnimationDecoderCreateIostreamAutocloseBoolean  = "SDL_image.animation_decoder.create.iostream.autoclose"
-	PropAnimationDecoderCreateTypeString                = "SDL_image.animation_decoder.create.type"
-	PropAnimationDecoderCreateTimebaseNumeratorNumber   = "SDL_image.animation_decoder.create.timebase.numerator"
-	PropAnimationDecoderCreateTimebaseDenominatorNumber = "SDL_image.animation_decoder.create.timebase.denominator"
-
-	PropAnimationDecoderCreateAvifMaxThreadsNumber           = "SDL_image.animation_decoder.create.avif.max_threads"
-	PropAnimationDecoderCreateAvifAllowIncrementalBoolean    = "SDL_image.animation_decoder.create.avif.allow_incremental"
-	PropAnimationDecoderCreateAvifAllowProgressiveBoolean    = "SDL_image.animation_decoder.create.avif.allow_progressive"
-	PropAnimationDecoderCreateGifTransparentColorIndexNumber = "SDL_image.animation_encoder.create.gif.transparent_color_index"
-	PropAnimationDecoderCreateGifNumColorsNumber             = "SDL_image.animation_encoder.create.gif.num_colors"
-)
-
 // [GetAnimationDecoderProperties] gets the properties of an animation decoder.
 //
 // Available since SDL_image 3.4.0.
@@ -851,17 +862,6 @@ const (
 func GetAnimationDecoderProperties(decoder *AnimationDecoder) sdl.PropertiesID {
 	return imgGetAnimationDecoderProperties(decoder)
 }
-
-const (
-	PropMetadataIgnorePropsBoolean = "SDL_image.metadata.ignore_props"
-	PropMetadataDescriptionString  = "SDL_image.metadata.description"
-	PropMetadataCopyrightString    = "SDL_image.metadata.copyright"
-	PropMetadataTitleString        = "SDL_image.metadata.title"
-	PropMetadataAuthorString       = "SDL_image.metadata.author"
-	PropMetadataCreationTimeString = "SDL_image.metadata.creation_time"
-	PropMetadataFrameCountNumber   = "SDL_image.metadata.frame_count"
-	PropMetadataLoopCountNumber    = "SDL_image.metadata.loop_count"
-)
 
 // [GetAnimationDecoderFrame] gets the next frame in an animation decoder.
 //

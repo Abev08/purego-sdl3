@@ -6,15 +6,15 @@ import (
 	"github.com/jupiterrider/purego-sdl3/internal/mem"
 )
 
-// [MouseWheelDirection] defines the scroll direction types for the Scroll event.
+// [MouseID] is a unique ID for a mouse for the time it is connected to the system, and is never reused for the lifetime of the application.
 //
-// [MouseWheelDirection]: https://wiki.libsdl.org/SDL3/SDL_MouseWheelDirection
-type MouseWheelDirection uint32
+// [MouseID]: https://wiki.libsdl.org/SDL3/SDL_MouseID
+type MouseID uint32
 
-const (
-	MouseWheelNormal  MouseWheelDirection = iota // The scroll direction is normal.
-	MouseWheelFlipped                            // The scroll direction is flipped / natural.
-)
+// [Cursor] is a structure specifying the structure used to identify an SDL cursors.
+//
+// [Cursor]: https://wiki.libsdl.org/SDL3/SDL_Cursor
+type Cursor struct{}
 
 // [SystemCursor] defines the cursor types for [CreateSystemCursor].
 //
@@ -45,6 +45,16 @@ const (
 	SystemCursorCount
 )
 
+// [MouseWheelDirection] defines the scroll direction types for the Scroll event.
+//
+// [MouseWheelDirection]: https://wiki.libsdl.org/SDL3/SDL_MouseWheelDirection
+type MouseWheelDirection uint32
+
+const (
+	MouseWheelNormal  MouseWheelDirection = iota // The scroll direction is normal.
+	MouseWheelFlipped                            // The scroll direction is flipped / natural.
+)
+
 // [CursorFrameInfo] describes animated cursor frame info.
 //
 // Available since SDL 3.4.0.
@@ -54,11 +64,6 @@ type CursorFrameInfo struct {
 	Surface  *Surface // The surface data for this frame.
 	Duration uint32   // The frame duration in milliseconds (a duration of 0 is infinite).
 }
-
-// [MouseID] is a unique ID for a mouse for the time it is connected to the system, and is never reused for the lifetime of the application.
-//
-// [MouseID]: https://wiki.libsdl.org/SDL3/SDL_MouseID
-type MouseID uint32
 
 // [MouseButtonFlags] is a bitmask of pressed mouse buttons, as reported by [GetMouseState], etc.
 //
@@ -79,11 +84,6 @@ const (
 	ButtonX2Mask MouseButtonFlags = 1 << (ButtonX2 - 1)
 )
 
-// [Cursor] is a structure specifying the structure used to identify an SDL cursors.
-//
-// [Cursor]: https://wiki.libsdl.org/SDL3/SDL_Cursor
-type Cursor struct{}
-
 // [MouseMotionTransformCallback] is a callback used to transform mouse motion delta from raw values.
 //
 // Available since SDL 3.4.0.
@@ -91,11 +91,109 @@ type Cursor struct{}
 // [MouseMotionTransformCallback]: https://wiki.libsdl.org/SDL3/SDL_MouseMotionTransformCallback
 type MouseMotionTransformCallback uintptr
 
+// [HasMouse] returns whether a mouse is currently connected.
+//
+// [HasMouse]: https://wiki.libsdl.org/SDL3/SDL_HasMouse
+func HasMouse() bool {
+	return sdlHasMouse()
+}
+
+// [GetMice] returns a list of currently connected mice or nil on failure.
+//
+// [GetMice]: https://wiki.libsdl.org/SDL3/SDL_GetMice
+func GetMice() []MouseID {
+	var count int32
+	mice := sdlGetMice(&count)
+	defer Free(unsafe.Pointer(mice))
+	return mem.Copy(mice, count)
+}
+
+// [GetMouseNameForID] returns the name of the selected mouse.
+//
+// On failure or if the mouse doesn't have a name, this function returns "".
+//
+// [GetMouseNameForID]: https://wiki.libsdl.org/SDL3/SDL_GetMouseNameForID
+func GetMouseNameForID(instanceId MouseID) string {
+	return sdlGetMouseNameForID(instanceId)
+}
+
+// [GetMouseFocus] gets the window which currently has mouse focus.
+//
+// [GetMouseFocus]: https://wiki.libsdl.org/SDL3/SDL_GetMouseFocus
+func GetMouseFocus() *Window {
+	return sdlGetMouseFocus()
+}
+
+// [GetMouseState] queries SDL's cache for the synchronous mouse button state and the window-relative SDL-cursor position.
+//
+// [GetMouseState]: https://wiki.libsdl.org/SDL3/SDL_GetMouseState
+func GetMouseState(x *float32, y *float32) MouseButtonFlags {
+	return sdlGetMouseState(x, y)
+}
+
+// [GetGlobalMouseState] queries the platform for the asynchronous mouse button state and the desktop-relative platform-cursor position.
+//
+// [GetGlobalMouseState]: https://wiki.libsdl.org/SDL3/SDL_GetGlobalMouseState
+func GetGlobalMouseState(x *float32, y *float32) MouseButtonFlags {
+	return sdlGetGlobalMouseState(x, y)
+}
+
+// [GetRelativeMouseState] queries SDL's cache for the synchronous mouse button state and accumulated mouse delta since last call.
+//
+// [GetRelativeMouseState]: https://wiki.libsdl.org/SDL3/SDL_GetRelativeMouseState
+func GetRelativeMouseState(x *float32, y *float32) MouseButtonFlags {
+	return sdlGetRelativeMouseState(x, y)
+}
+
+// [WarpMouseInWindow] moves the mouse cursor to the given position within the window.
+//
+// [WarpMouseInWindow]: https://wiki.libsdl.org/SDL3/SDL_WarpMouseInWindow
+func WarpMouseInWindow(window *Window, x float32, y float32) {
+	sdlWarpMouseInWindow(window, x, y)
+}
+
+// [WarpMouseGlobal] moves the mouse to the given position in global screen space.
+//
+// [WarpMouseGlobal]: https://wiki.libsdl.org/SDL3/SDL_WarpMouseGlobal
+func WarpMouseGlobal(x float32, y float32) bool {
+	return sdlWarpMouseGlobal(x, y)
+}
+
+// [SetRelativeMouseTransform] sets a user-defined function by which to transform relative mouse inputs.
+//
+// Available since SDL 3.4.0.
+//
+// [SetRelativeMouseTransform]: https://wiki.libsdl.org/SDL3/SDL_SetRelativeMouseTransform
+// func SetRelativeMouseTransform(callback MouseMotionTransformCallback, userdata uintptr) bool {
+// 	return sdlSetRelativeMouseTransform(callback, userdata)
+// }
+
+// [SetWindowRelativeMouseMode] sets relative mouse mode for a window.
+//
+// [SetWindowRelativeMouseMode]: https://wiki.libsdl.org/SDL3/SDL_SetWindowRelativeMouseMode
+func SetWindowRelativeMouseMode(window *Window, enabled bool) bool {
+	return sdlSetWindowRelativeMouseMode(window, enabled)
+}
+
+// [GetWindowRelativeMouseMode] queries whether relative mouse mode is enabled for a window.
+//
+// [GetWindowRelativeMouseMode]: https://wiki.libsdl.org/SDL3/SDL_GetWindowRelativeMouseMode
+func GetWindowRelativeMouseMode(window *Window) bool {
+	return sdlGetWindowRelativeMouseMode(window)
+}
+
 // [CaptureMouse] captures the mouse and to track input outside an SDL window.
 //
 // [CaptureMouse]: https://wiki.libsdl.org/SDL3/SDL_CaptureMouse
 func CaptureMouse(enabled bool) bool {
 	return sdlCaptureMouse(enabled)
+}
+
+// [CreateCursor] creates a cursor using the specified bitmap data and mask (in MSB format).
+//
+// [CreateCursor]: https://wiki.libsdl.org/SDL3/SDL_CreateCursor
+func CreateCursor(data *uint8, mask *uint8, w int32, h int32, hotX int32, hotY int32) *Cursor {
+	return sdlCreateCursor(data, mask, w, h, hotX, hotY)
 }
 
 // [CreateColorCursor] creates a color cursor.
@@ -114,13 +212,6 @@ func CreateAnimatedCursor(frames *CursorFrameInfo, frameCount, hotX, hotY int32)
 	return sdlCreateAnimatedCursor(frames, frameCount, hotX, hotY)
 }
 
-// [CreateCursor] creates a cursor using the specified bitmap data and mask (in MSB format).
-//
-// [CreateCursor]: https://wiki.libsdl.org/SDL3/SDL_CreateCursor
-func CreateCursor(data *uint8, mask *uint8, w int32, h int32, hotX int32, hotY int32) *Cursor {
-	return sdlCreateCursor(data, mask, w, h, hotX, hotY)
-}
-
 // [CreateSystemCursor] creates a system cursor.
 //
 // [CreateSystemCursor]: https://wiki.libsdl.org/SDL3/SDL_CreateSystemCursor
@@ -128,18 +219,11 @@ func CreateSystemCursor(id SystemCursor) *Cursor {
 	return sdlCreateSystemCursor(id)
 }
 
-// [CursorVisible] returns true if the cursor is being shown, or false if the cursor is hidden.
+// [SetCursor] sets the active cursor.
 //
-// [CursorVisible]: https://wiki.libsdl.org/SDL3/SDL_CursorVisible
-func CursorVisible() bool {
-	return sdlCursorVisible()
-}
-
-// [DestroyCursor] frees a previously-created cursor.
-//
-// [DestroyCursor]: https://wiki.libsdl.org/SDL3/SDL_DestroyCursor
-func DestroyCursor(cursor *Cursor) {
-	sdlDestroyCursor(cursor)
+// [SetCursor]: https://wiki.libsdl.org/SDL3/SDL_SetCursor
+func SetCursor(cursor *Cursor) bool {
+	return sdlSetCursor(cursor)
 }
 
 // [GetCursor] gets the active cursor.
@@ -156,86 +240,11 @@ func GetDefaultCursor() *Cursor {
 	return sdlGetDefaultCursor()
 }
 
-// [GetGlobalMouseState] queries the platform for the asynchronous mouse button state and the desktop-relative platform-cursor position.
+// [DestroyCursor] frees a previously-created cursor.
 //
-// [GetGlobalMouseState]: https://wiki.libsdl.org/SDL3/SDL_GetGlobalMouseState
-func GetGlobalMouseState(x *float32, y *float32) MouseButtonFlags {
-	return sdlGetGlobalMouseState(x, y)
-}
-
-// [GetMice] returns a list of currently connected mice or nil on failure.
-//
-// [GetMice]: https://wiki.libsdl.org/SDL3/SDL_GetMice
-func GetMice() []MouseID {
-	var count int32
-	mice := sdlGetMice(&count)
-	defer Free(unsafe.Pointer(mice))
-	return mem.Copy(mice, count)
-}
-
-// [GetMouseFocus] gets the window which currently has mouse focus.
-//
-// [GetMouseFocus]: https://wiki.libsdl.org/SDL3/SDL_GetMouseFocus
-func GetMouseFocus() *Window {
-	return sdlGetMouseFocus()
-}
-
-// [GetMouseNameForID] returns the name of the selected mouse.
-//
-// On failure or if the mouse doesn't have a name, this function returns "".
-//
-// [GetMouseNameForID]: https://wiki.libsdl.org/SDL3/SDL_GetMouseNameForID
-func GetMouseNameForID(instanceId MouseID) string {
-	return sdlGetMouseNameForID(instanceId)
-}
-
-// [GetMouseState] queries SDL's cache for the synchronous mouse button state and the window-relative SDL-cursor position.
-//
-// [GetMouseState]: https://wiki.libsdl.org/SDL3/SDL_GetMouseState
-func GetMouseState(x *float32, y *float32) MouseButtonFlags {
-	return sdlGetMouseState(x, y)
-}
-
-// [GetRelativeMouseState] queries SDL's cache for the synchronous mouse button state and accumulated mouse delta since last call.
-//
-// [GetRelativeMouseState]: https://wiki.libsdl.org/SDL3/SDL_GetRelativeMouseState
-func GetRelativeMouseState(x *float32, y *float32) MouseButtonFlags {
-	return sdlGetRelativeMouseState(x, y)
-}
-
-// [GetWindowRelativeMouseMode] queries whether relative mouse mode is enabled for a window.
-//
-// [GetWindowRelativeMouseMode]: https://wiki.libsdl.org/SDL3/SDL_GetWindowRelativeMouseMode
-func GetWindowRelativeMouseMode(window *Window) bool {
-	return sdlGetWindowRelativeMouseMode(window)
-}
-
-// [HasMouse] returns whether a mouse is currently connected.
-//
-// [HasMouse]: https://wiki.libsdl.org/SDL3/SDL_HasMouse
-func HasMouse() bool {
-	return sdlHasMouse()
-}
-
-// [HideCursor] hides the cursor.
-//
-// [HideCursor]: https://wiki.libsdl.org/SDL3/SDL_HideCursor
-func HideCursor() bool {
-	return sdlHideCursor()
-}
-
-// [SetCursor] sets the active cursor.
-//
-// [SetCursor]: https://wiki.libsdl.org/SDL3/SDL_SetCursor
-func SetCursor(cursor *Cursor) bool {
-	return sdlSetCursor(cursor)
-}
-
-// [SetWindowRelativeMouseMode] sets relative mouse mode for a window.
-//
-// [SetWindowRelativeMouseMode]: https://wiki.libsdl.org/SDL3/SDL_SetWindowRelativeMouseMode
-func SetWindowRelativeMouseMode(window *Window, enabled bool) bool {
-	return sdlSetWindowRelativeMouseMode(window, enabled)
+// [DestroyCursor]: https://wiki.libsdl.org/SDL3/SDL_DestroyCursor
+func DestroyCursor(cursor *Cursor) {
+	sdlDestroyCursor(cursor)
 }
 
 // [ShowCursor] shows the cursor.
@@ -245,25 +254,16 @@ func ShowCursor() bool {
 	return sdlShowCursor()
 }
 
-// [WarpMouseGlobal] moves the mouse to the given position in global screen space.
+// [HideCursor] hides the cursor.
 //
-// [WarpMouseGlobal]: https://wiki.libsdl.org/SDL3/SDL_WarpMouseGlobal
-func WarpMouseGlobal(x float32, y float32) bool {
-	return sdlWarpMouseGlobal(x, y)
+// [HideCursor]: https://wiki.libsdl.org/SDL3/SDL_HideCursor
+func HideCursor() bool {
+	return sdlHideCursor()
 }
 
-// [WarpMouseInWindow] moves the mouse cursor to the given position within the window.
+// [CursorVisible] returns true if the cursor is being shown, or false if the cursor is hidden.
 //
-// [WarpMouseInWindow]: https://wiki.libsdl.org/SDL3/SDL_WarpMouseInWindow
-func WarpMouseInWindow(window *Window, x float32, y float32) {
-	sdlWarpMouseInWindow(window, x, y)
+// [CursorVisible]: https://wiki.libsdl.org/SDL3/SDL_CursorVisible
+func CursorVisible() bool {
+	return sdlCursorVisible()
 }
-
-// [SetRelativeMouseTransform] sets a user-defined function by which to transform relative mouse inputs.
-//
-// Available since SDL 3.4.0.
-//
-// [SetRelativeMouseTransform]: https://wiki.libsdl.org/SDL3/SDL_SetRelativeMouseTransform
-// func SetRelativeMouseTransform(callback MouseMotionTransformCallback, userdata uintptr) bool {
-// 	return sdlSetRelativeMouseTransform(callback, userdata)
-// }

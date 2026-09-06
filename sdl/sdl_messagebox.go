@@ -48,14 +48,14 @@ func (m *MessageBoxButtonData) SetText(s string) {
 	m.text = convert.ToBytePtr(s)
 }
 
-// [MessageBoxColor] defines the rgb value used in a message box color scheme.
+// [MessageBoxColor] defines the RGB values used in a message box color scheme.
 //
 // [MessageBoxColor]: https://wiki.libsdl.org/SDL3/SDL_MessageBoxColor
 type MessageBoxColor struct {
 	R, G, B uint8
 }
 
-// [MessageBoxColorType] is an enumeration of indices inside the colors array of [MessageBoxColorScheme].
+// [MessageBoxColorType] defines an enumeration of indices inside the colors array of [MessageBoxColorScheme].
 //
 // [MessageBoxColorType]: https://wiki.libsdl.org/SDL3/SDL_MessageBoxColorType
 type MessageBoxColorType uint32
@@ -66,17 +66,17 @@ const (
 	MessageBoxColorButtonBorder
 	MessageBoxColorButtonBackground
 	MessageBoxColorButtonSelected
-	MessageBoxColorCount
+	MessageBoxColorCount // Size of the colors array of [MessageBoxColorScheme].
 )
 
-// [MessageBoxColorScheme] is a set of colors to use for message box dialogs.
+// [MessageBoxColorScheme] defines a set of colors to use for message box dialogs.
 //
 // [MessageBoxColorScheme]: https://wiki.libsdl.org/SDL3/SDL_MessageBoxColorScheme
 type MessageBoxColorScheme struct {
 	Colors [MessageBoxColorCount]MessageBoxColor
 }
 
-// [MessageBoxData] defines the messagebox structure containing title, text, window, etc.
+// [MessageBoxData] defines the MessageBox structure containing title, text, window, etc.
 //
 // [MessageBoxData]: https://wiki.libsdl.org/SDL3/SDL_MessageBoxData
 type MessageBoxData struct {

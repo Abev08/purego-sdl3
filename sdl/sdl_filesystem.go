@@ -22,7 +22,7 @@ func GetPrefPath(org string, app string) string {
 	return convert.ToString(ret)
 }
 
-// [Folder] is a structure specifying the type of the OS-provided default folder for a specific purposes.
+// [Folder] defines the type of the OS-provided default folder for a specific purpose.
 //
 // [Folder]: https://wiki.libsdl.org/SDL3/SDL_Folder
 type Folder uint32
@@ -42,6 +42,9 @@ const (
 	FolderCount                     // Total number of types in this enum, not a folder type by itself.
 )
 
+// [GetUserFolder] finds the most suitable user folder for a specific purpose.
+//
+// [GetUserFolder]: https://wiki.libsdl.org/SDL3/SDL_GetUserFolder
 // func GetUserFolder(folder Folder) string {
 //	return sdlGetUserFolder(folder)
 // }
@@ -76,6 +79,9 @@ type GlobFlags uint32
 
 const GlobCaseinsensitive GlobFlags = 1 << 0
 
+// [CreateDirectory] creates a directory, and any missing parent directories.
+//
+// [CreateDirectory]: https://wiki.libsdl.org/SDL3/SDL_CreateDirectory
 // func CreateDirectory(path string) bool {
 //	return sdlCreateDirectory(path)
 // }
@@ -91,31 +97,49 @@ const (
 	EnumFailure                           // Value that requests that enumeration stop, as a failure.
 )
 
-// [EnumerateDirectoryCallback] is a callback for directory enumeration.
+// [EnumerateDirectoryCallback] defines callback for directory enumeration.
 //
 // [EnumerateDirectoryCallback]: https://wiki.libsdl.org/SDL3/SDL_EnumerateDirectoryCallback
 type EnumerateDirectoryCallback uintptr
 
+// [EnumerateDirectory] enumerates a directory through a callback function.
+//
+// [EnumerateDirectory]: https://wiki.libsdl.org/SDL3/SDL_EnumerateDirectory
 // func EnumerateDirectory(path string, callback EnumerateDirectoryCallback, userdata unsafe.Pointer) bool {
 //	return sdlEnumerateDirectory(path, callback, userdata)
 // }
 
+// [RemovePath] removes a file or an empty directory.
+//
+// [RemovePath]: https://wiki.libsdl.org/SDL3/SDL_RemovePath
 // func RemovePath(path string) bool {
 //	return sdlRemovePath(path)
 // }
 
+// [RenamePath] renames a file or directory.
+//
+// [RenamePath]: https://wiki.libsdl.org/SDL3/SDL_RenamePath
 // func RenamePath(oldpath string, newpath string) bool {
 //	return sdlRenamePath(oldpath, newpath)
 // }
 
+// [CopyFile] copies a file.
+//
+// [CopyFile]: https://wiki.libsdl.org/SDL3/SDL_CopyFile
 // func CopyFile(oldpath string, newpath string) bool {
 //	return sdlCopyFile(oldpath, newpath)
 // }
 
+// [GetPathInfo] gets information about a filesystem path.
+//
+// [GetPathInfo]: https://wiki.libsdl.org/SDL3/SDL_GetPathInfo
 // func GetPathInfo(path string, info *PathInfo) bool {
 //	return sdlGetPathInfo(path, info)
 // }
 
+// [GlobDirectory] enumerates a directory tree, filtered by pattern, and return a list.
+//
+// [GlobDirectory]: https://wiki.libsdl.org/SDL3/SDL_GlobDirectory
 // func GlobDirectory(path string, pattern string, flags GlobFlags, count *int32) **byte {
 //	return sdlGlobDirectory(path, pattern, flags, count)
 // }

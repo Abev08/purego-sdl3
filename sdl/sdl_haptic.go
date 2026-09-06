@@ -7,7 +7,7 @@ type Haptic struct{}
 
 const HapticInfinity = 4294967295 // Used to play a device an infinite number of times.
 
-// [HapticEffectType] describes type of haptic effect.
+// [HapticEffectType] defines type of haptic effect.
 //
 // [HapticEffectType]: https://wiki.libsdl.org/SDL3/SDL_HapticEffectType
 type HapticEffectType uint16
@@ -35,7 +35,7 @@ const (
 	HapticPause                                        // Device can be paused.
 )
 
-// [HapticDirectionType] describes type of coordinates used for haptic direction.
+// [HapticDirectionType] defines type of coordinates used for haptic direction.
 //
 // [HapticDirectionType]: https://wiki.libsdl.org/SDL3/SDL_HapticDirectionType
 type HapticDirectionType uint8
@@ -47,7 +47,7 @@ const (
 	HapticSteeringAxis HapticDirectionType = 3 // Use this value to play an effect on the steering wheel axis.
 )
 
-// [HapticEffectID] describes ID for haptic effects.
+// [HapticEffectID] defines ID for haptic effects.
 //
 // [HapticEffectID]: https://wiki.libsdl.org/SDL3/SDL_HapticEffectID
 type HapticEffectID int32
@@ -181,126 +181,219 @@ type HapticEffect struct {
 // [HapticID]: https://wiki.libsdl.org/SDL3/SDL_HapticID
 type HapticID uint32
 
+// [GetHaptics] gets a list of currently connected haptic devices.
+//
+// [GetHaptics]: https://wiki.libsdl.org/SDL3/SDL_GetHaptics
 // func GetHaptics(count *int32) *HapticID {
 //	return sdlGetHaptics(count)
 // }
 
+// [GetHapticNameForID] gets the implementation dependent name of a haptic device.
+//
+// [GetHapticNameForID]: https://wiki.libsdl.org/SDL3/SDL_GetHapticNameForID
 // func GetHapticNameForID(instance_id HapticID) string {
 //	return sdlGetHapticNameForID(instance_id)
 // }
 
+// [OpenHaptic] opens a haptic device for use.
+//
+// [OpenHaptic]: https://wiki.libsdl.org/SDL3/SDL_OpenHaptic
 // func OpenHaptic(instance_id HapticID) *Haptic {
 //	return sdlOpenHaptic(instance_id)
 // }
 
+// [GetHapticFromID] gets the [Haptic] associated with an instance ID, if it has been opened.
+//
+// [GetHapticFromID]: https://wiki.libsdl.org/SDL3/SDL_GetHapticFromID
 // func GetHapticFromID(instance_id HapticID) *Haptic {
 //	return sdlGetHapticFromID(instance_id)
 // }
 
+// [GetHapticID] gets the instance ID of an opened haptic device.
+//
+// [GetHapticID]: https://wiki.libsdl.org/SDL3/SDL_GetHapticID
 // func GetHapticID(haptic *Haptic) HapticID {
 //	return sdlGetHapticID(haptic)
 // }
 
+// [GetHapticName] gets the implementation dependent name of a haptic device.
+//
+// [GetHapticName]: https://wiki.libsdl.org/SDL3/SDL_GetHapticName
 // func GetHapticName(haptic *Haptic) string {
 //	return sdlGetHapticName(haptic)
 // }
 
+// [IsMouseHaptic] queries whether or not the current mouse has haptic capabilities.
+//
+// [IsMouseHaptic]: https://wiki.libsdl.org/SDL3/SDL_IsMouseHaptic
 // func IsMouseHaptic() bool {
 //	return sdlIsMouseHaptic()
 // }
 
+// [OpenHapticFromMouse] trys to open a haptic device from the current mouse.
+//
+// [OpenHapticFromMouse]: https://wiki.libsdl.org/SDL3/SDL_OpenHapticFromMouse
 // func OpenHapticFromMouse() *Haptic {
 //	return sdlOpenHapticFromMouse()
 // }
 
+// [IsJoystickHaptic] queries if a joystick has haptic features.
+//
+// [IsJoystickHaptic]: https://wiki.libsdl.org/SDL3/SDL_IsJoystickHaptic
 // func IsJoystickHaptic(joystick *Joystick) bool {
 //	return sdlIsJoystickHaptic(joystick)
 // }
 
+// [OpenHapticFromJoystick] opens a haptic device for use from a joystick device.
+//
+// [OpenHapticFromJoystick]: https://wiki.libsdl.org/SDL3/SDL_OpenHapticFromJoystick
 // func OpenHapticFromJoystick(joystick *Joystick) *Haptic {
 //	return sdlOpenHapticFromJoystick(joystick)
 // }
 
-// func CloseHaptic(haptic *Haptic)  {
+// [CloseHaptic] closes a haptic device previously opened with [OpenHaptic].
+//
+// [CloseHaptic]: https://wiki.libsdl.org/SDL3/SDL_CloseHaptic
+// func CloseHaptic(haptic *Haptic) {
 //	sdlCloseHaptic(haptic)
 // }
 
+// [GetMaxHapticEffects] gets the number of effects a haptic device can store.
+//
+// [GetMaxHapticEffects]: https://wiki.libsdl.org/SDL3/SDL_GetMaxHapticEffects
 // func GetMaxHapticEffects(haptic *Haptic) int32 {
 //	return sdlGetMaxHapticEffects(haptic)
 // }
 
+// [GetMaxHapticEffectsPlaying] gets the number of effects a haptic device can play at the same time.
+//
+// [GetMaxHapticEffectsPlaying]: https://wiki.libsdl.org/SDL3/SDL_GetMaxHapticEffectsPlaying
 // func GetMaxHapticEffectsPlaying(haptic *Haptic) int32 {
 //	return sdlGetMaxHapticEffectsPlaying(haptic)
 // }
 
+// [GetHapticFeatures] gets the haptic device's supported features in bitwise manner.
+//
+// [GetHapticFeatures]: https://wiki.libsdl.org/SDL3/SDL_GetHapticFeatures
 // func GetHapticFeatures(haptic *Haptic) uint32 {
 //	return sdlGetHapticFeatures(haptic)
 // }
 
+// [GetNumHapticAxes] gets the number of haptic axes the device has.
+//
+// [GetNumHapticAxes]: https://wiki.libsdl.org/SDL3/SDL_GetNumHapticAxes
 // func GetNumHapticAxes(haptic *Haptic) int32 {
 //	return sdlGetNumHapticAxes(haptic)
 // }
 
+// [HapticEffectSupported] checks to see if an effect is supported by a haptic device.
+//
+// [HapticEffectSupported]: https://wiki.libsdl.org/SDL3/SDL_HapticEffectSupported
 // func HapticEffectSupported(haptic *Haptic, effect *HapticEffect) bool {
 //	return sdlHapticEffectSupported(haptic, effect)
 // }
 
-// func CreateHapticEffect(haptic *Haptic, effect *HapticEffect) int32 {
-//	return sdlCreateHapticEffect(haptic, effect)
+// [CreateHapticEffect] creates a new haptic effect on a specified device.
+//
+// [CreateHapticEffect]: https://wiki.libsdl.org/SDL3/SDL_CreateHapticEffect
+// func CreateHapticEffect(haptic *Haptic, effect *HapticEffect) HapticEffectID {
+//	return HapticEffectID(sdlCreateHapticEffect(haptic, effect))
 // }
 
-// func UpdateHapticEffect(haptic *Haptic, effect int32, data *HapticEffect) bool {
+// [UpdateHapticEffect] updates the properties of an effect.
+//
+// [UpdateHapticEffect]: https://wiki.libsdl.org/SDL3/SDL_UpdateHapticEffect
+// func UpdateHapticEffect(haptic *Haptic, effect HapticEffectID, data *HapticEffect) bool {
 //	return sdlUpdateHapticEffect(haptic, effect, data)
 // }
 
-// func RunHapticEffect(haptic *Haptic, effect int32, iterations uint32) bool {
+// [RunHapticEffect] runs the haptic effect on its associated haptic device.
+//
+// [RunHapticEffect]: https://wiki.libsdl.org/SDL3/SDL_RunHapticEffect
+// func RunHapticEffect(haptic *Haptic, effect HapticEffectID, iterations uint32) bool {
 //	return sdlRunHapticEffect(haptic, effect, iterations)
 // }
 
-// func StopHapticEffect(haptic *Haptic, effect int32) bool {
+// [StopHapticEffect] stops the haptic effect on its associated haptic device.
+//
+// [StopHapticEffect]: https://wiki.libsdl.org/SDL3/SDL_StopHapticEffect
+// func StopHapticEffect(haptic *Haptic, effect HapticEffectID) bool {
 //	return sdlStopHapticEffect(haptic, effect)
 // }
 
-// func DestroyHapticEffect(haptic *Haptic, effect int32)  {
+// [DestroyHapticEffect] destroys a haptic effect on the device.
+//
+// [DestroyHapticEffect]: https://wiki.libsdl.org/SDL3/SDL_DestroyHapticEffect
+// func DestroyHapticEffect(haptic *Haptic, effect HapticEffectID) {
 //	sdlDestroyHapticEffect(haptic, effect)
 // }
 
-// func GetHapticEffectStatus(haptic *Haptic, effect int32) bool {
+// [GetHapticEffectStatus] gets the status of the current effect on the specified haptic device.
+//
+// [GetHapticEffectStatus]: https://wiki.libsdl.org/SDL3/SDL_GetHapticEffectStatus
+// func GetHapticEffectStatus(haptic *Haptic, effect HapticEffectID) bool {
 //	return sdlGetHapticEffectStatus(haptic, effect)
 // }
 
+// [SetHapticGain] sets the global gain of the specified haptic device.
+//
+// [SetHapticGain]: https://wiki.libsdl.org/SDL3/SDL_SetHapticGain
 // func SetHapticGain(haptic *Haptic, gain int32) bool {
 //	return sdlSetHapticGain(haptic, gain)
 // }
 
+// [SetHapticAutocenter] sets the global autocenter of the device.
+//
+// [SetHapticAutocenter]: https://wiki.libsdl.org/SDL3/SDL_SetHapticAutocenter
 // func SetHapticAutocenter(haptic *Haptic, autocenter int32) bool {
 //	return sdlSetHapticAutocenter(haptic, autocenter)
 // }
 
+// [PauseHaptic] pauses a haptic device.
+//
+// [PauseHaptic]: https://wiki.libsdl.org/SDL3/SDL_PauseHaptic
 // func PauseHaptic(haptic *Haptic) bool {
 //	return sdlPauseHaptic(haptic)
 // }
 
+// [ResumeHaptic] resumes a haptic device.
+//
+// [ResumeHaptic]: https://wiki.libsdl.org/SDL3/SDL_ResumeHaptic
 // func ResumeHaptic(haptic *Haptic) bool {
 //	return sdlResumeHaptic(haptic)
 // }
 
+// [StopHapticEffects] stops all the currently playing effects on a haptic device.
+//
+// [StopHapticEffects]: https://wiki.libsdl.org/SDL3/SDL_StopHapticEffects
 // func StopHapticEffects(haptic *Haptic) bool {
 //	return sdlStopHapticEffects(haptic)
 // }
 
+// [HapticRumbleSupported] checks whether rumble is supported on a haptic device.
+//
+// [HapticRumbleSupported]: https://wiki.libsdl.org/SDL3/SDL_HapticRumbleSupported
 // func HapticRumbleSupported(haptic *Haptic) bool {
 //	return sdlHapticRumbleSupported(haptic)
 // }
 
+// [InitHapticRumble] initializes a haptic device for simple rumble playback.
+//
+// [InitHapticRumble]: https://wiki.libsdl.org/SDL3/SDL_InitHapticRumble
 // func InitHapticRumble(haptic *Haptic) bool {
 //	return sdlInitHapticRumble(haptic)
 // }
 
+// [PlayHapticRumble] runs a simple rumble effect on a haptic device.
+//
+// [PlayHapticRumble]: https://wiki.libsdl.org/SDL3/SDL_PlayHapticRumble
 // func PlayHapticRumble(haptic *Haptic, strength float32, length uint32) bool {
 //	return sdlPlayHapticRumble(haptic, strength, length)
 // }
 
+// [StopHapticRumble] stops the simple rumble on a haptic device.
+//
+// [StopHapticRumble]: https://wiki.libsdl.org/SDL3/SDL_StopHapticRumble
 // func StopHapticRumble(haptic *Haptic) bool {
 //	return sdlStopHapticRumble(haptic)
 // }

@@ -1,6 +1,6 @@
 package sdl
 
-// [PowerState] is the basic state for the system's power supply return by [GetPowerInfo].
+// [PowerState] specifies the basic state for the system's power supply returned by [GetPowerInfo].
 //
 // [PowerState]: https://wiki.libsdl.org/SDL3/SDL_PowerState
 type PowerState int32

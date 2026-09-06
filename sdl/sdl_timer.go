@@ -28,8 +28,10 @@ func GetPerformanceFrequency() uint64 {
 	return sdlGetPerformanceFrequency()
 }
 
-// Delay wait a specified number of milliseconds before returning.
-// func Delay(ms uint32)  {
+// [Delay] waits a specified number of milliseconds before returning.
+//
+// [Delay]: https://wiki.libsdl.org/SDL3/SDL_Delay
+// func Delay(ms uint32) {
 //	sdlDelay(ms)
 // }
 
@@ -40,35 +42,45 @@ func DelayNS(ns uint64) {
 	sdlDelayNS(ns)
 }
 
-// DelayPrecise wait a specified number of nanoseconds before returning.
-// func DelayPrecise(ns uint64)  {
+// [DelayPrecise] waits a specified number of nanoseconds before returning.
+//
+// [DelayPrecise]: https://wiki.libsdl.org/SDL3/SDL_DelayPrecise
+// func DelayPrecise(ns uint64) {
 //	sdlDelayPrecise(ns)
 // }
 
-// [TimerID] is a definition of the timer ID type.
+// [TimerID] specifies definition of the timer ID type.
 //
 // [TimerID]: https://wiki.libsdl.org/SDL3/SDL_TimerID
 type TimerID uint32
 
-// [TimerCallback] is a function prototype for the millisecond timer callback function.
+// [TimerCallback] specifies function prototype for the millisecond timer callback function.
 //
 // [TimerCallback]: https://wiki.libsdl.org/SDL3/SDL_TimerCallback
 type TimerCallback uintptr
 
+// [AddTimer] calls a callback function at a future time.
+//
+// [AddTimer]: https://wiki.libsdl.org/SDL3/SDL_AddTimer
 // func AddTimer(interval uint32, callback TimerCallback, userdata unsafe.Pointer) TimerID {
 //	return sdlAddTimer(interval, callback, userdata)
 // }
 
-// [NSTimerCallback] is a function prototype for the nanosecond timer callback function.
+// [NSTimerCallback] specifies function prototype for the nanosecond timer callback function.
 //
 // [NSTimerCallback]: https://wiki.libsdl.org/SDL3/SDL_NSTimerCallback
 type NSTimerCallback uintptr
 
+// [AddTimerNS] calls a callback function at a future time.
+//
+// [AddTimerNS]: https://wiki.libsdl.org/SDL3/SDL_AddTimerNS
 // func AddTimerNS(interval uint64, callback NSTimerCallback, userdata unsafe.Pointer) TimerID {
 //	return sdlAddTimerNS(interval, callback, userdata)
 // }
 
-// RemoveTimer remove a timer created with SDL_AddTimer().
+// [RemoveTimer] removes a timer created with [AddTimer].
+//
+// [RemoveTimer]: https://wiki.libsdl.org/SDL3/SDL_RemoveTimer
 // func RemoveTimer(id TimerID) bool {
 //	return sdlRemoveTimer(id)
 // }

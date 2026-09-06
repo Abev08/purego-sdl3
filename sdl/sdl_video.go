@@ -97,25 +97,25 @@ const (
 	WindowSurfaceVsyncAdaptive int32 = (-1)
 )
 
-// [DisplayID] is a unique ID for a display for the time it is connected to the system, and is never reused for the lifetime of the application.
+// [DisplayID] specifies a unique ID for a display for the time it is connected to the system, and is never reused for the lifetime of the application.
 //
 // [DisplayID]: https://wiki.libsdl.org/SDL3/SDL_DisplayID
 type DisplayID uint32
 
-// [WindowID] is a unique ID for a window.
+// [WindowID] specifies a unique ID for a window.
 //
 // [WindowID]: https://wiki.libsdl.org/SDL3/SDL_WindowID
 type WindowID uint32
 
-// [SystemTheme].
+// [SystemTheme] specifies system theme.
 //
 // [SystemTheme]: https://wiki.libsdl.org/SDL3/SDL_SystemTheme
 type SystemTheme uint32
 
 const (
-	SystemThemeUnknown SystemTheme = iota // Unknown system theme
-	SystemThemeLight                      // Light colored system theme
-	SystemThemeDark                       // Dark colored system theme
+	SystemThemeUnknown SystemTheme = iota // Unknown system theme.
+	SystemThemeLight                      // Light colored system theme.
+	SystemThemeDark                       // Dark colored system theme.
 )
 
 // [DisplayModeData] internal display mode data.
@@ -144,19 +144,19 @@ type DisplayMode struct {
 type DisplayOrientation uint32
 
 const (
-	OrientationUnknown          DisplayOrientation = iota // The display orientation can't be determined
-	OrientationLandscape                                  // The display is in landscape mode, with the right side up, relative to portrait mode
-	OrientationLandscapeFlipped                           // The display is in landscape mode, with the left side up, relative to portrait mode
-	OrientationPortrait                                   // The display is in portrait mode
-	OrientationPortraitFlipped                            // The display is in portrait mode, upside down
+	OrientationUnknown          DisplayOrientation = iota // The display orientation can't be determined.
+	OrientationLandscape                                  // The display is in landscape mode, with the right side up, relative to portrait mode.
+	OrientationLandscapeFlipped                           // The display is in landscape mode, with the left side up, relative to portrait mode.
+	OrientationPortrait                                   // The display is in portrait mode.
+	OrientationPortraitFlipped                            // The display is in portrait mode, upside down.
 )
 
-// [Window] is used as an opaque handle to a window.
+// [Window] is an opaque handle to a window.
 //
 // [Window]: https://wiki.libsdl.org/SDL3/SDL_Window
 type Window struct{}
 
-// [WindowFlags] the flags on a window.
+// [WindowFlags] specifies the flags on a window.
 //
 // [WindowFlags]: https://wiki.libsdl.org/SDL3/SDL_WindowFlags
 type WindowFlags uint64
@@ -223,12 +223,12 @@ func WindowPosIsCentered(displayID DisplayID) bool {
 type FlashOperation uint32
 
 const (
-	FlashCancel       FlashOperation = iota // Cancel any window flash state
-	FlashBriefly                            // Flash the window briefly to get attention
-	FlashUntilFocused                       // Flash the window until it gets focus
+	FlashCancel       FlashOperation = iota // Cancel any window flash state.
+	FlashBriefly                            // Flash the window briefly to get attention.
+	FlashUntilFocused                       // Flash the window until it gets focus.
 )
 
-// [ProgressState] defines window progress state
+// [ProgressState] defines window progress state.
 //
 // [ProgressState]: https://wiki.libsdl.org/SDL3/SDL_ProgressState
 type ProgressState int32
@@ -309,12 +309,12 @@ const (
 	GLRetainedBacking                        // Not used (deprecated).
 	GLContextMajorVersion                    // OpenGL context major version.
 	GLContextMinorVersion                    // OpenGL context minor version.
-	GLContextFlags                           // Some combination of 0 or more of elements of the SDL_GLContextFlag enumeration; defaults to 0.
-	GLContextProfileMask                     // Type of GL context (Core, Compatibility, ES). See SDL_GLProfile; default value depends on platform.
+	GLContextFlags                           // Some combination of 0 or more of elements of the [GLContextFlag] enumeration; defaults to 0.
+	GLContextProfileMask                     // Type of GL context (Core, Compatibility, ES). See [GLProfile]; default value depends on platform.
 	GLShareWithCurrentContext                // OpenGL context sharing; defaults to 0.
-	GLFramebufferSRGBCapable                 // Requests sRGB capable visual; defaults to 0.
-	GLContextReleaseBehavior                 // Sets context the release behavior. See SDL_GLContextReleaseFlag; defaults to FLUSH.
-	GLContextResetNotification               // Set context reset notification. See SDL_GLContextResetNotification; defaults to NO_NOTIFICATION.
+	GLFramebufferSRGBCapable                 // Requests sRGB-capable visual if 1. Defaults to -1 ("don't care"). This is a request; GL drivers might not comply!.
+	GLContextReleaseBehavior                 // Sets context the release behavior. See [GLContextReleaseFlag]; defaults to FLUSH.
+	GLContextResetNotification               // Set context reset notification. See [GLContextResetNotification]; defaults to NO_NOTIFICATION.
 	GLContextNoError
 	GLFloatBuffers
 	GLEGLPlatform
@@ -537,6 +537,9 @@ func GetWindowFullscreenMode(window *Window) *DisplayMode {
 	return sdlGetWindowFullscreenMode(window)
 }
 
+// [GetWindowICCProfile] gets the raw ICC profile data for the screen the window is currently on.
+//
+// [GetWindowICCProfile]: https://wiki.libsdl.org/SDL3/SDL_GetWindowICCProfile
 // func GetWindowICCProfile(window *Window, size *uint64) unsafe.Pointer {
 //	return sdlGetWindowICCProfile(window, size)
 // }
@@ -565,6 +568,9 @@ func CreateWindow(title string, w int32, h int32, flags WindowFlags) *Window {
 	return sdlCreateWindow(title, w, h, flags)
 }
 
+// [CreatePopupWindow] creates a child popup window of the specified parent window.
+//
+// [CreatePopupWindow]: https://wiki.libsdl.org/SDL3/SDL_CreatePopupWindow
 // func CreatePopupWindow(parent *Window, offset_x int32, offset_y int32, w int32, h int32, flags WindowFlags) *Window {
 //	return sdlCreatePopupWindow(parent, offset_x, offset_y, w, h, flags)
 // }
@@ -851,6 +857,9 @@ func UpdateWindowSurface(window *Window) bool {
 	return sdlUpdateWindowSurface(window)
 }
 
+// [UpdateWindowSurfaceRects] copies areas of the window surface to the screen.
+//
+// [UpdateWindowSurfaceRects]: https://wiki.libsdl.org/SDL3/SDL_UpdateWindowSurfaceRects
 // func UpdateWindowSurfaceRects(window *Window, rects *Rect, numrects int32) bool {
 //	return sdlUpdateWindowSurfaceRects(window, rects, numrects)
 // }
@@ -863,6 +872,7 @@ func DestroyWindowSurface(window *Window) bool {
 }
 
 // [SetWindowKeyboardGrab] enables capture of system keyboard shortcuts like Alt+Tab or the Meta/Super key.
+//
 // Note that not all system keyboard shortcuts can be captured by applications (one example is Ctrl+Alt+Del on Windows).
 //
 // [SetWindowKeyboardGrab]: https://wiki.libsdl.org/SDL3/SDL_SetWindowKeyboardGrab
@@ -972,12 +982,12 @@ const (
 	HitTestResizeLeft                             // Region is the resizable left border.
 )
 
-// [HitTest] callback used for hit-testing.
+// [HitTest] defines callback used for hit-testing.
 //
 // [HitTest]: https://wiki.libsdl.org/SDL3/SDL_HitTest
 type HitTest func(window *Window, point *Point, data unsafe.Pointer) HitTestResult
 
-// [SetWindowHitTest] provide a callback that decides if a window region has special properties.
+// [SetWindowHitTest] provides a callback that decides if a window region has special properties.
 //
 // [SetWindowHitTest]: https://wiki.libsdl.org/SDL3/SDL_SetWindowHitTest
 func SetWindowHitTest(window *Window, callback HitTest, callbackData unsafe.Pointer) bool {
@@ -988,6 +998,9 @@ func SetWindowHitTest(window *Window, callback HitTest, callbackData unsafe.Poin
 	return sdlSetWindowHitTest(window, wrapper, callbackData)
 }
 
+// [SetWindowShape] sets the shape of a transparent window.
+//
+// [SetWindowShape]: https://wiki.libsdl.org/SDL3/SDL_SetWindowShape
 // func SetWindowShape(window *Window, shape *Surface) bool {
 //	return sdlSetWindowShape(window, shape)
 // }
@@ -1063,27 +1076,45 @@ func DisableScreenSaver() bool {
 	return sdlDisableScreenSaver()
 }
 
+// [GLLoadLibrary] dynamicallys load an OpenGL library.
+//
+// [GLLoadLibrary]: https://wiki.libsdl.org/SDL3/SDL_GL_LoadLibrary
 // func GL_LoadLibrary(path string) bool {
 //	return sdlGL_LoadLibrary(path)
 // }
 
+// [GLGetProcAddress] gets an OpenGL function by name.
+//
+// [GLGetProcAddress]: https://wiki.libsdl.org/SDL3/SDL_GL_GetProcAddress
 // func GL_GetProcAddress(proc string) FunctionPointer {
 //	return sdlGL_GetProcAddress(proc)
 // }
 
+// [EGLGetProcAddress] gets an EGL library function by name.
+//
+// [EGLGetProcAddress]: https://wiki.libsdl.org/SDL3/SDL_EGL_GetProcAddress
 // func EGL_GetProcAddress(proc string) FunctionPointer {
 //	return sdlEGL_GetProcAddress(proc)
 // }
 
-// func GL_UnloadLibrary()  {
+// [GLUnloadLibrary] unloads the OpenGL library previously loaded by [GL_LoadLibrary].
+//
+// [GLUnloadLibrary]: https://wiki.libsdl.org/SDL3/SDL_GL_UnloadLibrary
+// func GL_UnloadLibrary() {
 //	sdlGL_UnloadLibrary()
 // }
 
+// [GLExtensionSupported] checks if an OpenGL extension is supported for the current context.
+//
+// [GLExtensionSupported]: https://wiki.libsdl.org/SDL3/SDL_GL_ExtensionSupported
 // func GL_ExtensionSupported(extension string) bool {
 //	return sdlGL_ExtensionSupported(extension)
 // }
 
-// func GL_ResetAttributes()  {
+// [GLResetAttributes] resets all previously set OpenGL context attributes to their default values.
+//
+// [GLResetAttributes]: https://wiki.libsdl.org/SDL3/SDL_GL_ResetAttributes
+// func GL_ResetAttributes() {
 //	sdlGL_ResetAttributes()
 // }
 
@@ -1111,6 +1142,9 @@ func GLCreateContext(window *Window) GLContext {
 	return sdlGLCreateContext(window)
 }
 
+// [GLMakeCurrent] sets up an OpenGL context for rendering into an OpenGL window.
+//
+// [GLMakeCurrent]: https://wiki.libsdl.org/SDL3/SDL_GL_MakeCurrent
 // func GL_MakeCurrent(window *Window, context GLContext) bool {
 //	return sdlGL_MakeCurrent(window, context)
 // }
@@ -1129,18 +1163,30 @@ func GLGetCurrentContext() GLContext {
 	return sdlGLGetCurrentContext()
 }
 
+// [EGLGetCurrentDisplay] gets the currently active EGL display.
+//
+// [EGLGetCurrentDisplay]: https://wiki.libsdl.org/SDL3/SDL_EGL_GetCurrentDisplay
 // func EGL_GetCurrentDisplay() EGLDisplay {
 //	return sdlEGL_GetCurrentDisplay()
 // }
 
+// [EGLGetCurrentConfig] gets the currently active EGL config.
+//
+// [EGLGetCurrentConfig]: https://wiki.libsdl.org/SDL3/SDL_EGL_GetCurrentConfig
 // func EGL_GetCurrentConfig() EGLConfig {
 //	return sdlEGL_GetCurrentConfig()
 // }
 
+// [EGLGetWindowSurface] gets the EGL surface associated with the window.
+//
+// [EGLGetWindowSurface]: https://wiki.libsdl.org/SDL3/SDL_EGL_GetWindowSurface
 // func EGL_GetWindowSurface(window *Window) EGLSurface {
 //	return sdlEGL_GetWindowSurface(window)
 // }
 
+// [EGLSetAttributeCallbacks] sets the callbacks for defining custom EGLAttrib arrays for EGL.
+//
+// [EGLSetAttributeCallbacks]: https://wiki.libsdl.org/SDL3/SDL_EGL_SetAttributeCallbacks
 // func EGL_SetAttributeCallbacks(platformAttribCallback EGLAttribArrayCallback, surfaceAttribCallback EGLIntArrayCallback, contextAttribCallback EGLIntArrayCallback, userdata unsafe.Pointer)  {
 //	sdlEGL_SetAttributeCallbacks(platformAttribCallback, surfaceAttribCallback, contextAttribCallback, userdata)
 // }
@@ -1152,6 +1198,9 @@ func GLSetSwapInterval(interval int32) bool {
 	return sdlGLSetSwapInterval(interval)
 }
 
+// [GLGetSwapInterval] gets the swap interval for the current OpenGL context.
+//
+// [GLGetSwapInterval]: https://wiki.libsdl.org/SDL3/SDL_GL_GetSwapInterval
 // func GL_GetSwapInterval(interval *int32) bool {
 //	return sdlGL_GetSwapInterval(interval)
 // }

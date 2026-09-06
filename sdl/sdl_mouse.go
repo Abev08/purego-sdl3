@@ -6,12 +6,12 @@ import (
 	"github.com/jupiterrider/purego-sdl3/internal/mem"
 )
 
-// [MouseID] is a unique ID for a mouse for the time it is connected to the system, and is never reused for the lifetime of the application.
+// [MouseID] defines a unique ID for a mouse for the time it is connected to the system, and is never reused for the lifetime of the application.
 //
 // [MouseID]: https://wiki.libsdl.org/SDL3/SDL_MouseID
 type MouseID uint32
 
-// [Cursor] is a structure specifying the structure used to identify an SDL cursors.
+// [Cursor] defines a structure specifying the structure used to identify an SDL cursors.
 //
 // [Cursor]: https://wiki.libsdl.org/SDL3/SDL_Cursor
 type Cursor struct{}
@@ -65,7 +65,7 @@ type CursorFrameInfo struct {
 	Duration uint32   // The frame duration in milliseconds (a duration of 0 is infinite).
 }
 
-// [MouseButtonFlags] is a bitmask of pressed mouse buttons, as reported by [GetMouseState], etc.
+// [MouseButtonFlags] specifies a bitmask of pressed mouse buttons, as reported by [GetMouseState], etc.
 //
 // [MouseButtonFlags]: https://wiki.libsdl.org/SDL3/SDL_MouseButtonFlags
 type MouseButtonFlags uint32

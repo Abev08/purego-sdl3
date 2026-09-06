@@ -2,28 +2,28 @@ package sdl
 
 import "math"
 
-// [Point] is a structure specifying the structure that defines a point (using integers)s.
+// [Point] specifies the structure that defines a point (using integers).
 //
 // [Point]: https://wiki.libsdl.org/SDL3/SDL_Point
 type Point struct {
 	X, Y int32
 }
 
-// [FPoint] is a structure specifying the structure that defines a point (using floating point values)s.
+// [FPoint] specifies the structure that defines a point (using floating point values).
 //
 // [FPoint]: https://wiki.libsdl.org/SDL3/SDL_FPoint
 type FPoint struct {
 	X, Y float32
 }
 
-// [Rect] is a rectangle, with the origin at the upper left (using integers).
+// [Rect] defines a rectangle, with the origin at the upper left (using integers).
 //
 // [Rect]: https://wiki.libsdl.org/SDL3/SDL_Rect
 type Rect struct {
 	X, Y, W, H int32
 }
 
-// [FRect] is a rectangle, with the origin at the upper left (using floating point values).
+// [FRect] defines a rectangle, with the origin at the upper left (using floating point values).
 //
 // [FRect]: https://wiki.libsdl.org/SDL3/SDL_FRect
 type FRect struct {
@@ -150,7 +150,7 @@ func GetRectIntersectionFloat(a, b FRect) (FRect, bool) {
 	return result, ret
 }
 
-// [GetRectUnionFloat] calculates the union of two rectangles.
+// [GetRectUnionFloat] calculates the union of two rectangles with float precision.
 //
 // [GetRectUnionFloat]: https://wiki.libsdl.org/SDL3/SDL_GetRectUnionFloat
 func GetRectUnionFloat(a, b FRect) (FRect, bool) {

@@ -6,7 +6,7 @@ import (
 	"github.com/jupiterrider/purego-sdl3/internal/convert"
 )
 
-// [EventType] is a structure specifying the types of events that can be delivered.
+// [EventType] defines the types of events that can be delivered.
 //
 // [EventType]: https://wiki.libsdl.org/SDL3/SDL_EventType
 type EventType uint32
@@ -415,7 +415,7 @@ func (e *Event) Clipboard() ClipboardEvent {
 type CommonEvent struct {
 	Type      EventType // Event type, shared with all events, uint32 to cover user events which are not in the [EventType] enumeration.
 	reserved  uint32
-	Timestamp uint64 // Timestamp in nanoseconds, populated using [GetTicksNS].
+	Timestamp uint64 // In nanoseconds, populated using [GetTicksNS].
 }
 
 // [DisplayEvent] defines the display state change event data (event.display.*).
@@ -898,7 +898,7 @@ func PumpEvents() {
 	sdlPumpEvents()
 }
 
-// [EventAction] is a structure specifying the type of action to request from [PeepEvents].
+// [EventAction] defines the type of action to request from [PeepEvents].
 //
 // [EventAction]: https://wiki.libsdl.org/SDL3/SDL_EventAction
 type EventAction uint32

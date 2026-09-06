@@ -5,12 +5,12 @@ package sdl
 // [Sensor]: https://wiki.libsdl.org/SDL3/SDL_Sensor
 type Sensor struct{}
 
-// [SensorID] is a unique ID for a sensor for the time it is connected to the system, and is never reused for the lifetime of the application.
+// [SensorID] defines a unique ID for a sensor for the time it is connected to the system, and is never reused for the lifetime of the application.
 //
 // [SensorID]: https://wiki.libsdl.org/SDL3/SDL_SensorID
 type SensorID uint32
 
-// [SensorType] is a structure specifying the different sensors defined by SDLs.
+// [SensorType] specifies different sensors defined by SDL.
 //
 // [SensorType]: https://wiki.libsdl.org/SDL3/SDL_SensorType
 type SensorType int32
@@ -27,58 +27,100 @@ const (
 	SensorCount
 )
 
+// [GetSensors] gets a list of currently connected sensors.
+//
+// [GetSensors]: https://wiki.libsdl.org/SDL3/SDL_GetSensors
 // func GetSensors(count *int32) *SensorID {
 //	return sdlGetSensors(count)
 // }
 
-// func GetSensorNameForID(instance_id SensorID) string {
-//	return sdlGetSensorNameForID(instance_id)
+// [GetSensorNameForID] gets the implementation dependent name of a sensor.
+//
+// [GetSensorNameForID]: https://wiki.libsdl.org/SDL3/SDL_GetSensorNameForID
+// func GetSensorNameForID(instanceID SensorID) string {
+//	return sdlGetSensorNameForID(instanceID)
 // }
 
-// func GetSensorTypeForID(instance_id SensorID) SensorType {
-//	return sdlGetSensorTypeForID(instance_id)
+// [GetSensorTypeForID] gets the type of a sensor.
+//
+// [GetSensorTypeForID]: https://wiki.libsdl.org/SDL3/SDL_GetSensorTypeForID
+// func GetSensorTypeForID(instanceID SensorID) SensorType {
+//	return sdlGetSensorTypeForID(instanceID)
 // }
 
-// func GetSensorNonPortableTypeForID(instance_id SensorID) int32 {
-//	return sdlGetSensorNonPortableTypeForID(instance_id)
+// [GetSensorNonPortableTypeForID] gets the platform dependent type of a sensor.
+//
+// [GetSensorNonPortableTypeForID]: https://wiki.libsdl.org/SDL3/SDL_GetSensorNonPortableTypeForID
+// func GetSensorNonPortableTypeForID(instanceID SensorID) int32 {
+//	return sdlGetSensorNonPortableTypeForID(instanceID)
 // }
 
-// func OpenSensor(instance_id SensorID) *Sensor {
-//	return sdlOpenSensor(instance_id)
+// [OpenSensor] opens a sensor for use.
+//
+// [OpenSensor]: https://wiki.libsdl.org/SDL3/SDL_OpenSensor
+// func OpenSensor(instanceID SensorID) *Sensor {
+//	return sdlOpenSensor(instanceID)
 // }
 
-// func GetSensorFromID(instance_id SensorID) *Sensor {
-//	return sdlGetSensorFromID(instance_id)
+// [GetSensorFromID] returns the [Sensor] associated with an instance ID.
+//
+// [GetSensorFromID]: https://wiki.libsdl.org/SDL3/SDL_GetSensorFromID
+// func GetSensorFromID(instanceID SensorID) *Sensor {
+//	return sdlGetSensorFromID(instanceID)
 // }
 
+// [GetSensorProperties] gets the properties associated with a sensor.
+//
+// [GetSensorProperties]: https://wiki.libsdl.org/SDL3/SDL_GetSensorProperties
 // func GetSensorProperties(sensor *Sensor) PropertiesID {
 //	return sdlGetSensorProperties(sensor)
 // }
 
+// [GetSensorName] gets the implementation dependent name of a sensor.
+//
+// [GetSensorName]: https://wiki.libsdl.org/SDL3/SDL_GetSensorName
 // func GetSensorName(sensor *Sensor) string {
 //	return sdlGetSensorName(sensor)
 // }
 
+// [GetSensorType] gets the type of a sensor.
+//
+// [GetSensorType]: https://wiki.libsdl.org/SDL3/SDL_GetSensorType
 // func GetSensorType(sensor *Sensor) SensorType {
 //	return sdlGetSensorType(sensor)
 // }
 
+// [GetSensorNonPortableType] gets the platform dependent type of a sensor.
+//
+// [GetSensorNonPortableType]: https://wiki.libsdl.org/SDL3/SDL_GetSensorNonPortableType
 // func GetSensorNonPortableType(sensor *Sensor) int32 {
 //	return sdlGetSensorNonPortableType(sensor)
 // }
 
+// [GetSensorID] gets the instance ID of a sensor.
+//
+// [GetSensorID]: https://wiki.libsdl.org/SDL3/SDL_GetSensorID
 // func GetSensorID(sensor *Sensor) SensorID {
 //	return sdlGetSensorID(sensor)
 // }
 
-// func GetSensorData(sensor *Sensor, data *float32, num_values int32) bool {
-//	return sdlGetSensorData(sensor, data, num_values)
+// [GetSensorData] gets the current state of an opened sensor.
+//
+// [GetSensorData]: https://wiki.libsdl.org/SDL3/SDL_GetSensorData
+// func GetSensorData(sensor *Sensor, data *float32, numValues int32) bool {
+//	return sdlGetSensorData(sensor, data, numValues)
 // }
 
-// func CloseSensor(sensor *Sensor)  {
+// [CloseSensor] closes a sensor previously opened with [OpenSensor].
+//
+// [CloseSensor]: https://wiki.libsdl.org/SDL3/SDL_CloseSensor
+// func CloseSensor(sensor *Sensor) {
 //	sdlCloseSensor(sensor)
 // }
 
-// func UpdateSensors()  {
+// [UpdateSensors] updates the current state of the open sensors.
+//
+// [UpdateSensors]: https://wiki.libsdl.org/SDL3/SDL_UpdateSensors
+// func UpdateSensors() {
 //	sdlUpdateSensors()
 // }

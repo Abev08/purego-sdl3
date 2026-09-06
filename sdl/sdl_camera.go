@@ -28,7 +28,7 @@ type CameraSpec struct {
 	FramerateDenominator int32       // Frame rate denominator ((num / denom) == FPS, (denom / num) == duration in seconds).
 }
 
-// [CameraPosition] is a structure specifying the position of camera in relation to system devices.
+// [CameraPosition] defines the position of camera in relation to system device.
 //
 // [CameraPosition]: https://wiki.libsdl.org/SDL3/SDL_CameraPosition
 type CameraPosition uint32
@@ -39,7 +39,7 @@ const (
 	CameraPositionBackFacing
 )
 
-// [CameraPermissionState] is a structure specifying the current state of a request for camera access.
+// [CameraPermissionState] describes the current state of a request for camera access.
 //
 // Available since SDL 3.4.0.
 //
@@ -99,7 +99,7 @@ func GetCameraSupportedFormats(instanceId CameraID) []*CameraSpec {
 	return mem.DeepCopy(formats, count)
 }
 
-// [GetCameraName] returns a human-readable device name or "" on failure.
+// [GetCameraName] returns a human-readable device name for a camera or "" on failure.
 //
 // [GetCameraName]: https://wiki.libsdl.org/SDL3/SDL_GetCameraName
 func GetCameraName(instanceId CameraID) string {

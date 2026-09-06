@@ -1,6 +1,6 @@
 package sdl
 
-// [BlendMode] is a set of blend modes used in drawing operations.
+// [BlendMode] defines a set of blend modes used in drawing operations.
 //
 // [BlendMode]: https://wiki.libsdl.org/SDL3/SDL_BlendMode
 type BlendMode uint32
@@ -16,7 +16,7 @@ const (
 	BlendModeInvalid            = 0x7FFFFFFF
 )
 
-// [BlendOperation] is a structure specifying the blend operation used when combining source and destination pixel components.
+// [BlendOperation] defines the blend operation used when combining source and destination pixel components.
 //
 // [BlendOperation]: https://wiki.libsdl.org/SDL3/SDL_BlendOperation
 type BlendOperation uint32
@@ -29,7 +29,7 @@ const (
 	BlendOperationMaximum                               // max(dst, src) : supported by D3D, OpenGL, OpenGLES, and Vulkan.
 )
 
-// [BlendFactor] is a structure specifying the normalized factor used to multiply pixel components.
+// [BlendFactor] defines the normalized factor used to multiply pixel components.
 //
 // [BlendFactor]: https://wiki.libsdl.org/SDL3/SDL_BlendFactor
 type BlendFactor uint32
@@ -47,6 +47,9 @@ const (
 	BlendFactorOneMinusDstAlpha                        // 1-dstA, 1-dstA, 1-dstA, 1-dstA.
 )
 
+// [ComposeCustomBlendMode] composes a custom blend mode for renderers.
+//
+// [ComposeCustomBlendMode]: https://wiki.libsdl.org/SDL3/SDL_ComposeCustomBlendMode
 // func ComposeCustomBlendMode(srcColorFactor BlendFactor, dstColorFactor BlendFactor, colorOperation BlendOperation, srcAlphaFactor BlendFactor, dstAlphaFactor BlendFactor, alphaOperation BlendOperation) BlendMode {
 //	return sdlComposeCustomBlendMode(srcColorFactor, dstColorFactor, colorOperation, srcAlphaFactor, dstAlphaFactor, alphaOperation)
 // }

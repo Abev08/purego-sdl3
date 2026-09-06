@@ -9,10 +9,16 @@ func SetError(format string, a ...any) bool {
 	return sdlSetError(fmt.Sprintf(format, a...))
 }
 
+// [SetErrorV] sets the SDL error message for the current thread.
+//
+// [SetErrorV]: https://wiki.libsdl.org/SDL3/SDL_SetErrorV
 // func SetErrorV(fmt string, ap va_list) bool {
 //	return sdlSetErrorV(fmt, ap)
 // }
 
+// [OutOfMemory] sets an error indicating that memory allocation failed.
+//
+// [OutOfMemory]: https://wiki.libsdl.org/SDL3/SDL_OutOfMemory
 // func OutOfMemory() bool {
 //	return sdlOutOfMemory()
 // }

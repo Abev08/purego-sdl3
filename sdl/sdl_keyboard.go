@@ -14,7 +14,7 @@ const (
 	PropTextInputAndroidInputTypeNumber = "SDL.textinput.android.inputtype"
 )
 
-// [KeyboardID] is a unique ID for a keyboard for the time it is connected to the system, and is never reused for the lifetime of the application.
+// [KeyboardID] defines a unique ID for a keyboard for the time it is connected to the system, and is never reused for the lifetime of the application.
 //
 // [KeyboardID]: https://wiki.libsdl.org/SDL3/SDL_KeyboardID
 type KeyboardID uint32

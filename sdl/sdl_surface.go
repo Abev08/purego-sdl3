@@ -15,7 +15,7 @@ const (
 	PropSurfaceRotationFloat         = "SDL.surface.rotation"
 )
 
-// [SurfaceFlags] is a structure specifying the flags on an [Surfaces].
+// [SurfaceFlags] specifies the flags on an [Surface].
 //
 // [SurfaceFlags]: https://wiki.libsdl.org/SDL3/SDL_SurfaceFlags
 type SurfaceFlags uint32
@@ -34,19 +34,19 @@ func MustLock(surface *Surface) bool {
 	return surface.Flags&SurfaceLockNeeded == SurfaceLockNeeded
 }
 
-// [ScaleMode] is a structure specifying the scaling modes.
+// [ScaleMode] specifies the scaling mode.
 //
 // [ScaleMode]: https://wiki.libsdl.org/SDL3/SDL_ScaleMode
 type ScaleMode int32
 
 const (
 	ScaleModeInvalid  ScaleMode = iota - 1
-	ScaleModeNearest            // Nearest pixel sampling
-	ScaleModeLinear             // Linear filtering
-	ScaleModePixelArt           // Nearest pixel sampling with improved scaling for pixel art, available since SDL 3.4.0
+	ScaleModeNearest            // Nearest pixel sampling.
+	ScaleModeLinear             // Linear filtering.
+	ScaleModePixelArt           // Nearest pixel sampling with improved scaling for pixel art, available since SDL 3.4.0.
 )
 
-// [FlipMode] is a structure specifying the flip modes.
+// [FlipMode] specifies the flip mode.
 //
 // [FlipMode]: https://wiki.libsdl.org/SDL3/SDL_FlipMode
 type FlipMode uint32
@@ -58,7 +58,7 @@ const (
 	FlipHorizontalAndVertical = FlipHorizontal | FlipVertical        // Flip horizontally and vertically (not a diagonal flip).
 )
 
-// [Surface] is a collection of pixels used in software blitting.
+// [Surface] defines a collection of pixels used in software blitting.
 //
 // [Surface]: https://wiki.libsdl.org/SDL3/SDL_Surface
 type Surface struct {
@@ -300,14 +300,14 @@ func GetSurfaceColorKey(surface *Surface, key *uint32) bool {
 // [SetSurfaceColorMod] sets an additional color value multiplied into blit operations.
 //
 // [SetSurfaceColorMod]: https://wiki.libsdl.org/SDL3/SDL_SetSurfaceColorMod
-func SetSurfaceColorMod(surface *Surface, r uint8, g uint8, b uint8) bool {
+func SetSurfaceColorMod(surface *Surface, r, g, b uint8) bool {
 	return sdlSetSurfaceColorMod(surface, r, g, b)
 }
 
 // [GetSurfaceColorMod] gets the additional color value multiplied into blit operations.
 //
 // [GetSurfaceColorMod]: https://wiki.libsdl.org/SDL3/SDL_GetSurfaceColorMod
-func GetSurfaceColorMod(surface *Surface, r *uint8, g *uint8, b *uint8) bool {
+func GetSurfaceColorMod(surface *Surface, r, g, b *uint8) bool {
 	return sdlGetSurfaceColorMod(surface, r, g, b)
 }
 
@@ -411,14 +411,23 @@ func ConvertPixelsAndColorspace(width int32, height int32, srcFormat PixelFormat
 	return sdlConvertPixelsAndColorspace(width, height, srcFormat, srcColorspace, srcProperties, src, srcPitch, dstFormat, dstColorspace, dstProperties, dst, dstPitch)
 }
 
+// [PremultiplyAlpha] premultiplies the alpha on a block of pixels.
+//
+// [PremultiplyAlpha]: https://wiki.libsdl.org/SDL3/SDL_PremultiplyAlpha
 // func PremultiplyAlpha(width int32, height int32, src_format PixelFormat, src unsafe.Pointer, src_pitch int32, dst_format PixelFormat, dst unsafe.Pointer, dst_pitch int32, linear bool) bool {
 //	return sdlPremultiplyAlpha(width, height, src_format, src, src_pitch, dst_format, dst, dst_pitch, linear)
 // }
 
+// [PremultiplySurfaceAlpha] premultiplies the alpha in a surface.
+//
+// [PremultiplySurfaceAlpha]: https://wiki.libsdl.org/SDL3/SDL_PremultiplySurfaceAlpha
 // func PremultiplySurfaceAlpha(surface *Surface, linear bool) bool {
 //	return sdlPremultiplySurfaceAlpha(surface, linear)
 // }
 
+// [ClearSurface] clears a surface with a specific color, with floating point precision.
+//
+// [ClearSurface]: https://wiki.libsdl.org/SDL3/SDL_ClearSurface
 // func ClearSurface(surface *Surface, r float32, g float32, b float32, a float32) bool {
 //	return sdlClearSurface(surface, r, g, b, a)
 // }
@@ -430,6 +439,9 @@ func FillSurfaceRect(dst *Surface, rect *Rect, color uint32) bool {
 	return sdlFillSurfaceRect(dst, rect, color)
 }
 
+// [FillSurfaceRects] performs a fast fill of a set of rectangles with a specific color.
+//
+// [FillSurfaceRects]: https://wiki.libsdl.org/SDL3/SDL_FillSurfaceRects
 // func FillSurfaceRects(dst *Surface, rects *Rect, count int32, color uint32) bool {
 //	return sdlFillSurfaceRects(dst, rects, count, color)
 // }
@@ -441,14 +453,23 @@ func BlitSurface(src *Surface, srcrect *Rect, dst *Surface, dstrect *Rect) bool 
 	return sdlBlitSurface(src, srcrect, dst, dstrect)
 }
 
+// [BlitSurfaceUnchecked] performs low-level surface blitting only.
+//
+// [BlitSurfaceUnchecked]: https://wiki.libsdl.org/SDL3/SDL_BlitSurfaceUnchecked
 // func BlitSurfaceUnchecked(src *Surface, srcrect *Rect, dst *Surface, dstrect *Rect) bool {
 //	return sdlBlitSurfaceUnchecked(src, srcrect, dst, dstrect)
 // }
 
+// [BlitSurfaceScaled] performs a scaled blit to a destination surface, which may be of a different.
+//
+// [BlitSurfaceScaled]: https://wiki.libsdl.org/SDL3/SDL_BlitSurfaceScaled
 // func BlitSurfaceScaled(src *Surface, srcrect *Rect, dst *Surface, dstrect *Rect, scaleMode ScaleMode) bool {
 //	return sdlBlitSurfaceScaled(src, srcrect, dst, dstrect, scaleMode)
 // }
 
+// [BlitSurfaceUncheckedScaled] performs low-level surface scaled blitting only.
+//
+// [BlitSurfaceUncheckedScaled]: https://wiki.libsdl.org/SDL3/SDL_BlitSurfaceUncheckedScaled
 // func BlitSurfaceUncheckedScaled(src *Surface, srcrect *Rect, dst *Surface, dstrect *Rect, scaleMode ScaleMode) bool {
 //	return sdlBlitSurfaceUncheckedScaled(src, srcrect, dst, dstrect, scaleMode)
 // }
@@ -462,14 +483,23 @@ func StretchSurface(src *Surface, srcrect *Rect, dst *Surface, dstrect *Rect, sc
 	return sdlStretchSurface(src, srcrect, dst, dstrect, scaleMode)
 }
 
+// [BlitSurfaceTiled] performs a tiled blit to a destination surface, which may be of a different.
+//
+// [BlitSurfaceTiled]: https://wiki.libsdl.org/SDL3/SDL_BlitSurfaceTiled
 // func BlitSurfaceTiled(src *Surface, srcrect *Rect, dst *Surface, dstrect *Rect) bool {
 //	return sdlBlitSurfaceTiled(src, srcrect, dst, dstrect)
 // }
 
+// [BlitSurfaceTiledWithScale] performs a scaled and tiled blit to a destination surface, which may be of a.
+//
+// [BlitSurfaceTiledWithScale]: https://wiki.libsdl.org/SDL3/SDL_BlitSurfaceTiledWithScale
 // func BlitSurfaceTiledWithScale(src *Surface, srcrect *Rect, scale float32, scaleMode ScaleMode, dst *Surface, dstrect *Rect) bool {
 //	return sdlBlitSurfaceTiledWithScale(src, srcrect, scale, scaleMode, dst, dstrect)
 // }
 
+// [BlitSurface9Grid] performs a scaled blit using the 9-grid algorithm to a destination surface,.
+//
+// [BlitSurface9Grid]: https://wiki.libsdl.org/SDL3/SDL_BlitSurface9Grid
 // func BlitSurface9Grid(src *Surface, srcrect *Rect, left_width int32, right_width int32, top_height int32, bottom_height int32, scale float32, scaleMode ScaleMode, dst *Surface, dstrect *Rect) bool {
 //	return sdlBlitSurface9Grid(src, srcrect, left_width, right_width, top_height, bottom_height, scale, scaleMode, dst, dstrect)
 // }
@@ -477,26 +507,41 @@ func StretchSurface(src *Surface, srcrect *Rect, dst *Surface, dstrect *Rect, sc
 // [MapSurfaceRGB] maps an RGB triple to an opaque pixel value for a surface.
 //
 // [MapSurfaceRGB]: https://wiki.libsdl.org/SDL3/SDL_MapSurfaceRGB
-func MapSurfaceRGB(surface *Surface, r uint8, g uint8, b uint8) uint32 {
+func MapSurfaceRGB(surface *Surface, r, g, b uint8) uint32 {
 	return sdlMapSurfaceRGB(surface, r, g, b)
 }
 
+// [MapSurfaceRGBA] maps an RGBA quadruple to a pixel value for a surface.
+//
+// [MapSurfaceRGBA]: https://wiki.libsdl.org/SDL3/SDL_MapSurfaceRGBA
 // func MapSurfaceRGBA(surface *Surface, r uint8, g uint8, b uint8, a uint8) uint32 {
 //	return sdlMapSurfaceRGBA(surface, r, g, b, a)
 // }
 
+// [ReadSurfacePixel] retrieves a single pixel from a surface.
+//
+// [ReadSurfacePixel]: https://wiki.libsdl.org/SDL3/SDL_ReadSurfacePixel
 // func ReadSurfacePixel(surface *Surface, x int32, y int32, r *uint8, g *uint8, b *uint8, a *uint8) bool {
 //	return sdlReadSurfacePixel(surface, x, y, r, g, b, a)
 // }
 
+// [ReadSurfacePixelFloat] retrieves a single pixel from a surface.
+//
+// [ReadSurfacePixelFloat]: https://wiki.libsdl.org/SDL3/SDL_ReadSurfacePixelFloat
 // func ReadSurfacePixelFloat(surface *Surface, x int32, y int32, r *float32, g *float32, b *float32, a *float32) bool {
 //	return sdlReadSurfacePixelFloat(surface, x, y, r, g, b, a)
 // }
 
+// [WriteSurfacePixel] writes a single pixel to a surface.
+//
+// [WriteSurfacePixel]: https://wiki.libsdl.org/SDL3/SDL_WriteSurfacePixel
 // func WriteSurfacePixel(surface *Surface, x int32, y int32, r uint8, g uint8, b uint8, a uint8) bool {
 //	return sdlWriteSurfacePixel(surface, x, y, r, g, b, a)
 // }
 
+// [WriteSurfacePixelFloat] writes a single pixel to a surface.
+//
+// [WriteSurfacePixelFloat]: https://wiki.libsdl.org/SDL3/SDL_WriteSurfacePixelFloat
 // func WriteSurfacePixelFloat(surface *Surface, x int32, y int32, r float32, g float32, b float32, a float32) bool {
 //	return sdlWriteSurfacePixelFloat(surface, x, y, r, g, b, a)
 // }

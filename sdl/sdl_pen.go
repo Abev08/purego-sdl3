@@ -27,8 +27,8 @@ type PenAxis uint32
 
 const (
 	PenAxisPressure           PenAxis = iota // Pen pressure. Unidirectional: 0 to 1.0.
-	PenAxisXTilt                             // Pen horizontal tilt angle.  Bidirectional: -90.0 to 90.0 (left-to-right).
-	PenAxisYTilt                             // Pen vertical tilt angle.  Bidirectional: -90.0 to 90.0 (top-to-down).
+	PenAxisXTilt                             // Pen horizontal tilt angle. Bidirectional: -90.0 to 90.0 (left-to-right).
+	PenAxisYTilt                             // Pen vertical tilt angle. Bidirectional: -90.0 to 90.0 (top-to-down).
 	PenAxisDistance                          // Pen distance to drawing surface. Unidirectional: 0.0 to 1.0.
 	PenAxisRotation                          // Pen barrel rotation. Bidirectional: -180 to 179.9 (clockwise, 0 is facing up, -180.0 is facing down).
 	PenAxisSlider                            // Pen finger wheel or slider (e.g., Airbrush Pen). Unidirectional: 0 to 1.0.

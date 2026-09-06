@@ -14,17 +14,17 @@ const (
 	PropJoystickCapTriggerRumbleBoolean = "SDL.joystick.cap.trigger_rumble"
 )
 
-// [Joystick] is a structure specifying the joystick structure used to identify an SDL joysticks.
+// [Joystick] specifies the structure used to identify an SDL joysticks.
 //
 // [Joystick]: https://wiki.libsdl.org/SDL3/SDL_Joystick
 type Joystick struct{}
 
-// [JoystickID] is a unique ID for a joystick for the time it is connected to the system, and is never reused for the lifetime of the application.
+// [JoystickID] defines a unique ID for a joystick for the time it is connected to the system, and is never reused for the lifetime of the application.
 //
 // [JoystickID]: https://wiki.libsdl.org/SDL3/SDL_JoystickID
 type JoystickID uint32
 
-// [JoystickType] is an enum of some common joystick types.
+// [JoystickType] defines an enum of some common joystick types.
 //
 // [JoystickType]: https://wiki.libsdl.org/SDL3/SDL_JoystickType
 type JoystickType uint16
@@ -110,6 +110,9 @@ func GetJoystickPlayerIndexForID(instanceId JoystickID) int32 {
 	return sdlGetJoystickPlayerIndexForID(instanceId)
 }
 
+// [GetJoystickGUIDForID] gets the implementation-dependent GUID of a joystick.
+//
+// [GetJoystickGUIDForID]: https://wiki.libsdl.org/SDL3/SDL_GetJoystickGUIDForID
 // func GetJoystickGUIDForID(instanceId JoystickID) GUID {
 // 	return sdlGetJoystickGUIDForID(instanceId)
 // }
@@ -163,7 +166,7 @@ func GetJoystickFromPlayerIndex(playerIndex int32) *Joystick {
 	return sdlGetJoystickFromPlayerIndex(playerIndex)
 }
 
-// [VirtualJoystickTouchpadDesc] is a structure that describes a virtual joystick touchpad.
+// [VirtualJoystickTouchpadDesc] defines the structure that describes a virtual joystick touchpad.
 //
 // [VirtualJoystickTouchpadDesc]: https://wiki.libsdl.org/SDL3/SDL_VirtualJoystickTouchpadDesc
 type VirtualJoystickTouchpadDesc struct {
@@ -171,7 +174,7 @@ type VirtualJoystickTouchpadDesc struct {
 	_        [3]uint16 // Padding
 }
 
-// [VirtualJoystickSensorDesc] is a structure that describes a virtual joystick sensor.
+// [VirtualJoystickSensorDesc] defines the structure that describes a virtual joystick sensor.
 //
 // [VirtualJoystickSensorDesc]: https://wiki.libsdl.org/SDL3/SDL_VirtualJoystickSensorDesc
 type VirtualJoystickSensorDesc struct {
@@ -179,28 +182,28 @@ type VirtualJoystickSensorDesc struct {
 	Rate float32    // The update frequency of this sensor, may be 0.0f.
 }
 
-// [VirtualJoystickDesc] is a structure that describes a virtual joystick.
+// [VirtualJoystickDesc] defines the structure that describes a virtual joystick.
 //
 // [VirtualJoystickDesc]: https://wiki.libsdl.org/SDL3/SDL_VirtualJoystickDesc
 type VirtualJoystickDesc struct {
-	Version           uint32                       // The version of this interface.
-	Type              uint16                       // [JoystickType].
-	_                 uint16                       // Padding.
-	VendorId          uint16                       // The USB vendor ID of this joystick.
-	ProductId         uint16                       // The USB product ID of this joystick.
-	Naxes             uint16                       // The number of axes on this joystick.
-	Nbuttons          uint16                       // The number of buttons on this joystick.
-	Nballs            uint16                       // The number of balls on this joystick.
-	Nhats             uint16                       // The number of hats on this joystick.
-	Ntouchpads        uint16                       // The number of touchpads on this joystick, requires `touchpads` to point at valid descriptions.
-	Nsensors          uint16                       // The number of sensors on this joystick, requires `sensors` to point at valid descriptions.
-	_                 [2]uint16                    // Padding2
-	ButtonMask        uint32                       // A mask of which buttons are valid for this controller e.g. (1 << SDL_GAMEPAD_BUTTON_SOUTH).
-	AxisMask          uint32                       // A mask of which axes are valid for this controller e.g. (1 << SDL_GAMEPAD_AXIS_LEFTX).
-	Name              *byte                        // The name of the joystick.
-	Touchpads         *VirtualJoystickTouchpadDesc // A pointer to an array of touchpad descriptions, required if `ntouchpads` is > 0.
-	Sensors           *VirtualJoystickSensorDesc   // A pointer to an array of sensor descriptions, required if `nsensors` is > 0.
-	Userdata          uintptr
+	Version           uint32                                                                       // The version of this interface.
+	Type              uint16                                                                       // [JoystickType].
+	_                 uint16                                                                       // Padding.
+	VendorId          uint16                                                                       // The USB vendor ID of this joystick.
+	ProductId         uint16                                                                       // The USB product ID of this joystick.
+	Naxes             uint16                                                                       // The number of axes on this joystick.
+	Nbuttons          uint16                                                                       // The number of buttons on this joystick.
+	Nballs            uint16                                                                       // The number of balls on this joystick.
+	Nhats             uint16                                                                       // The number of hats on this joystick.
+	Ntouchpads        uint16                                                                       // The number of touchpads on this joystick, requires `touchpads` to point at valid descriptions.
+	Nsensors          uint16                                                                       // The number of sensors on this joystick, requires `sensors` to point at valid descriptions.
+	_                 [2]uint16                                                                    // Padding2
+	ButtonMask        uint32                                                                       // A mask of which buttons are valid for this controller e.g. (1 << SDL_GAMEPAD_BUTTON_SOUTH).
+	AxisMask          uint32                                                                       // A mask of which axes are valid for this controller e.g. (1 << SDL_GAMEPAD_AXIS_LEFTX).
+	Name              *byte                                                                        // The name of the joystick.
+	Touchpads         *VirtualJoystickTouchpadDesc                                                 // A pointer to an array of touchpad descriptions, required if `ntouchpads` is > 0.
+	Sensors           *VirtualJoystickSensorDesc                                                   // A pointer to an array of sensor descriptions, required if `nsensors` is > 0.
+	Userdata          uintptr                                                                      // User data pointer passed to callbacks.
 	Update            *func(userdata uintptr)                                                      // Called when the joystick state should be updated.
 	SetPlayerIndex    *func(userdata uintptr, playerIndex int32)                                   // Called when the player index is set.
 	Rumble            *func(userdata uintptr, lowFrequencyRumble, highFrequencyRumble uint16) bool // Implements [RumbleJoystick()].
@@ -211,38 +214,65 @@ type VirtualJoystickDesc struct {
 	Cleanup           *func(userdata uintptr)                                                      // Cleans up the userdata when the joystick is detached.
 }
 
+// [AttachVirtualJoystick] attaches a new virtual joystick.
+//
+// [AttachVirtualJoystick]: https://wiki.libsdl.org/SDL3/SDL_AttachVirtualJoystick
 // func AttachVirtualJoystick(desc *VirtualJoystickDesc) JoystickID {
 // 	return sdlAttachVirtualJoystick(desc)
 // }
 
+// [DetachVirtualJoystick] detaches a virtual joystick.
+//
+// [DetachVirtualJoystick]: https://wiki.libsdl.org/SDL3/SDL_DetachVirtualJoystick
 // func DetachVirtualJoystick(instance_id JoystickID) bool {
 // 	return sdlDetachVirtualJoystick(instance_id)
 // }
 
+// [IsJoystickVirtual] queries whether or not a joystick is virtual.
+//
+// [IsJoystickVirtual]: https://wiki.libsdl.org/SDL3/SDL_IsJoystickVirtual
 // func IsJoystickVirtual(instance_id JoystickID) bool {
 // 	return sdlIsJoystickVirtual(instance_id)
 // }
 
+// [SetJoystickVirtualAxis] sets the state of an axis on an opened virtual joystick.
+//
+// [SetJoystickVirtualAxis]: https://wiki.libsdl.org/SDL3/SDL_SetJoystickVirtualAxis
 // func SetJoystickVirtualAxis(joystick *Joystick, axis int32, value int16) bool {
 // 	return sdlSetJoystickVirtualAxis(joystick, axis, value)
 // }
 
+// [SetJoystickVirtualBall] generates ball motion on an opened virtual joystick.
+//
+// [SetJoystickVirtualBall]: https://wiki.libsdl.org/SDL3/SDL_SetJoystickVirtualBall
 // func SetJoystickVirtualBall(joystick *Joystick, ball int32, xrel int16, yrel int16) bool {
 // 	return sdlSetJoystickVirtualBall(joystick, ball, xrel, yrel)
 // }
 
+// [SetJoystickVirtualButton] sets the state of a button on an opened virtual joystick.
+//
+// [SetJoystickVirtualButton]: https://wiki.libsdl.org/SDL3/SDL_SetJoystickVirtualButton
 // func SetJoystickVirtualButton(joystick *Joystick, button int32, down bool) bool {
 // 	return sdlSetJoystickVirtualButton(joystick, button, down)
 // }
 
+// [SetJoystickVirtualHat] sets the state of a hat on an opened virtual joystick.
+//
+// [SetJoystickVirtualHat]: https://wiki.libsdl.org/SDL3/SDL_SetJoystickVirtualHat
 // func SetJoystickVirtualHat(joystick *Joystick, hat int32, value uint8) bool {
 // 	return sdlSetJoystickVirtualHat(joystick, hat, value)
 // }
 
+// [SetJoystickVirtualTouchpad] sets touchpad finger state on an opened virtual joystick.
+//
+// [SetJoystickVirtualTouchpad]: https://wiki.libsdl.org/SDL3/SDL_SetJoystickVirtualTouchpad
 // func SetJoystickVirtualTouchpad(joystick *Joystick, touchpad int32, finger int32, down bool, x float32, y float32, pressure float32) bool {
 // 	return sdlSetJoystickVirtualTouchpad(joystick, touchpad, finger, down, x, y, pressure)
 // }
 
+// [SendJoystickVirtualSensorData] sends a sensor update for an opened virtual joystick.
+//
+// [SendJoystickVirtualSensorData]: https://wiki.libsdl.org/SDL3/SDL_SendJoystickVirtualSensorData
 // func SendJoystickVirtualSensorData(joystick *Joystick, sensorType SensorType, sensor_timestamp uint64, data *float32, num_values int32) bool {
 // 	return sdlSendJoystickVirtualSensorData(joystick, sensorType, sensor_timestamp, data, num_values)
 // }
@@ -282,6 +312,9 @@ func SetJoystickPlayerIndex(joystick *Joystick, playerIndex int32) bool {
 	return sdlSetJoystickPlayerIndex(joystick, playerIndex)
 }
 
+// [GetJoystickGUID] gets the implementation-dependent GUID for the joystick.
+//
+// [GetJoystickGUID]: https://wiki.libsdl.org/SDL3/SDL_GetJoystickGUID
 // func GetJoystickGUID(joystick *Joystick) GUID {
 // 	return sdlGetJoystickGUID(joystick)
 // }
@@ -328,6 +361,9 @@ func GetJoystickType(joystick *Joystick) JoystickType {
 	return sdlGetJoystickType(joystick)
 }
 
+// [GetJoystickGUIDInfo] gets the device information encoded in a [GUID] structure.
+//
+// [GetJoystickGUIDInfo]: https://wiki.libsdl.org/SDL3/SDL_GetJoystickGUIDInfo
 // func GetJoystickGUIDInfo(guid GUID, vendor *uint16, product *uint16, version *uint16, crc16 *uint16) {
 // 	sdlGetJoystickGUIDInfo(guid, vendor, product, version, crc16)
 // }

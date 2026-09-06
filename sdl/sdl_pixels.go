@@ -165,16 +165,16 @@ const (
 	PixelFormatARGB128Float PixelFormat = 0x1B308010
 	PixelFormatBGRA128Float PixelFormat = 0x1B508010
 	PixelFormatABGR128Float PixelFormat = 0x1B608010
-	PixelFormatYV12         PixelFormat = 0x32315659
-	PixelFormatIYUV         PixelFormat = 0x56555949
-	PixelFormatYUY2         PixelFormat = 0x32595559
-	PixelFormatUYVY         PixelFormat = 0x59565955
-	PixelFormatYVYU         PixelFormat = 0x55595659
-	PixelFormatNV12         PixelFormat = 0x3231564E
-	PixelFormatNV21         PixelFormat = 0x3132564E
-	PixelFormatP010         PixelFormat = 0x30313050
-	PixelFormatExternalOES  PixelFormat = 0x2053454F
-	PixelformatMJPG         PixelFormat = 0x47504A4D
+	PixelFormatYV12         PixelFormat = 0x32315659 // Planar mode: Y + V + U (3 planes).
+	PixelFormatIYUV         PixelFormat = 0x56555949 // Planar mode: Y + U + V (3 planes).
+	PixelFormatYUY2         PixelFormat = 0x32595559 // Packed mode: Y0+U0+Y1+V0 (1 plane).
+	PixelFormatUYVY         PixelFormat = 0x59565955 // Packed mode: U0+Y0+V0+Y1 (1 plane).
+	PixelFormatYVYU         PixelFormat = 0x55595659 // Packed mode: Y0+V0+Y1+U0 (1 plane).
+	PixelFormatNV12         PixelFormat = 0x3231564E // Planar mode: Y + U/V interleaved (2 planes).
+	PixelFormatNV21         PixelFormat = 0x3132564E // Planar mode: Y + V/U interleaved (2 planes).
+	PixelFormatP010         PixelFormat = 0x30313050 // Planar mode: Y + U/V interleaved (2 planes).
+	PixelFormatExternalOES  PixelFormat = 0x2053454F // Android video texture format.
+	PixelformatMJPG         PixelFormat = 0x47504A4D // Motion JPEG.
 	PixelFormatRGBA32       PixelFormat = PixelFormatABGR8888
 	PixelFormatARGB32       PixelFormat = PixelFormatBGRA8888
 	PixelFormatBGRA32       PixelFormat = PixelFormatARGB8888
@@ -397,7 +397,7 @@ type Color struct {
 	R, G, B, A uint8
 }
 
-// [FColor] is a structure specifying the bits of this structure can be directly reinterpreted as a float-packed color which uses the [PIXELFORMAT_RGBA128_FLOAT] formas.
+// [FColor] is a structure, which bits can be directly reinterpreted as a float-packed color which uses the [PixelformatRgba128Float] format.
 //
 // [FColor]: https://wiki.libsdl.org/SDL3/SDL_FColor
 type FColor struct {
@@ -409,7 +409,7 @@ type FColor struct {
 // [Palette]: https://wiki.libsdl.org/SDL3/SDL_Palette
 type Palette struct {
 	ncolors  int32  // Number of elements in `colors`.
-	colors   *Color // Number of elements in `colors`.
+	colors   *Color // An array of colors, `ncolors` long.
 	version  uint32 // Internal use only, do not touch.
 	refcount int32  // Internal use only, do not touch.
 }
@@ -435,14 +435,23 @@ type PixelFormatDetails struct {
 	Rshift, Gshift, Bshift, Ashift uint8
 }
 
+// [GetPixelFormatName] gets the human readable name of a pixel format.
+//
+// [GetPixelFormatName]: https://wiki.libsdl.org/SDL3/SDL_GetPixelFormatName
 // func GetPixelFormatName(format PixelFormat) string {
 //	return sdlGetPixelFormatName(format)
 // }
 
+// [GetMasksForPixelFormat] converts one of the enumerated pixel formats to a bpp value and RGBA masks.
+//
+// [GetMasksForPixelFormat]: https://wiki.libsdl.org/SDL3/SDL_GetMasksForPixelFormat
 // func GetMasksForPixelFormat(format PixelFormat, bpp *int32, Rmask *uint32, Gmask *uint32, Bmask *uint32, Amask *uint32) bool {
 //	return sdlGetMasksForPixelFormat(format, bpp, Rmask, Gmask, Bmask, Amask)
 // }
 
+// [GetPixelFormatForMasks] converts a bpp value and RGBA masks to an enumerated pixel format.
+//
+// [GetPixelFormatForMasks]: https://wiki.libsdl.org/SDL3/SDL_GetPixelFormatForMasks
 // func GetPixelFormatForMasks(bpp int32, Rmask uint32, Gmask uint32, Bmask uint32, Amask uint32) PixelFormat {
 //	return sdlGetPixelFormatForMasks(bpp, Rmask, Gmask, Bmask, Amask)
 // }
@@ -483,18 +492,27 @@ func DestroyPalette(palette *Palette) {
 // [MapRGB] maps an RGB triple to an opaque pixel value for a given pixel format.
 //
 // [MapRGB]: https://wiki.libsdl.org/SDL3/SDL_MapRGB
-func MapRGB(format *PixelFormatDetails, palette *Palette, r uint8, g uint8, b uint8) uint32 {
+func MapRGB(format *PixelFormatDetails, palette *Palette, r, g, b uint8) uint32 {
 	return sdlMapRGB(format, palette, r, g, b)
 }
 
+// [MapRGBA] maps an RGBA quadruple to a pixel value for a given pixel format.
+//
+// [MapRGBA]: https://wiki.libsdl.org/SDL3/SDL_MapRGBA
 // func MapRGBA(format *PixelFormatDetails, palette *Palette, r uint8, g uint8, b uint8, a uint8) uint32 {
 //	return sdlMapRGBA(format, palette, r, g, b, a)
 // }
 
+// [GetRGB] gets RGB values from a pixel in the specified format.
+//
+// [GetRGB]: https://wiki.libsdl.org/SDL3/SDL_GetRGB
 // func GetRGB(pixel uint32, format *PixelFormatDetails, palette *Palette, r *uint8, g *uint8, b *uint8)  {
 //	sdlGetRGB(pixel, format, palette, r, g, b)
 // }
 
+// [GetRGBA] gets RGBA values from a pixel in the specified format.
+//
+// [GetRGBA]: https://wiki.libsdl.org/SDL3/SDL_GetRGBA
 // func GetRGBA(pixel uint32, format *PixelFormatDetails, palette *Palette, r *uint8, g *uint8, b *uint8, a *uint8)  {
 //	sdlGetRGBA(pixel, format, palette, r, g, b, a)
 // }

@@ -6,7 +6,7 @@ import (
 
 const PropNameString = "SDL.name" // Available since SDL 3.4.0.
 
-// [PropertiesID] is an ID that represents a properties set.
+// [PropertiesID] specifies an ID that represents a properties set.
 //
 // [PropertiesID]: https://wiki.libsdl.org/SDL3/SDL_PropertiesID
 type PropertiesID uint32

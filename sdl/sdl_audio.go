@@ -90,74 +90,128 @@ func GetCurrentAudioDriver() string {
 	return sdlGetCurrentAudioDriver()
 }
 
+// [GetAudioPlaybackDevices] gets a list of currently-connected audio playback devices.
+//
+// [GetAudioPlaybackDevices]: https://wiki.libsdl.org/SDL3/SDL_GetAudioPlaybackDevices
 // func GetAudioPlaybackDevices(count *int32) *AudioDeviceID {
 //	return sdlGetAudioPlaybackDevices(count)
 // }
 
+// [GetAudioRecordingDevices] gets a list of currently-connected audio recording devices.
+//
+// [GetAudioRecordingDevices]: https://wiki.libsdl.org/SDL3/SDL_GetAudioRecordingDevices
 // func GetAudioRecordingDevices(count *int32) *AudioDeviceID {
 //	return sdlGetAudioRecordingDevices(count)
 // }
 
+// [GetAudioDeviceName] gets the human-readable name of a specific audio device.
+//
+// [GetAudioDeviceName]: https://wiki.libsdl.org/SDL3/SDL_GetAudioDeviceName
 // func GetAudioDeviceName(devid AudioDeviceID) string {
 //	return sdlGetAudioDeviceName(devid)
 // }
 
+// [GetAudioDeviceFormat] gets the current audio format of a specific audio device.
+//
+// [GetAudioDeviceFormat]: https://wiki.libsdl.org/SDL3/SDL_GetAudioDeviceFormat
 // func GetAudioDeviceFormat(devid AudioDeviceID, spec *AudioSpec, sample_frames *int32) bool {
 //	return sdlGetAudioDeviceFormat(devid, spec, sample_frames)
 // }
 
+// [GetAudioDeviceChannelMap] gets the current channel map of an audio device.
+//
+// [GetAudioDeviceChannelMap]: https://wiki.libsdl.org/SDL3/SDL_GetAudioDeviceChannelMap
 // func GetAudioDeviceChannelMap(devid AudioDeviceID, count *int32) *int32 {
 //	return sdlGetAudioDeviceChannelMap(devid, count)
 // }
 
+// [OpenAudioDevice] opens a specific audio device.
+//
+// [OpenAudioDevice]: https://wiki.libsdl.org/SDL3/SDL_OpenAudioDevice
 // func OpenAudioDevice(devid AudioDeviceID, spec *AudioSpec) AudioDeviceID {
 //	return sdlOpenAudioDevice(devid, spec)
 // }
 
+// [IsAudioDevicePhysical] determines if an audio device is physical (instead of logical).
+//
+// [IsAudioDevicePhysical]: https://wiki.libsdl.org/SDL3/SDL_IsAudioDevicePhysical
 // func IsAudioDevicePhysical(devid AudioDeviceID) bool {
 //	return sdlIsAudioDevicePhysical(devid)
 // }
 
+// [IsAudioDevicePlayback] determines if an audio device is a playback device (instead of recording).
+//
+// [IsAudioDevicePlayback]: https://wiki.libsdl.org/SDL3/SDL_IsAudioDevicePlayback
 // func IsAudioDevicePlayback(devid AudioDeviceID) bool {
 //	return sdlIsAudioDevicePlayback(devid)
 // }
 
+// [PauseAudioDevice] use this function to pause audio playback on a specified device.
+//
+// [PauseAudioDevice]: https://wiki.libsdl.org/SDL3/SDL_PauseAudioDevice
 // func PauseAudioDevice(dev AudioDeviceID) bool {
 //	return sdlPauseAudioDevice(dev)
 // }
 
+// [ResumeAudioDevice] use this function to unpause audio playback on a specified device.
+//
+// [ResumeAudioDevice]: https://wiki.libsdl.org/SDL3/SDL_ResumeAudioDevice
 // func ResumeAudioDevice(dev AudioDeviceID) bool {
 //	return sdlResumeAudioDevice(dev)
 // }
 
+// [AudioDevicePaused] use this function to query if an audio device is paused.
+//
+// [AudioDevicePaused]: https://wiki.libsdl.org/SDL3/SDL_AudioDevicePaused
 // func AudioDevicePaused(dev AudioDeviceID) bool {
 //	return sdlAudioDevicePaused(dev)
 // }
 
+// [GetAudioDeviceGain] gets the gain of an audio device.
+//
+// [GetAudioDeviceGain]: https://wiki.libsdl.org/SDL3/SDL_GetAudioDeviceGain
 // func GetAudioDeviceGain(devid AudioDeviceID) float32 {
 //	return sdlGetAudioDeviceGain(devid)
 // }
 
+// [SetAudioDeviceGain] changes the gain of an audio device.
+//
+// [SetAudioDeviceGain]: https://wiki.libsdl.org/SDL3/SDL_SetAudioDeviceGain
 // func SetAudioDeviceGain(devid AudioDeviceID, gain float32) bool {
 //	return sdlSetAudioDeviceGain(devid, gain)
 // }
 
+// [CloseAudioDevice] closes a previously-opened audio device.
+//
+// [CloseAudioDevice]: https://wiki.libsdl.org/SDL3/SDL_CloseAudioDevice
 // func CloseAudioDevice(devid AudioDeviceID)  {
 //	sdlCloseAudioDevice(devid)
 // }
 
+// [BindAudioStreams] binds a list of audio streams to an audio device.
+//
+// [BindAudioStreams]: https://wiki.libsdl.org/SDL3/SDL_BindAudioStreams
 // func BindAudioStreams(devid AudioDeviceID, streams **AudioStream, num_streams int32) bool {
 //	return sdlBindAudioStreams(devid, streams, num_streams)
 // }
 
+// [BindAudioStream] binds a single audio stream to an audio device.
+//
+// [BindAudioStream]: https://wiki.libsdl.org/SDL3/SDL_BindAudioStream
 // func BindAudioStream(devid AudioDeviceID, stream *AudioStream) bool {
 //	return sdlBindAudioStream(devid, stream)
 // }
 
+// [UnbindAudioStreams] unbinds a list of audio streams from their audio devices.
+//
+// [UnbindAudioStreams]: https://wiki.libsdl.org/SDL3/SDL_UnbindAudioStreams
 // func UnbindAudioStreams(streams **AudioStream, num_streams int32)  {
 //	sdlUnbindAudioStreams(streams, num_streams)
 // }
 
+// [UnbindAudioStream] unbinds a single audio stream from its audio device.
+//
+// [UnbindAudioStream]: https://wiki.libsdl.org/SDL3/SDL_UnbindAudioStream
 // func UnbindAudioStream(stream *AudioStream)  {
 //	sdlUnbindAudioStream(stream)
 // }
@@ -169,10 +223,16 @@ func GetAudioStreamDevice(stream *AudioStream) AudioDeviceID {
 	return sdlGetAudioStreamDevice(stream)
 }
 
+// [CreateAudioStream] creates a new audio stream.
+//
+// [CreateAudioStream]: https://wiki.libsdl.org/SDL3/SDL_CreateAudioStream
 // func CreateAudioStream(src_spec *AudioSpec, dst_spec *AudioSpec) *AudioStream {
 //	return sdlCreateAudioStream(src_spec, dst_spec)
 // }
 
+// [GetAudioStreamProperties] gets the properties associated with an audio stream.
+//
+// [GetAudioStreamProperties]: https://wiki.libsdl.org/SDL3/SDL_GetAudioStreamProperties
 // func GetAudioStreamProperties(stream *AudioStream) PropertiesID {
 //	return sdlGetAudioStreamProperties(stream)
 // }
@@ -219,18 +279,30 @@ func SetAudioStreamGain(stream *AudioStream, gain float32) bool {
 	return sdlSetAudioStreamGain(stream, gain)
 }
 
+// [GetAudioStreamInputChannelMap] gets the current input channel map of an audio stream.
+//
+// [GetAudioStreamInputChannelMap]: https://wiki.libsdl.org/SDL3/SDL_GetAudioStreamInputChannelMap
 // func GetAudioStreamInputChannelMap(stream *AudioStream, count *int32) *int32 {
 //	return sdlGetAudioStreamInputChannelMap(stream, count)
 // }
 
+// [GetAudioStreamOutputChannelMap] gets the current output channel map of an audio stream.
+//
+// [GetAudioStreamOutputChannelMap]: https://wiki.libsdl.org/SDL3/SDL_GetAudioStreamOutputChannelMap
 // func GetAudioStreamOutputChannelMap(stream *AudioStream, count *int32) *int32 {
 //	return sdlGetAudioStreamOutputChannelMap(stream, count)
 // }
 
+// [SetAudioStreamInputChannelMap] sets the current input channel map of an audio stream.
+//
+// [SetAudioStreamInputChannelMap]: https://wiki.libsdl.org/SDL3/SDL_SetAudioStreamInputChannelMap
 // func SetAudioStreamInputChannelMap(stream *AudioStream, chmap *int32, count int32) bool {
 //	return sdlSetAudioStreamInputChannelMap(stream, chmap, count)
 // }
 
+// [SetAudioStreamOutputChannelMap] sets the current output channel map of an audio stream.
+//
+// [SetAudioStreamOutputChannelMap]: https://wiki.libsdl.org/SDL3/SDL_SetAudioStreamOutputChannelMap
 // func SetAudioStreamOutputChannelMap(stream *AudioStream, chmap *int32, count int32) bool {
 //	return sdlSetAudioStreamOutputChannelMap(stream, chmap, count)
 // }
@@ -262,10 +334,16 @@ func PutAudioStreamData(stream *AudioStream, buf *uint8, len int32) bool {
 // 	return byte(ret) != 0
 // }
 
+// [GetAudioStreamData] gets converted/resampled data from the stream.
+//
+// [GetAudioStreamData]: https://wiki.libsdl.org/SDL3/SDL_GetAudioStreamData
 // func GetAudioStreamData(stream *AudioStream, buf unsafe.Pointer, len int32) int32 {
 //	return sdlGetAudioStreamData(stream, buf, len)
 // }
 
+// [GetAudioStreamAvailable] gets the number of converted/resampled bytes available.
+//
+// [GetAudioStreamAvailable]: https://wiki.libsdl.org/SDL3/SDL_GetAudioStreamAvailable
 // func GetAudioStreamAvailable(stream *AudioStream) int32 {
 //	return sdlGetAudioStreamAvailable(stream)
 // }
@@ -313,18 +391,30 @@ func AudioStreamDevicePaused(stream *AudioStream) bool {
 	return sdlAudioStreamDevicePaused(stream)
 }
 
+// [LockAudioStream] locks an audio stream for serialized access.
+//
+// [LockAudioStream]: https://wiki.libsdl.org/SDL3/SDL_LockAudioStream
 // func LockAudioStream(stream *AudioStream) bool {
 //	return sdlLockAudioStream(stream)
 // }
 
+// [UnlockAudioStream] unlocks an audio stream for serialized access.
+//
+// [UnlockAudioStream]: https://wiki.libsdl.org/SDL3/SDL_UnlockAudioStream
 // func UnlockAudioStream(stream *AudioStream) bool {
 //	return sdlUnlockAudioStream(stream)
 // }
 
+// [SetAudioStreamGetCallback] sets a callback that runs when data is requested from an audio stream.
+//
+// [SetAudioStreamGetCallback]: https://wiki.libsdl.org/SDL3/SDL_SetAudioStreamGetCallback
 // func SetAudioStreamGetCallback(stream *AudioStream, callback AudioStreamCallback, userdata unsafe.Pointer) bool {
 //	return sdlSetAudioStreamGetCallback(stream, callback, userdata)
 // }
 
+// [SetAudioStreamPutCallback] sets a callback that runs when data is added to an audio stream.
+//
+// [SetAudioStreamPutCallback]: https://wiki.libsdl.org/SDL3/SDL_SetAudioStreamPutCallback
 // func SetAudioStreamPutCallback(stream *AudioStream, callback AudioStreamCallback, userdata unsafe.Pointer) bool {
 //	return sdlSetAudioStreamPutCallback(stream, callback, userdata)
 // }
@@ -344,6 +434,14 @@ func OpenAudioDeviceStream(devid AudioDeviceID, spec *AudioSpec, callback AudioS
 	return sdlOpenAudioDeviceStream(devid, spec, callback, userdata)
 }
 
+// [AudioPostmixCallback] defines a callback that fires when data is about to be fed to an audio device.
+//
+// [AudioPostmixCallback]: https://wiki.libsdl.org/SDL3/SDL_AudioPostmixCallback
+type AudioPostmixCallback uintptr
+
+// [SetAudioPostmixCallback] sets a callback that fires when data is about to be fed to an audio device.
+//
+// [SetAudioPostmixCallback]: https://wiki.libsdl.org/SDL3/SDL_SetAudioPostmixCallback
 // func SetAudioPostmixCallback(devid AudioDeviceID, callback AudioPostmixCallback, userdata unsafe.Pointer) bool {
 //	return sdlSetAudioPostmixCallback(devid, callback, userdata)
 // }
@@ -364,18 +462,30 @@ func LoadWAV(path string, spec *AudioSpec, audioBuf **uint8, audioLen *uint32) b
 	return sdlLoadWAV(path, spec, audioBuf, audioLen)
 }
 
+// [MixAudio] mixs audio data in a specified format.
+//
+// [MixAudio]: https://wiki.libsdl.org/SDL3/SDL_MixAudio
 // func MixAudio(dst *uint8, src *uint8, format AudioFormat, len uint32, volume float32) bool {
 //	return sdlMixAudio(dst, src, format, len, volume)
 // }
 
+// [ConvertAudioSamples] converts some audio data of one format to another format.
+//
+// [ConvertAudioSamples]: https://wiki.libsdl.org/SDL3/SDL_ConvertAudioSamples
 // func ConvertAudioSamples(src_spec *AudioSpec, src_data *uint8, src_len int32, dst_spec *AudioSpec, dst_data **uint8, dst_len *int32) bool {
 //	return sdlConvertAudioSamples(src_spec, src_data, src_len, dst_spec, dst_data, dst_len)
 // }
 
+// [GetAudioFormatName] gets the human readable name of an audio format.
+//
+// [GetAudioFormatName]: https://wiki.libsdl.org/SDL3/SDL_GetAudioFormatName
 // func GetAudioFormatName(format AudioFormat) string {
 //	return sdlGetAudioFormatName(format)
 // }
 
+// [GetSilenceValueForFormat] gets the appropriate memset value for silencing an audio format.
+//
+// [GetSilenceValueForFormat]: https://wiki.libsdl.org/SDL3/SDL_GetSilenceValueForFormat
 // func GetSilenceValueForFormat(format AudioFormat) int32 {
 //	return sdlGetSilenceValueForFormat(format)
 // }

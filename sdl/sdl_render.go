@@ -126,7 +126,7 @@ const (
 	DebugTextFontCharacterSize = 8
 )
 
-// [Vertex] is a vertex structure.
+// [Vertex] defines vertex structure.
 //
 // [Vertex]: https://wiki.libsdl.org/SDL3/SDL_Vertex
 type Vertex struct {
@@ -135,15 +135,15 @@ type Vertex struct {
 	TexCoord FPoint // Normalized texture coordinates, if needed
 }
 
-// [TextureAccess] the access pattern allowed for a texture.
+// [TextureAccess] defines the access pattern allowed for a texture.
 //
 // [TextureAccess]: https://wiki.libsdl.org/SDL3/SDL_TextureAccess
 type TextureAccess uint32
 
 const (
-	TextureAccessStatic    TextureAccess = iota // Changes rarely, not lockable
-	TextureAccessStreaming                      // Changes frequently, lockable
-	TextureAccessTarget                         // Texture can be used as a render target
+	TextureAccessStatic    TextureAccess = iota // Changes rarely, not lockable.
+	TextureAccessStreaming                      // Changes frequently, lockable.
+	TextureAccessTarget                         // Texture can be used as a render target.
 )
 
 // [TextureAddressMode] defines the addressing mode for a texture when used in [RenderGeometry].
@@ -166,26 +166,26 @@ const (
 type RendererLogicalPresentation uint32
 
 const (
-	LogicalPresentationDisabled     RendererLogicalPresentation = iota // There is no logical size in effect
-	LogicalPresentationStretch                                         // The rendered content is stretched to the output resolution
-	LogicalPresentationLetterbox                                       // The rendered content is fit to the largest dimension and the other dimension is letterboxed with the clear color
-	LogicalPresentationOverscan                                        // The rendered content is fit to the smallest dimension and the other dimension extends beyond the output bounds
-	LogicalPresentationIntegerScale                                    // The rendered content is scaled up by integer multiples to fit the output resolution
+	LogicalPresentationDisabled     RendererLogicalPresentation = iota // There is no logical size in effect.
+	LogicalPresentationStretch                                         // The rendered content is stretched to the output resolution.
+	LogicalPresentationLetterbox                                       // The rendered content is fit to the largest dimension and the other dimension is letterboxed with the clear color.
+	LogicalPresentationOverscan                                        // The rendered content is fit to the smallest dimension and the other dimension extends beyond the output bounds.
+	LogicalPresentationIntegerScale                                    // The rendered content is scaled up by integer multiples to fit the output resolution.
 )
 
-// [Renderer] is a structure representing rendering state
+// [Renderer] is a structure representing rendering state.
 //
 // [Renderer]: https://wiki.libsdl.org/SDL3/SDL_Renderer
 type Renderer struct{}
 
-// [Texture] is a efficient driver-specific representation of pixel data.
+// [Texture] defines an efficient driver-specific representation of pixel data.
 //
 // [Texture]: https://wiki.libsdl.org/SDL3/SDL_Texture
 type Texture struct {
 	Format   PixelFormat // The format of the texture, read-only
 	W        int32       // The width of the texture, read-only.
 	H        int32       // The height of the texture, read-only.
-	Refcount int32       // Application reference count, used when freeing texture
+	Refcount int32       // Application reference count, used when freeing texture.
 }
 
 // [GetNumRenderDrivers] gets the number of 2D rendering drivers available for the current display.
@@ -210,6 +210,7 @@ func CreateWindowAndRenderer(title string, width, height int32, flags WindowFlag
 }
 
 // [CreateRenderer] creates a 2D rendering context for a window.
+//
 // The name parameter can be one driver, a comma-separated list of drivers or "" to let SDL choose one.
 //
 // [CreateRenderer]: https://wiki.libsdl.org/SDL3/SDL_CreateRenderer
@@ -415,7 +416,7 @@ func GetTextureAlphaModFloat(texture *Texture, alpha *float32) bool {
 	return sdlGetTextureAlphaModFloat(texture, alpha)
 }
 
-// [SetTextureBlendMode] sets the blend mode for a texture, used by [RenderTexture()].
+// [SetTextureBlendMode] sets the blend mode for a texture, used by [RenderTexture].
 //
 // [SetTextureBlendMode]: https://wiki.libsdl.org/SDL3/SDL_SetTextureBlendMode
 func SetTextureBlendMode(texture *Texture, blendMode BlendMode) bool {
@@ -471,7 +472,7 @@ func LockTexture(texture *Texture, rect *Rect, pixels *unsafe.Pointer, pitch *in
 	return sdlLockTexture(texture, rect, pixels, pitch)
 }
 
-// [LockTextureToSurface] locks a portion of the texture for write-only pixel access, and expose it as a SDL surface.
+// [LockTextureToSurface] locks a portion of the texture for write-only pixel access, and exposes it as a SDL surface.
 //
 // [LockTextureToSurface]: https://wiki.libsdl.org/SDL3/SDL_LockTextureToSurface
 func LockTextureToSurface(texture *Texture, rect *Rect, surface **Surface) bool {
@@ -614,21 +615,21 @@ func SetRenderDrawColor(renderer *Renderer, r, g, b, a uint8) bool {
 // [SetRenderDrawColorFloat] sets the color used for drawing operations (Rect, Line and Clear).
 //
 // [SetRenderDrawColorFloat]: https://wiki.libsdl.org/SDL3/SDL_SetRenderDrawColorFloat
-func SetRenderDrawColorFloat(renderer *Renderer, r float32, g float32, b float32, a float32) bool {
+func SetRenderDrawColorFloat(renderer *Renderer, r, g, b, a float32) bool {
 	return sdlSetRenderDrawColorFloat(renderer, r, g, b, a)
 }
 
 // [GetRenderDrawColor] gets the color used for drawing operations (Rect, Line and Clear).
 //
 // [GetRenderDrawColor]: https://wiki.libsdl.org/SDL3/SDL_GetRenderDrawColor
-func GetRenderDrawColor(renderer *Renderer, r *uint8, g *uint8, b *uint8, a *uint8) bool {
+func GetRenderDrawColor(renderer *Renderer, r, g, b, a *uint8) bool {
 	return sdlGetRenderDrawColor(renderer, r, g, b, a)
 }
 
 // [GetRenderDrawColorFloat] gets the color used for drawing operations (Rect, Line and Clear).
 //
 // [GetRenderDrawColorFloat]: https://wiki.libsdl.org/SDL3/SDL_GetRenderDrawColorFloat
-func GetRenderDrawColorFloat(renderer *Renderer, r *float32, g *float32, b *float32, a *float32) bool {
+func GetRenderDrawColorFloat(renderer *Renderer, r, g, b, a *float32) bool {
 	return sdlGetRenderDrawColorFloat(renderer, r, g, b, a)
 }
 
@@ -878,7 +879,7 @@ func RenderDebugText(renderer *Renderer, x, y float32, str string) bool {
 	return sdlRenderDebugText(renderer, x, y, str)
 }
 
-// [RenderDebugTextFormat] draws debug text to an [Renderer].
+// [RenderDebugTextFormat] draws debug text to a [Renderer].
 //
 // [RenderDebugTextFormat]: https://wiki.libsdl.org/SDL3/SDL_RenderDebugTextFormat
 func RenderDebugTextFormat(renderer *Renderer, x float32, y float32, format string, a ...any) bool {

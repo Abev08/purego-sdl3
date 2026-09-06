@@ -7,41 +7,18 @@ import "unsafe"
 // [MainFunc]: https://wiki.libsdl.org/SDL3/SDL_main_func
 type MainFunc func(argc int32, argv **byte) int32
 
-// [AppInitFunc] is a function pointer typedef for [AppInit].
+// [Main] ans app-supplied function for program entry.
 //
-// [AppInitFunc]: https://wiki.libsdl.org/SDL3/SDL_AppInit_func
-type AppInitFunc func(appState *unsafe.Pointer, argc int32, argv **byte) AppResult
-
-// [AppIterateFunc] is a function pointer typedef for [AppIterate].
-//
-// [AppIterateFunc]: https://wiki.libsdl.org/SDL3/SDL_AppIterate_func
-type AppIterateFunc func(appState unsafe.Pointer) AppResult
-
-// [AppEventFunc] is a function pointer typedef for [AppEvent].
-//
-// [AppEventFunc]: https://wiki.libsdl.org/SDL3/SDL_AppEvent_func
-type AppEventFunc func(appState unsafe.Pointer, event *Event) AppResult
-
-// [AppQuitFunc] is a function pointer typedef for [AppQuit].
-//
-// [AppQuitFunc]: https://wiki.libsdl.org/SDL3/SDL_AppQuit_func
-type AppQuitFunc func(appState unsafe.Pointer, result int32)
-
-// [EnterAppMainCallbacks] is an entry point for SDL's use in SDL_MAIN_USE_CALLBACKS.
-//
-// Calling this function blocks the execution on PC, but it doesn't block on WASM.
-//
-// [EnterAppMainCallbacks]: https://wiki.libsdl.org/SDL3/SDL_EnterAppMainCallbacks
-func EnterAppMainCallbacks(argc int32, argv **byte, appInit AppInitFunc, appIter AppIterateFunc, appEvent AppEventFunc, appQuit AppQuitFunc) int32 {
-	return sdlEnterAppMainCallbacks(argc, argv, appInit, appIter, appEvent, appQuit)
-}
-
-// func GDKSuspendComplete()  {
-//	sdlGDKSuspendComplete()
-// }
-
+// [Main]: https://wiki.libsdl.org/SDL3/SDL_main
 // func main(argc int32, argv **byte) int32 {
 //	return sdlmain(argc, argv)
+// }
+
+// [SetMainReady] circumvents failure of [Init] when not using [main] as an entry.
+//
+// [SetMainReady]: https://wiki.libsdl.org/SDL3/SDL_SetMainReady
+// func SetMainReady()  {
+//	sdlSetMainReady()
 // }
 
 // [RunApp] initializes and launches an SDL application, by doing platform-specific initialization before calling your
@@ -55,6 +32,18 @@ func RunApp(argc int32, argv **byte, mainFunction MainFunc, reserved unsafe.Poin
 	return sdlRunApp(argc, argv, mainFunction, reserved)
 }
 
-// func SetMainReady()  {
-//	sdlSetMainReady()
+// [EnterAppMainCallbacks] is an entry point for SDL's use in SDL_MAIN_USE_CALLBACKS.
+//
+// Calling this function blocks the execution on PC, but it doesn't block on WASM.
+//
+// [EnterAppMainCallbacks]: https://wiki.libsdl.org/SDL3/SDL_EnterAppMainCallbacks
+func EnterAppMainCallbacks(argc int32, argv **byte, appInit AppInitFunc, appIter AppIterateFunc, appEvent AppEventFunc, appQuit AppQuitFunc) int32 {
+	return sdlEnterAppMainCallbacks(argc, argv, appInit, appIter, appEvent, appQuit)
+}
+
+// [GDKSuspendComplete] callbacks from the application to let the suspend continue.
+//
+// [GDKSuspendComplete]: https://wiki.libsdl.org/SDL3/SDL_GDKSuspendComplete
+// func GDKSuspendComplete()  {
+//	sdlGDKSuspendComplete()
 // }

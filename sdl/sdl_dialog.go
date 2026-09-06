@@ -17,7 +17,7 @@ const (
 	PropFileDialogCancelString   = "SDL.filedialog.cancel"
 )
 
-// [DialogFileFilter] is an entry for filters for file dialogs.
+// [DialogFileFilter] defines an entry for filters for file dialogs.
 //
 // [DialogFileFilter]: https://wiki.libsdl.org/SDL3/SDL_DialogFileFilter
 type DialogFileFilter struct {

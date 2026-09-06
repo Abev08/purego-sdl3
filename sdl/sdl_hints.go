@@ -9,6 +9,7 @@ const (
 	HintAndroidAllowRecreateActivity       = "SDL_ANDROID_ALLOW_RECREATE_ACTIVITY"
 	HintAndroidBlockOnPause                = "SDL_ANDROID_BLOCK_ON_PAUSE"
 	HintAndroidLowLatencyAudio             = "SDL_ANDROID_LOW_LATENCY_AUDIO"
+	HintAndroidAaudioInputPreset           = "SDL_ANDROID_AAUDIO_INPUT_PRESET" // Available since SDL 3.4.16.
 	HintAndroidTrapBackButton              = "SDL_ANDROID_TRAP_BACK_BUTTON"
 	HintAppID                              = "SDL_APP_ID"
 	HintAppName                            = "SDL_APP_NAME"
@@ -45,6 +46,7 @@ const (
 	HintEmscriptenCanvasSelector           = "SDL_EMSCRIPTEN_CANVAS_SELECTOR"
 	HintEmscriptenKeyboardElement          = "SDL_EMSCRIPTEN_KEYBOARD_ELEMENT"
 	HintEnableScreenKeyboard               = "SDL_ENABLE_SCREEN_KEYBOARD"
+	HintEnableSteamScreenKeyboard          = "SDL_ENABLE_STEAM_SCREEN_KEYBOARD" // Available since SDL 3.4.12.
 	HintEvdevDevices                       = "SDL_EVDEV_DEVICES"
 	HintEventLogging                       = "SDL_EVENT_LOGGING"
 	HintForceRaiseWindow                   = "SDL_FORCE_RAISEWINDOW"
@@ -273,7 +275,7 @@ const (
 	HintPenTouchEvents                     = "SDL_PEN_TOUCH_EVENTS"
 )
 
-// [HintPriority] is an enumeration of hint priorities.
+// [HintPriority] defines an enumeration of hint priorities.
 //
 // [HintPriority]: https://wiki.libsdl.org/SDL3/SDL_HintPriority
 type HintPriority uint32
@@ -326,7 +328,7 @@ func GetHintBoolean(name string, defaultValue bool) bool {
 	return sdlGetHintBoolean(name, defaultValue)
 }
 
-// [HintCallback] is a callback used to send notifications of hint value changes.
+// [HintCallback] defines a callback used to send notifications of hint value changes.
 //
 // [HintCallback]: https://wiki.libsdl.org/SDL3/SDL_HintCallback
 type HintCallback uintptr

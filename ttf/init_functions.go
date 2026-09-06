@@ -71,7 +71,7 @@ var (
 	ttfGetTextSubString                       func(*Text, int32, *SubString) bool
 	ttfGetTextSubStringForLine                func(*Text, int32, *SubString) bool
 	ttfGetTextSubStringForPoint               func(*Text, int32, int32, *SubString) bool
-	ttfGetTextSubStringsForRange              func(*Text, int32, int32, *int32)
+	ttfGetTextSubStringsForRange              func(*Text, int32, int32, *int32) **SubString
 	ttfGetTextWrapWidth                       func(*Text, *int32) bool
 	ttfInit                                   func() bool
 	ttfInsertTextString                       func(*Text, int32, string, uint64) bool

@@ -93,7 +93,7 @@ var (
 	// sdlCompareAndSwapAtomicInt               func(*AtomicInt, int32, int32) bool
 	// sdlCompareAndSwapAtomicPointer           func(*unsafe.Pointer, unsafe.Pointer, unsafe.Pointer) bool
 	// sdlCompareAndSwapAtomicU32               func(*AtomicU32, uint32, uint32) bool
-	// sdlComposeCustomBlendMode                func(BlendFactor, BlendFactor, BlendOperation, BlendFactor, BlendFactor, BlendOperation) BlendMode
+	sdlComposeCustomBlendMode func(BlendFactor, BlendFactor, BlendOperation, BlendFactor, BlendFactor, BlendOperation) BlendMode
 	// sdlConvertAudioSamples                   func(*AudioSpec, *uint8, int32, *AudioSpec, **uint8, *int32) bool
 	sdlConvertEventToRenderCoordinates func(*Renderer, *Event) bool
 	sdlConvertPixels                   func(int32, int32, PixelFormat, unsafe.Pointer, int32, PixelFormat, unsafe.Pointer, int32) bool

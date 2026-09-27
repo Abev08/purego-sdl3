@@ -124,7 +124,7 @@ func init() {
 	// purego.RegisterLibFunc(&sdlCompareAndSwapAtomicInt, lib, "SDL_CompareAndSwapAtomicInt")
 	// purego.RegisterLibFunc(&sdlCompareAndSwapAtomicPointer, lib, "SDL_CompareAndSwapAtomicPointer")
 	// purego.RegisterLibFunc(&sdlCompareAndSwapAtomicU32, lib, "SDL_CompareAndSwapAtomicU32")
-	// purego.RegisterLibFunc(&sdlComposeCustomBlendMode, lib, "SDL_ComposeCustomBlendMode")
+	purego.RegisterLibFunc(&sdlComposeCustomBlendMode, lib, "SDL_ComposeCustomBlendMode")
 	// purego.RegisterLibFunc(&sdlConvertAudioSamples, lib, "SDL_ConvertAudioSamples")
 	purego.RegisterLibFunc(&sdlConvertEventToRenderCoordinates, lib, "SDL_ConvertEventToRenderCoordinates")
 	purego.RegisterLibFunc(&sdlConvertPixels, lib, "SDL_ConvertPixels")

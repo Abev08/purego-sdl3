@@ -38,8 +38,8 @@ func main() {
 	// times) with data from a bitmap file.
 
 	// SDL_Surface is pixel data the CPU can access. SDL_Texture is pixel data the GPU can access.
-	// Load a .bmp into a surface, move it to a texture from there.
-	surface := sdl.LoadBMP(sdl.GetBasePath() + "sample.bmp")
+	// Load a .png into a surface, move it to a texture from there.
+	surface := sdl.LoadPNG(sdl.GetBasePath() + "../sample.png")
 	if surface == nil {
 		panic(sdl.GetError())
 	}

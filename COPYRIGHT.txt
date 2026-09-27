@@ -12,6 +12,10 @@ Files: examples/gpu-examples/content/shaders/*
 Copyright: 2024 Caleb Cornett <caleb.cornett@outlook.com>
 License: Zlib
 
+Files: examples/renderer/sample.png
+Copyright: Sam Lantinga <slouken@libsdl.org>
+License: Zlib
+
 Files: examples/renderer/20-sprite-batching/gopher-happy.png
        examples/wasm/assets/gopher-happy.bmp
 Copyright: egonelbre

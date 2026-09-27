@@ -11,9 +11,9 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/jupiterrider/purego-sdl3/img"
-	"github.com/jupiterrider/purego-sdl3/sdl"
-	"github.com/jupiterrider/purego-sdl3/ttf"
+	"github.com/abev08/purego-sdl3/img"
+	"github.com/abev08/purego-sdl3/sdl"
+	"github.com/abev08/purego-sdl3/ttf"
 )
 
 // Asset files are read directly when running on Windows/Linux.

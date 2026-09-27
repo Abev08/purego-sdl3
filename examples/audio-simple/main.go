@@ -6,7 +6,7 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/jupiterrider/purego-sdl3/sdl"
+	"github.com/abev08/purego-sdl3/sdl"
 )
 
 //go:embed tone.wav

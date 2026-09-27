@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"unsafe"
 
-	"github.com/jupiterrider/purego-sdl3/internal/convert"
+	"github.com/abev08/purego-sdl3/internal/convert"
 )
 
 const (

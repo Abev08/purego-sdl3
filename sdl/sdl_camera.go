@@ -3,7 +3,7 @@ package sdl
 import (
 	"unsafe"
 
-	"github.com/jupiterrider/purego-sdl3/internal/mem"
+	"github.com/abev08/purego-sdl3/internal/mem"
 )
 
 // [CameraID] is a unique ID for a camera device for the time it is connected to the system, and is never reused for the lifetime of the application.

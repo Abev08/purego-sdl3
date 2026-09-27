@@ -1,5 +1,5 @@
 # purego-sdl3
-[![Go Reference](https://pkg.go.dev/badge/github.com/jupiterrider/purego-sdl3.svg)](https://pkg.go.dev/github.com/jupiterrider/purego-sdl3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/abev08/purego-sdl3.svg)](https://pkg.go.dev/github.com/abev08/purego-sdl3)
 
 A cgo-free SDL3 binding.
 
@@ -23,7 +23,7 @@ This simple example just opens a resizable window with a blue background:
 ```golang
 package main
 
-import "github.com/jupiterrider/purego-sdl3/sdl"
+import "github.com/abev08/purego-sdl3/sdl"
 
 func main() {
 	if !sdl.SetHint(sdl.HintRenderVSync, "1") {

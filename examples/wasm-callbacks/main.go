@@ -5,7 +5,7 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/jupiterrider/purego-sdl3/sdl"
+	"github.com/abev08/purego-sdl3/sdl"
 )
 
 // To build this example for WASM use build script and index.html file from "wasm" example.

@@ -5,8 +5,8 @@ package img
 import (
 	"runtime"
 
+	"github.com/abev08/purego-sdl3/internal/shared"
 	"github.com/ebitengine/purego"
-	"github.com/jupiterrider/purego-sdl3/internal/shared"
 )
 
 func init() {

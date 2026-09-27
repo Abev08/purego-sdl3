@@ -3,7 +3,7 @@ package sdl
 import (
 	"unsafe"
 
-	"github.com/jupiterrider/purego-sdl3/internal/convert"
+	"github.com/abev08/purego-sdl3/internal/convert"
 )
 
 // [EventType] defines the types of events that can be delivered.

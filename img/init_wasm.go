@@ -7,7 +7,7 @@ import (
 	"syscall/js"
 	"unsafe"
 
-	"github.com/jupiterrider/purego-sdl3/sdl"
+	"github.com/abev08/purego-sdl3/sdl"
 )
 
 var bridge js.Value

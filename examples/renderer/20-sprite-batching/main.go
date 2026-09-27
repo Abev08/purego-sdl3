@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jupiterrider/purego-sdl3/img"
-	"github.com/jupiterrider/purego-sdl3/sdl"
+	"github.com/abev08/purego-sdl3/img"
+	"github.com/abev08/purego-sdl3/sdl"
 )
 
 // Size at which the sprite should be rendered

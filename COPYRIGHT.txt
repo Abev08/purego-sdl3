@@ -1,10 +1,11 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: purego-sdl3
-Source: https://github.com/jupiterrider/purego-sdl3
+Source: https://github.com/abev08/purego-sdl3
 
 Files: *
 Comment: purego-sdl3
-Copyright: 2025-present JupiterRider
+Copyright: 2025-2026, JupiterRider
+           2026-present, Abev08
 License: Unlicense
 
 Files: examples/gpu-examples/content/shaders/*

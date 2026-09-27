@@ -1,4 +1,4 @@
-module github.com/jupiterrider/purego-sdl3
+module github.com/abev08/purego-sdl3
 
 go 1.25.0
 

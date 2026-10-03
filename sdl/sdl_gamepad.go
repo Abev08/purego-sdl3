@@ -29,6 +29,7 @@ const (
 	GamepadTypeNintendoSwitchJoyConRight
 	GamepadTypeNintendoSwitchJoyConPair
 	GamepadTypeGamecube
+	GamepadTypeSteam
 	GamepadTypeCount
 )
 

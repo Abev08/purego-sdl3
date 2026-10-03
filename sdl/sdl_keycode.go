@@ -168,6 +168,7 @@ const (
 	KeycodeClearAgain         Keycode = 0x400000a2
 	KeycodeCrSel              Keycode = 0x400000a3
 	KeycodeExSel              Keycode = 0x400000a4
+	KeycodeFront              Keycode = 0x400000a5
 	KeycodeKp00               Keycode = 0x400000b0
 	KeycodeKp000              Keycode = 0x400000b1
 	KeycodeThousandsSeparator Keycode = 0x400000b2

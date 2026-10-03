@@ -165,6 +165,7 @@ const (
 	ScancodeClearAgain         Scancode = 162
 	ScancodeCrSel              Scancode = 163
 	ScancodeExSel              Scancode = 164
+	ScancodeFront              Scancode = 165 // Front (Sun keyboards)
 	ScancodeKp00               Scancode = 176
 	ScancodeKp000              Scancode = 177
 	ScancodeThousandsSeparator Scancode = 178

@@ -133,8 +133,8 @@ const (
 	EventPrivate2                   EventType = 0x4002
 	EventPrivate3                   EventType = 0x4003
 	EventPollSentinel               EventType = 0x7F00     // Signals the end of an event poll cycle.
-	EventUser                       EventType = 0x8000     // Events [EVENT_USER] through [EVENT_LAST] are for your use, and should be allocated with [RegisterEvents].
-	EventLast                       EventType = 0xFFFF     // Events [EVENT_USER] through [EVENT_LAST] are for your use, and should be allocated with [RegisterEvents]. This last event is only for bounding internal arrays.
+	EventUser                       EventType = 0x8000     // Events [EventUser] through [EventLast] are for your use, and should be allocated with [RegisterEvents].
+	EventLast                       EventType = 0xFFFF     // Events [EventUser] through [EventLast] are for your use, and should be allocated with [RegisterEvents]. This last event is only for bounding internal arrays.
 	EventEnumPadding                EventType = 0x7FFFFFFF // This just makes sure the enum is the size of Uint32.
 )
 
@@ -533,7 +533,7 @@ type MouseDeviceEvent struct {
 type MouseMotionEvent struct {
 	CommonEvent
 	WindowID WindowID         // The window with mouse focus, if any.
-	Which    MouseID          // The mouse instance id in relative mode, [TOUCH_MOUSEID] for touch events, or 0.
+	Which    MouseID          // The mouse instance id in relative mode, [TouchMouseID] for touch events, or 0.
 	State    MouseButtonFlags // The current button state.
 	X        float32          // X coordinate, relative to window.
 	Y        float32          // Y coordinate, relative to window.
@@ -547,7 +547,7 @@ type MouseMotionEvent struct {
 type MouseButtonEvent struct {
 	CommonEvent
 	WindowID WindowID // The window with mouse focus, if any.
-	Which    MouseID  // The mouse instance id in relative mode, [TOUCH_MOUSEID] for touch events, or 0.
+	Which    MouseID  // The mouse instance id in relative mode, [TouchMouseID] for touch events, or 0.
 	Button   uint8    // The mouse button index.
 	Down     bool     // True if the button is pressed.
 	Clicks   uint8    // 1 for single-click, 2 for double-click, etc.
@@ -608,11 +608,11 @@ type JoyHatEvent struct {
 	Which JoystickID // The joystick instance id.
 	Hat   uint8      // The joystick hat index.
 	// The hat position value.
-	//  * [HAT_LEFTUP] [HAT_UP] [HAT_RIGHTUP]
-	//  * [HAT_LEFT] [HAT_CENTERED] [HAT_RIGHT]
-	//  * [HAT_LEFTDOWN] [HAT_DOWN] [HAT_RIGHTDOWN]
+	//  * [HatLeftUp], [HatUp], [HatRightUp]
+	//  * [HatLeft], [HatCentered], [HatRight]
+	//  * [HatLeftDown], [HatDown], [HatRightDown]
 	//
-	//  * Note that zero means the POV is centered.
+	// Note that zero means the POV is centered.
 	Value uint8
 	_     uint8 // Padding 1.
 	_     uint8 // Padding 2.
@@ -763,8 +763,10 @@ type PinchFingerEvent struct {
 // [PenProximityEvent]: https://wiki.libsdl.org/SDL3/SDL_PenProximityEvent
 type PenProximityEvent struct {
 	CommonEvent
-	WindowID WindowID // The window with pen focus, if any.
-	Which    PenID    // The pen instance id.
+	WindowID   WindowID      // The window with pen focus, if any.
+	Which      PenID         // The pen instance id.
+	PenState   PenInputFlags // Complete pen input state at time of event (added in 3.4.16).
+	DeviceType PenDeviceType // The device type of the pen, if known (added in 3.4.18).
 }
 
 // [PenMotionEvent] defines the pressure-sensitive pen motion event structure (event.pmotion.*).
@@ -772,11 +774,12 @@ type PenProximityEvent struct {
 // [PenMotionEvent]: https://wiki.libsdl.org/SDL3/SDL_PenMotionEvent
 type PenMotionEvent struct {
 	CommonEvent
-	WindowID WindowID      // The window with pen focus, if any.
-	Which    PenID         // The pen instance id.
-	PenState PenInputFlags // Complete pen input state at time of event.
-	X        float32       // X coordinate, relative to window.
-	Y        float32       // Y coordinate, relative to window.
+	WindowID   WindowID      // The window with pen focus, if any.
+	Which      PenID         // The pen instance id.
+	PenState   PenInputFlags // Complete pen input state at time of event.
+	X          float32       // X coordinate, relative to window.
+	Y          float32       // Y coordinate, relative to window.
+	DeviceType PenDeviceType // The device type of the pen, if known (added in 3.4.18).
 }
 
 // [PenTouchEvent] defines the pressure-sensitive pen touched event structure (event.ptouch.*).
@@ -784,13 +787,14 @@ type PenMotionEvent struct {
 // [PenTouchEvent]: https://wiki.libsdl.org/SDL3/SDL_PenTouchEvent
 type PenTouchEvent struct {
 	CommonEvent
-	WindowID WindowID      // The window with pen focus, if any.
-	Which    PenID         // The pen instance id.
-	PenState PenInputFlags // Complete pen input state at time of event.
-	X        float32       // X coordinate, relative to window.
-	Y        float32       // Y coordinate, relative to window.
-	Eraser   bool          // True if eraser end is used (not all pens support this).
-	Down     bool          // True if the pen is touching or false if the pen is lifted off.
+	WindowID   WindowID      // The window with pen focus, if any.
+	Which      PenID         // The pen instance id.
+	PenState   PenInputFlags // Complete pen input state at time of event.
+	X          float32       // X coordinate, relative to window.
+	Y          float32       // Y coordinate, relative to window.
+	Eraser     bool          // True if eraser end is used (not all pens support this).
+	Down       bool          // True if the pen is touching or false if the pen is lifted off.
+	DeviceType PenDeviceType // The device type of the pen, if known (added in 3.4.18).
 }
 
 // [PenButtonEvent] defines the pressure-sensitive pen button event structure (event.pbutton.*).
@@ -798,13 +802,14 @@ type PenTouchEvent struct {
 // [PenButtonEvent]: https://wiki.libsdl.org/SDL3/SDL_PenButtonEvent
 type PenButtonEvent struct {
 	CommonEvent
-	WindowID WindowID      // The window with mouse focus, if any.
-	Which    PenID         // The pen instance id.
-	PenState PenInputFlags // Complete pen input state at time of event.
-	X        float32       // X coordinate, relative to window.
-	Y        float32       // Y coordinate, relative to window.
-	Button   uint8         // The pen button index (first button is 1).
-	Down     bool          // True if the button is pressed.
+	WindowID   WindowID      // The window with mouse focus, if any.
+	Which      PenID         // The pen instance id.
+	PenState   PenInputFlags // Complete pen input state at time of event.
+	X          float32       // X coordinate, relative to window.
+	Y          float32       // Y coordinate, relative to window.
+	Button     uint8         // The pen button index (first button is 1).
+	Down       bool          // True if the button is pressed.
+	DeviceType PenDeviceType // The device type of the pen, if known (added in 3.4.18).
 }
 
 // [PenAxisEvent] defines the pressure-sensitive pen pressure / angle event structure (event.paxis.*).
@@ -812,13 +817,14 @@ type PenButtonEvent struct {
 // [PenAxisEvent]: https://wiki.libsdl.org/SDL3/SDL_PenAxisEvent
 type PenAxisEvent struct {
 	CommonEvent
-	WindowID WindowID      // The window with pen focus, if any.
-	Which    PenID         // The pen instance id.
-	PenState PenInputFlags // Complete pen input state at time of event.
-	X        float32       // X coordinate, relative to window.
-	Y        float32       // Y coordinate, relative to window.
-	Axis     PenAxis       // Axis that has changed.
-	Value    float32       // New value of axis.
+	WindowID   WindowID      // The window with pen focus, if any.
+	Which      PenID         // The pen instance id.
+	PenState   PenInputFlags // Complete pen input state at time of event.
+	X          float32       // X coordinate, relative to window.
+	Y          float32       // Y coordinate, relative to window.
+	Axis       PenAxis       // Axis that has changed.
+	Value      float32       // New value of axis.
+	DeviceType PenDeviceType // The device type of the pen, if known (added in 3.4.18).
 }
 
 // [DropEvent] is an event used to drop text or request a file open by the system (event.drop.*).
@@ -830,7 +836,7 @@ type DropEvent struct {
 	X        float32  // X coordinate, relative to window (not on begin).
 	Y        float32  // Y coordinate, relative to window (not on begin).
 	source   *byte    // The source app that sent this drop event, or nil if that isn't available.
-	data     *byte    // The text for [EVENT_DROP_TEXT] and the file name for [EVENT_DROP_FILE], nil for other events.
+	data     *byte    // The text for [EventDropText] and the file name for [EventDropFile], nil for other events.
 }
 
 // Source returns the source app that sent this drop event, or nil if that isn't available.
@@ -838,7 +844,7 @@ func (d *DropEvent) Source() string {
 	return convert.ToString(d.source)
 }
 
-// Data returns the text for [EVENT_DROP_TEXT] and the file name for [EVENT_DROP_FILE], nil for other events.
+// Data returns the text for [EventDropText] and the file name for [EventDropFile], nil for other events.
 func (d *DropEvent) Data() string {
 	return convert.ToString(d.data)
 }

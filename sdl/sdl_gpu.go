@@ -994,16 +994,16 @@ type GPUColorTargetInfo struct {
 	Texture             *GPUTexture // The texture that will be used as a color target by a render pass.
 	MipLevel            uint32      // The mip level to use as a color target.
 	LayerOrDepthPlane   uint32      // The layer index or depth plane to use as a color target. This value is treated as a layer index on 2D array and cube textures, and as a depth plane on 3D textures.
-	ClearColor          FColor      // The color to clear the color target to at the start of the render pass. Ignored if GPULoadOpClear is not used.
+	ClearColor          FColor      // The color to clear the color target to at the start of the render pass. Ignored if [GPULoadOpClear] is not used.
 	LoadOp              GPULoadOp   // What is done with the contents of the color target at the beginning of the render pass.
 	StoreOp             GPUStoreOp  // What is done with the results of the render pass.
-	ResolveTexture      *GPUTexture // The texture that will receive the results of a multisample resolve operation. Ignored if a RESOLVE* store_op is not used.
-	ResolveMipLevel     uint32      // The mip level of the resolve texture to use for the resolve operation. Ignored if a RESOLVE* store_op is not used.
-	ResolveLayer        uint32      // The layer index of the resolve texture to use for the resolve operation. Ignored if a RESOLVE* store_op is not used.
-	Cycle               bool        // true cycles the texture if the texture is bound and load_op is not LOAD
-	CycleResolveTexture bool        // true cycles the resolve texture if the resolve texture is bound. Ignored if a RESOLVE* store_op is not used.
-	_                   uint8       // padding1
-	_                   uint8       // padding2
+	ResolveTexture      *GPUTexture // The texture that will receive the results of a multisample resolve operation. Ignored if a RESOLVE* StoreOp is not used.
+	ResolveMipLevel     uint32      // The mip level of the resolve texture to use for the resolve operation. Ignored if a RESOLVE* StoreOp is not used.
+	ResolveLayer        uint32      // The layer index of the resolve texture to use for the resolve operation. Ignored if a RESOLVE* StoreOp is not used.
+	Cycle               bool        // True cycles the texture if the texture is bound and LoadOp is not [GPULoadOpLoad].
+	CycleResolveTexture bool        // True cycles the resolve texture if the resolve texture is bound. Ignored if a RESOLVE* StoreOp is not used.
+	_                   uint8       // Padding1
+	_                   uint8       // Padding2
 }
 
 // [GPUDepthStencilTargetInfo] specifies the parameters of a depth-stencil target used by a render pass.
@@ -1011,13 +1011,13 @@ type GPUColorTargetInfo struct {
 // [GPUDepthStencilTargetInfo]: https://wiki.libsdl.org/SDL3/SDL_GPUDepthStencilTargetInfo
 type GPUDepthStencilTargetInfo struct {
 	Texture        *GPUTexture // The texture that will be used as the depth stencil target by the render pass.
-	ClearDepth     float32     // The value to clear the depth component to at the beginning of the render pass. Ignored if GPU_LOADOP_CLEAR is not used.
+	ClearDepth     float32     // The value to clear the depth component to at the beginning of the render pass. Ignored if [GPULoadOpClear] is not used.
 	LoadOp         GPULoadOp   // What is done with the depth contents at the beginning of the render pass.
 	StoreOp        GPUStoreOp  // What is done with the depth results of the render pass.
 	StencilLoadOp  GPULoadOp   // What is done with the stencil contents at the beginning of the render pass.
 	StencilStoreOp GPUStoreOp  // What is done with the stencil results of the render pass.
-	Cycle          bool        // true cycles the texture if the texture is bound and any load ops are not LOAD
-	ClearStencil   uint8       // The value to clear the stencil component to at the beginning of the render pass. Ignored if GPU_LOADOP_CLEAR is not used.
+	Cycle          bool        // True cycles the texture if the texture is bound and any load ops are not [GPULoadOpLoad]
+	ClearStencil   uint8       // The value to clear the stencil component to at the beginning of the render pass. Ignored if [GPULoadOpClear] is not used.
 	MipLevel       uint8       // The mip level to use as the depth stencil target.
 	Layer          uint8       // The layer index to use as the depth stencil target.
 }
@@ -1029,7 +1029,7 @@ type GPUBlitInfo struct {
 	Source      GPUBlitRegion // The source region for the blit.
 	Destination GPUBlitRegion // The destination region for the blit.
 	LoadOp      GPULoadOp     // What is done with the contents of the destination before the blit.
-	ClearColor  FColor        // The color to clear the destination region to before the blit. Ignored if load_op is not SDL_GPU_LOADOP_CLEAR.
+	ClearColor  FColor        // The color to clear the destination region to before the blit. Ignored if LoadOp is not [GPULoadOpClear].
 	FlipMode    FlipMode      // The flip mode for the source region.
 	Filter      GPUFilter     // The filter mode used when blitting.
 	Cycle       bool          // True cycles the destination texture if it is already bound.
@@ -1042,7 +1042,7 @@ type GPUBlitInfo struct {
 //
 // [GPUBufferBinding]: https://wiki.libsdl.org/SDL3/SDL_GPUBufferBinding
 type GPUBufferBinding struct {
-	Buffer *GPUBuffer // The buffer to bind. Must have been created with SDL_GPU_BUFFERUSAGE_VERTEX for SDL_BindGPUVertexBuffers, or SDL_GPU_BUFFERUSAGE_INDEX for SDL_BindGPUIndexBuffer.
+	Buffer *GPUBuffer // The buffer to bind. Must have been created with [GPUBufferUsageVertex] for [BindGPUVertexBuffers], or [GPUBufferUsageIndex] for [BindGPUIndexBuffer].
 	Offset uint32     // The starting byte of the data to bind in the buffer.
 }
 
@@ -1050,7 +1050,7 @@ type GPUBufferBinding struct {
 //
 // [GPUTextureSamplerBinding]: https://wiki.libsdl.org/SDL3/SDL_GPUTextureSamplerBinding
 type GPUTextureSamplerBinding struct {
-	Texture *GPUTexture // The texture to bind. Must have been created with SDL_GPU_TEXTUREUSAGE_SAMPLER.
+	Texture *GPUTexture // The texture to bind. Must have been created with [GPUTextureUsageSampler].
 	Sampler *GPUSampler // The sampler to bind.
 }
 
@@ -1389,12 +1389,24 @@ func BindGPUIndexBuffer(renderPass *GPURenderPass, binding *GPUBufferBinding, in
 
 // [BindGPUVertexSamplers] binds texture-sampler pairs for use on the vertex shader.
 //
+// The textures must have been created with [GPUTextureUsageSampler].
+//
+// The textures being bound must have a matching type declared in the shader (2D, 3D, etc.). Multisample textures are not allowed.
+//
+// Be sure your shader is set up according to the requirements documented in [CreateGPUShader].
+//
 // [BindGPUVertexSamplers]: https://wiki.libsdl.org/SDL3/SDL_BindGPUVertexSamplers
 // func BindGPUVertexSamplers(render_pass *GPURenderPass, first_slot uint32, texture_sampler_bindings *GPUTextureSamplerBinding, num_bindings uint32)  {
 //	sdlBindGPUVertexSamplers(render_pass, first_slot, texture_sampler_bindings, num_bindings)
 // }
 
 // [BindGPUVertexStorageTextures] binds storage textures for use on the vertex shader.
+//
+// These textures must have been created with [GPUTextureUsageGraphicsStorageRead].
+//
+// The textures being bound must have a matching type declared in the shader (2D, 3D, 2DMS, etc.)
+//
+// Be sure your shader is set up according to the requirements documented in [CreateGPUShader].
 //
 // [BindGPUVertexStorageTextures]: https://wiki.libsdl.org/SDL3/SDL_BindGPUVertexStorageTextures
 // func BindGPUVertexStorageTextures(render_pass *GPURenderPass, first_slot uint32, storage_textures **GPUTexture, num_bindings uint32)  {
@@ -1410,6 +1422,12 @@ func BindGPUVertexStorageBuffers(renderPass *GPURenderPass, firstSlot uint32, st
 
 // [BindGPUFragmentSamplers] binds texture-sampler pairs for use on the fragment shader.
 //
+// The textures must have been created with [GPUTextureUsageSampler].
+//
+// The textures being bound must have a matching type declared in the shader (2D, 3D, etc.). Multisample textures are not allowed.
+//
+// Be sure your shader is set up according to the requirements documented in [CreateGPUShader].
+//
 // [BindGPUFragmentSamplers]: https://wiki.libsdl.org/SDL3/SDL_BindGPUFragmentSamplers
 func BindGPUFragmentSamplers(renderPass *GPURenderPass, firstSlot uint32, textureSamplerBindings *GPUTextureSamplerBinding, numBindings uint32) {
 	sdlBindGPUFragmentSamplers(renderPass, firstSlot, textureSamplerBindings, numBindings)
@@ -1417,12 +1435,24 @@ func BindGPUFragmentSamplers(renderPass *GPURenderPass, firstSlot uint32, textur
 
 // [BindGPUFragmentStorageTextures] binds storage textures for use on the fragment shader.
 //
+// These textures must have been created with [GPUTextureUsageGraphicsStorageRead].
+//
+// The textures being bound must have a matching type declared in the shader (2D, 3D, 2DMS, etc.)
+//
+// Be sure your shader is set up according to the requirements documented in [CreateGPUShader].
+//
 // [BindGPUFragmentStorageTextures]: https://wiki.libsdl.org/SDL3/SDL_BindGPUFragmentStorageTextures
 // func BindGPUFragmentStorageTextures(render_pass *GPURenderPass, first_slot uint32, storage_textures **GPUTexture, num_bindings uint32)  {
 //	sdlBindGPUFragmentStorageTextures(render_pass, first_slot, storage_textures, num_bindings)
 // }
 
 // [BindGPUFragmentStorageBuffers] binds storage buffers for use on the fragment shader.
+//
+// These textures must have been created with [GPUTextureUsageGraphicsStorageRead].
+//
+// The textures being bound must have a matching type declared in the shader (2D, 3D, 2DMS, etc.)
+//
+// Be sure your shader is set up according to the requirements documented in [CreateGPUShader].
 //
 // [BindGPUFragmentStorageBuffers]: https://wiki.libsdl.org/SDL3/SDL_BindGPUFragmentStorageBuffers
 func BindGPUFragmentStorageBuffers(renderPass *GPURenderPass, firstSlot uint32, storageBuffers **GPUBuffer, numBindings uint32) {
@@ -1480,12 +1510,24 @@ func EndGPURenderPass(renderPass *GPURenderPass) {
 
 // [BindGPUComputeSamplers] binds texture-sampler pairs for use on the compute shader.
 //
+// The textures must have been created with [GPUTextureUsageSampler].
+//
+// The textures being bound must have a matching type declared in the shader (2D, 3D, etc.). Multisample textures are not allowed.
+//
+// Be sure your shader is set up according to the requirements documented in [CreateGPUComputePipeline].
+//
 // [BindGPUComputeSamplers]: https://wiki.libsdl.org/SDL3/SDL_BindGPUComputeSamplers
 // func BindGPUComputeSamplers(compute_pass *GPUComputePass, first_slot uint32, texture_sampler_bindings *GPUTextureSamplerBinding, num_bindings uint32)  {
 //	sdlBindGPUComputeSamplers(compute_pass, first_slot, texture_sampler_bindings, num_bindings)
 // }
 
 // [BindGPUComputeStorageTextures] binds storage textures as readonly for use on the compute pipeline.
+//
+// These textures must have been created with [GPUTextureUsageComputeStorageRead].
+//
+// The textures being bound must have a matching type declared in the shader (2D, 3D, 2DMS, etc.)
+//
+// Be sure your shader is set up according to the requirements documented in [CreateGPUComputePipeline].
 //
 // [BindGPUComputeStorageTextures]: https://wiki.libsdl.org/SDL3/SDL_BindGPUComputeStorageTextures
 // func BindGPUComputeStorageTextures(compute_pass *GPUComputePass, first_slot uint32, storage_textures **GPUTexture, num_bindings uint32)  {

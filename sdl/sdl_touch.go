@@ -1,5 +1,7 @@
 package sdl
 
+import "math"
+
 // [TouchID] specifies a unique ID for a touch device.
 //
 // [TouchID]: https://wiki.libsdl.org/SDL3/SDL_TouchID
@@ -31,6 +33,11 @@ type Finger struct {
 	Y        float32  // The y-axis location of the touch event, normalized (0...1).
 	Pressure float32  // The quantity of pressure applied, normalized (0...1).
 }
+
+const (
+	TouchMouseID = MouseID(math.MaxUint32) // The [MouseID] for mouse events simulated with touch input.
+	MouseTouchID = TouchID(math.MaxUint64) // The [TouchID] for touch events simulated with mouse input.
+)
 
 // [GetTouchDevices] gets a list of registered touch devices.
 //
